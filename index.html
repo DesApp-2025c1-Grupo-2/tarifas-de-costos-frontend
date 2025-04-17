@@ -1,108 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./src/style.css">
-  <title>Portal de Tarifas - Acme SRL</title>
-</head>
-<body>
-
-  <header>
-    <div><strong>Acme SRL - Sistema de Tarifas</strong></div>
-    <div>Usuario: Juan Pérez</div>
-  </header>
-
-  <aside class="sidebar">
-    <h2>Menú</h2>
-    <a href="#">Dashboard</a>
-    <a href="#">Tarifas</a>
-    <a href="#">Adicionales</a>
-    <a href="#">Reportes</a>
-    <a href="#">Configuración</a>
-    <a href="#">Cerrar sesión</a>
-  </aside>
-
-  <main class="main">
-    <div class="grid">
-
-      <section class="card filters">
-        <h3>Filtros</h3>
-        <label for="vehiculo">Tipo de Vehículo</label>
-        <select id="vehiculo">
-          <option>Todos</option>
-          <option>Camioneta</option>
-          <option>Camión Mediano</option>
-          <option>Camión Grande</option>
-        </select>
-
-        <label for="carga">Tipo de Carga</label>
-        <select id="carga">
-          <option>Todos</option>
-          <option>General</option>
-          <option>Refrigerada</option>
-          <option>Peligrosa</option>
-        </select>
-
-        <label for="zona">Zona de Viaje</label>
-        <select id="zona">
-          <option>Todas</option>
-          <option>AMBA</option>
-          <option>BsAs-Rosario</option>
-        </select>
-
-        <label for="fecha">Fecha de vigencia</label>
-        <input type="date">
-
-        <label for="ordenar">Ordenar segun</label>
-        <select id="ordenar">
-          <option></option>
-          <option>ID</option>
-          <option>Zona</option>
-          <option>Vehículo</option>
-          <option>Costo Base</option>
-          <option>Adicionales</option>
-          <option>Total</option>
-        </select>
-
-      </section>
-
-      <section class="card">
-        <h3>Tarifas de Costo</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Zona</th>
-              <th>Vehículo</th>
-              <th>Costo Base</th>
-              <th>Adicionales</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>TC-001</td>
-              <td>AMBA</td>
-              <td>Camión Mediano</td>
-              <td>$45,000</td>
-              <td>$5,000</td>
-              <td>$50,000</td>
-            </tr>
-            <tr>
-              <td>TC-052</td>
-              <td>BsAs-Rosario</td>
-              <td>Camión Grande</td>
-              <td>$95,000</td>
-              <td>$8,000</td>
-              <td>$103,000</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-    </div>
-  </main>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acme SRL - Sistema de Tarifas</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
-
