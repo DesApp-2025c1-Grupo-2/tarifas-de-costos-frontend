@@ -1,0 +1,9 @@
+.crear-tarifa {
+    margin-left: 20em;
+    margin-top: 4em;
+}
+
+.formulario-tarifa {
+    display: flex;
+    flex-direction: column;
+}

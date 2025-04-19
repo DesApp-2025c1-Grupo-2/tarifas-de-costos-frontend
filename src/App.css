@@ -3,67 +3,76 @@ body, html {
     padding: 0;
     font-family: 'Segoe UI', sans-serif;
     background-color: #f5f7fa;
-  }
+}
   
-  .app {
-    display: flex;
-  }
+.app {
+  display: flex;
+}
   
-  .main {
-    margin-left: 260px;
-    padding: 2rem;
-    flex: 1;
-  }
+.main {
+  margin-left: 260px;
+  padding: 2rem;
+  flex: 1;
+}
   
-  .grid {
-    display: block;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 2rem;
-  }
+.grid {
+  display: block;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
   
-  .card {
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
+.card {
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
   
-  .header {
-    background-color: white;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    position: fixed;
-    top: 0;
-    left: 282px;
-    right: 0;
-    z-index: 10;
-  }
+.header {
+  background-color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0;
+  left: 282px;
+  right: 0;
+  z-index: 10;
+}
   
-  .sidebar {
-    background-color: #1B2A41;
-    color: white;
-    width: 250px;
-    height: 100vh;
-    padding: 1rem;
-    position: fixed;
-    top: 0;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
+.sidebar {
+  background-color: #1B2A41;
+  color: white;
+  width: 250px;
+  height: 100vh;
+  padding: 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
   
-  .sidebar h2 {
-    color: #F39237;
-  }
+.sidebar h2 {
+  color: #F39237;
+}
   
-  .sidebar a {
-    color: white;
-    text-decoration: none;
-    margin: 0.5rem 0;
-  }
+.sidebar a {
+  color: white;
+  text-decoration: none;
+  margin: 0.5rem 0;
+}
+
+.nueva-tarifa {
+  padding: '0.5rem 1rem';
+  background-color: '#1B2A41';
+  color: '#fff';
+  border: 'none';
+  border-radius: '6px';
+  cursor: 'pointer'
+}
