@@ -1,20 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const BotonNuevaTarifa: React.FC = () => (
-    <Link to="/crear-tarifa">
+type Props = {
+    direccion: string;
+    texto: string;
+};
+
+const Boton: React.FC<Props> = ({direccion, texto}) => (
+    <Link to={direccion}>
         <button style={{
             padding: '0.5rem 1rem',
+            marginTop: '16px',
             backgroundColor: '#1B2A41',
-            marginLeft: '24px',
             color: '#fff',
             border: 'none',
             borderRadius: '6px',
             cursor: 'pointer'
         }}>
-            + Nueva Tarifa
+            {texto}
         </button>
     </Link>
 );
 
-export default BotonNuevaTarifa;
+export default Boton;

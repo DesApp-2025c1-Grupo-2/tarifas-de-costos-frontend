@@ -1,9 +1,28 @@
 .crear-tarifa {
-    margin-left: 20em;
-    margin-top: 4em;
+    margin: 2% 30%;
+    border: 1px solid black;
+    border-radius: 4px;
+    padding: 28px 48px;
 }
 
 .formulario-tarifa {
     display: flex;
     flex-direction: column;
+    margin-top: 2em;
+}
+
+.double-input {
+    display: flex;
+    justify-content: space-between;
+}
+
+.text-field{
+    display: flex;
+    flex-direction: column;
+    margin: 18px 0;
+}
+
+.result {
+    display: flex;
+    justify-content: space-between;
 }
