@@ -1,24 +1,28 @@
 import React from 'react';
 import '../CrearTarifa.css';
-import Boton from './BotonNuevaTarifa';
+import { BotonGuardar } from './Botones';
 
 let items: Array<string> = ['a', 'b', 'c', 'd'];
+let transportistas: Array<string> = ['uno', 'dos'];
+let vehiculos: Array<string> = ['auto', 'camion'];
+let zonas: Array<string> = ['Hurlingham', 'Ituzaingo'];
+let cargas: Array<string> = ['algodon', 'madera'];
 
 const FormularioNuevaTarifa: React.FC = () => (
     <div className="crear-tarifa">
         <h2>Gestionar Tarifa para nuevo viaje</h2>
         <form className="formulario-tarifa">
-            <TextField nombre='Transportista' opciones={items}/>
+            <TextField nombre='Transportista' opciones={transportistas}/>
             <div className="double-input">
-                <TextField nombre='Tipo de vehiculo' opciones={items}/>
-                <TextField nombre='Zona' opciones={items}/>
+                <TextField nombre='Tipo de vehiculo' opciones={vehiculos}/>
+                <TextField nombre='Zona' opciones={zonas}/>
             </div>
-            <TextField nombre='Tipo de carga' opciones={items}/>
+            <TextField nombre='Tipo de carga' opciones={cargas}/>
             <ChipBlock opciones={items} />
             <Resultado nombre='COSTO BASE :'/>
             <Resultado nombre='ADICIONALES :'/>
             <Resultado nombre='COSTO TOTAL :'/>
-            <Boton direccion="../" texto='Guardar'/>
+            <BotonGuardar />
         </form>
     </div>
 );
@@ -30,13 +34,18 @@ type Props = {
     opciones: Array<string>;
 };
   
-const TextField: React.FC<Props> = ({ nombre }) => {
+const TextField: React.FC<Props> = ({ nombre, opciones }) => {
     const name = nombre;
   
     return (
       <div className='text-field'>
         <label htmlFor={name} style={{paddingBottom: '8px'}}>{name}</label>
-        <select id={name}></select>
+        <select id={name} className='select-field'>
+            <option value='default' selected>-</option>
+            {opciones.map((e) => 
+                <option value={e}>{e}</option>
+            )}
+        </select>
       </div>
     );
 };
