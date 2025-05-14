@@ -7,7 +7,6 @@ const CrearTarifa: React.FC = () => {
     return (
         <div className="app">
             <Header />
-            <Sidebar />
             <FormularioNuevaTarifa />
         </div>
     );

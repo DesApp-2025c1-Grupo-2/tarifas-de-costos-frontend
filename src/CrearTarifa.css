@@ -1,11 +1,14 @@
 .crear-tarifa {
-    margin-left: 20em;
-    margin-top: 4em;
+    margin: 2% 30%;
+    border: 1px solid black;
+    border-radius: 8px;
+    padding: 28px 48px;
 }
 
 .formulario-tarifa {
     display: flex;
     flex-direction: column;
+    margin-top: 2em;
 }
 .mensaje-exito {
   background-color: #d4edda; /* Fondo verde claro */
@@ -17,4 +20,27 @@
   text-align: center;
   font-weight: bold; /* Texto en negrita */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+.double-input {
+    display: flex;
+    gap: 1rem; /* Espacio entre ambos */
+    width: 100%;
+}
+
+.text-field{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin: 18px 0;
+}
+
+.select-field{
+    border-radius: 8px;
+    height: 24px;
+}
+
+.result {
+    display: flex;
+    justify-content: space-between;
 }

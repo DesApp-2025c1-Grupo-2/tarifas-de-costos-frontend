@@ -3,14 +3,14 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import TarifaTable from './components/TarifaTable';
 import Filtros from './components/Filtros';
-import BotonNuevaTarifa from './components/BotonNuevaTarifa';
+import { BotonNuevaTarifa } from './components/Botones';
 import './App.css';
 
 const App: React.FC = () => {
   return (
     <div className="app">
       <Header />
-      <Sidebar />
+      {/* <Sidebar /> */}
       <main className="main">
         <div className="grid">
           <Filtros />     
