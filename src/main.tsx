@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
-import Tarifas from './Tarifas';
 import CrearTarifa from './CrearTarifa'; // 👈 Importá la nueva página
 import './App.css';
 
@@ -11,7 +10,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} />
-        <Route path="/tarifas" element={<Tarifas />} />
         <Route path="/crear-tarifa" element={<CrearTarifa />} />
       </Routes>
     </BrowserRouter>
