@@ -43,6 +43,7 @@ const HeaderConMenu: React.FC<HeaderConMenuProps> = ({ onImagenClick }) => (
 
     <div className="usuario">Usuario: Juan Pérez</div>
   </header>
+  
 );
 
 export default Header;
