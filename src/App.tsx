@@ -6,7 +6,6 @@ import TarifaTable from './components/TarifaTable';
 import Filtros from './components/Filtros';
 import { BotonNuevaTarifa } from './components/Botones';
 import Header from './components/Header';
-import { BotonNuevaTarifa, BotonTarifas} from './components/Botones';
 import './App.css';
 
 const App: React.FC = () => {
@@ -21,7 +20,6 @@ const App: React.FC = () => {
       <main className="main">
           <div className="grid" style={{ textAlign: 'center', marginTop: '4em'}}>
             <BotonNuevaTarifa />
-            <BotonTarifas />
           </div>
       </main>
     </div>

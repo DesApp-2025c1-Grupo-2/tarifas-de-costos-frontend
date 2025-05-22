@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import CrearTarifa from './CrearTarifa'; 
 import Tarifas from './Tarifas';
-import CrearTarifa from './CrearTarifa'; // 👈 Importá la nueva página
 import './App.css';
 import Inicio from './components/Inicio';
 
