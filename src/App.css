@@ -9,7 +9,7 @@ body, html {
   display: flex;
   flex-direction: column;
 }
-  
+
 .main {
   padding: 2rem;
   flex: 1;
@@ -38,7 +38,18 @@ body, html {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-left, .header-right {
+  font-size: 16px;
+}
+.usuario {
+  margin-right: 60px;
+}
+
+.empresa {
+  margin-left: 60px;
 }
   
 .sidebar {
@@ -72,4 +83,48 @@ body, html {
   border: 'none';
   border-radius: '6px';
   cursor: 'pointer'
+}
+
+.logo-acme {
+  max-width: 800px;      
+  width: 100%;           /* Se adapta al contenedor */
+  height: auto;          /* Mantiene proporción */
+  display: block;
+  margin: 40px auto;     /* Centrado horizontal y espacio vertical */
+  object-fit: contain;   /* Escalado correcto sin deformar */
+}
+
+.boton-contenedor {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.boton-Inicio {
+  background-color: #1B2A41;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.boton-Inicio:hover {
+  background-color: #324A72;
+  transform: translateY(-2px);
+}
+
+.footer-franja {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background-color: #1B2A41;
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
