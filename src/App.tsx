@@ -1,27 +1,29 @@
 import React from 'react';
+
 import Sidebar from './components/Sidebar';
-import Header from './components/Header';
+import HeaderConMenu from './components/Header';
 import TarifaTable from './components/TarifaTable';
 import Filtros from './components/Filtros';
 import { BotonNuevaTarifa } from './components/Botones';
+import Header from './components/Header';
 import './App.css';
 
 const App: React.FC = () => {
   return (
     <div className="app">
-      <Header />
+
+      <HeaderConMenu />
       {/* <Sidebar /> */}
+
+      <Header />
+
       <main className="main">
-        <div className="grid">
-          <Filtros />     
-          <BotonNuevaTarifa />
-          <TarifaTable />
-        </div>
+          <div className="grid" style={{ textAlign: 'center', marginTop: '4em'}}>
+            <BotonNuevaTarifa />
+          </div>
       </main>
     </div>
   );
 };
-
-//holaa
 
 export default App;
