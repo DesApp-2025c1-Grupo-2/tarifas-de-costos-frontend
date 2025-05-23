@@ -15,7 +15,7 @@ const Inicio = () => {
       <Header />
       <main>
         <img
-          src="/Logo.png"
+          src="/img/Logo.png"
           alt="Logo Acme SRL"
           className="logo-acme"
         />

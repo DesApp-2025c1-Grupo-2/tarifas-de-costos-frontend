@@ -1,6 +1,4 @@
-
 import React from 'react';
-
 
 const Header: React.FC = () => (
   <header className="header">
@@ -27,18 +25,18 @@ const HeaderConMenu: React.FC<HeaderConMenuProps> = ({ onImagenClick }) => (
   <header className="header flex justify-between items-center p-4 shadow bg-custom-dark-blue">
     <div className="flex items-center"> 
       <img
-        src="/menu.png"
+        src="/img/menu.png"
         alt="Menú"
         className="headerConMenu-icon"
         onClick={onImagenClick}
       />
-      <strong>
+      {/* <strong>
         <div className="empresa">
           <a href="/" style={{ all: "unset", cursor: "pointer", color: 'white' }}>
             Acme SRL - Sistema de Tarifas
           </a>
         </div>
-      </strong>
+      </strong> */}
     </div>
 
     <div className="usuario" style={{color: 'white'}}>Usuario: Juan Pérez</div>

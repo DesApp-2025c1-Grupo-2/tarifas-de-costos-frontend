@@ -13,7 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         Ahora el botón de las tres rayitas en el Header es el único que abre y cierra.
         Si quieres un título "Menú" sin que sea clickeable:
       */}
-      <h2>Menú Principal</h2>
+      <h2 style={{paddingLeft: "0.4em"}}>Menú Principal</h2>
       
       <Link to="/">Dashboard</Link>
       <Link to="/crear-tarifa">Tarifas</Link>
