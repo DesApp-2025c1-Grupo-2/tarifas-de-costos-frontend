@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-
+/*
 const Sidebar: React.FC = () => (
   <aside className="sidebar">
     <h2><Link to="/">Menú</Link></h2>
@@ -13,4 +13,4 @@ const Sidebar: React.FC = () => (
   </aside>
 );
 
-export default Sidebar;
+export default Sidebar;*/
