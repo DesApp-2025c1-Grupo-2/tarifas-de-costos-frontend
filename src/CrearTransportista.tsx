@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import { HeaderConMenu } from './components/Header';
-import { FormCrearTarifa } from './components/formulario/Formularios';
+import { FormCrearTransportista } from './components/formulario/Formularios';
 import './App.css';
 import './CrearTarifa.css';
 
@@ -19,9 +19,9 @@ const CrearTarifa: React.FC = () => {
 
             
             {sidebarAbierta && <Sidebar isOpen={sidebarAbierta} toggleSidebar={toggleSidebar} />} 
-
-            <div className="content-area"> 
-                <FormCrearTarifa />
+            
+            <div className="content-area">
+                <FormCrearTransportista />
             </div>
         </div>
     );
