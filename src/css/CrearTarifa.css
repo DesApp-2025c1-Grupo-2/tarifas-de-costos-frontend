@@ -1,0 +1,90 @@
+.crear-tarifa {
+    margin: 2% auto; /* Center horizontally */
+    width: 80%; /* Width as previously set */
+    max-width: 800px; /* Optional: Prevent it from getting too wide */
+    border: 1px solid black;
+    border-radius: 8px;
+    padding: 40px 60px;
+    box-sizing: border-box; /* Ensure padding doesn't affect width */
+    display: flex; /* Use flex to control child alignment */
+    flex-direction: column;
+    align-items: center; /* Center children (form) horizontally */
+}
+
+.formulario-tarifa {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2em;
+    width: 100%; /* Ensure the form takes full width of its parent */
+}
+.mensaje-exito {
+  background-color: #d4edda; /* Fondo verde claro */
+  color: #155724; /* Texto verde oscuro */
+  border: 1px solid #c3e6cb; /* Borde verde claro */
+  padding: 15px;
+  margin-top: 1rem;
+  border-radius: 8px; /* Bordes redondeados */
+  text-align: center;
+  font-weight: bold; /* Texto en negrita */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+.double-input {
+    display: flex;
+    gap: 1rem; /* Espacio entre ambos */
+    width: 100%;
+    height: 40px;
+    font-size: 16px;
+}
+.text-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin: 20px 0;
+}
+
+.select-field{
+    border-radius: 8px;
+    height: 24px;
+    height: 40px;
+    font-size: 16px;
+}
+
+.result {
+    display: flex;
+    justify-content: space-between;
+}
+
+.transportista-list table {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.transportista-list th,
+.transportista-list td {
+  padding: 0.75em;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.transportista-list th {
+  background-color: #f5f7fa;
+  font-weight: bold;
+}
+
+.transportista-list tr:last-child td {
+  border-bottom: none;
+}
+
+.transportista-list button:hover {
+  background-color: #c82333;
+}
+
+.content-area {
+    background-color: lightblue; /* Temporary for debugging */
+}
+.crear-tarifa {
+    background-color: lightgreen; /* Temporary for debugging */
+}
+

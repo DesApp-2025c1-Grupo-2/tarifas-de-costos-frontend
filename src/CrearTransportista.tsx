@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import { HeaderConMenu } from './components/Header';
 import { FormCrearTransportista } from './components/formulario/Formularios';
-import './App.css';
-import './CrearTarifa.css';
+import './css/App.css';
+import './css/CrearTarifa.css';
 
 const CrearTarifa: React.FC = () => {
     const [sidebarAbierta, setSidebarAbierta] = useState(false);

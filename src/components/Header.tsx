@@ -22,26 +22,24 @@ interface HeaderConMenuProps {
 }
 
 const HeaderConMenu: React.FC<HeaderConMenuProps> = ({ onImagenClick }) => (
-  <header className="header flex justify-between items-center p-4 shadow bg-custom-dark-blue">
-    <div className="flex items-center"> 
+  <header className="header">
+    <div className="headerConMenu">
       <img
         src="/img/menu.png"
         alt="Menú"
         className="headerConMenu-icon"
         onClick={onImagenClick}
       />
-      {/* <strong>
-        <div className="empresa">
-          <a href="/" style={{ all: "unset", cursor: "pointer", color: 'white' }}>
-            Acme SRL - Sistema de Tarifas
-          </a>
-        </div>
-      </strong> */}
+
+      <span className="headerConMenu-title">
+        <a href="/" style={{ all: "unset", cursor: "pointer" }}>
+          Acme SRL - Sistema de Tarifas
+        </a>
+      </span>
     </div>
 
-    <div className="usuario" style={{color: 'white'}}>Usuario: Juan Pérez</div>
+    <div className="usuario text-sm">Usuario: Juan Pérez</div>
   </header>
-  
 );
 
 export default Header;

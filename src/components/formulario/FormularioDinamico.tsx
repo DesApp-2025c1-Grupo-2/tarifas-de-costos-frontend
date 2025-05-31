@@ -1,8 +1,8 @@
+// FormularioDinamico.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SelectField, ChipBlock, Resultado, TextInput } from './Campos';
 import { BotonGuardar } from '../Botones';
-
 
 export type Campo =
   | { tipo: 'select'; nombre: string; opciones: string[] }
@@ -14,31 +14,36 @@ type Props = {
   titulo: string;
   campos: Campo[];
   redireccion: string;
+  onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void; // Add optional onSubmit prop
 };
 
-const FormularioDinamico: React.FC<Props> = ({ titulo, campos, redireccion }) => {
+const FormularioDinamico: React.FC<Props> = ({ titulo, campos, redireccion, onSubmit }) => {
   const [mostrarMensaje, setMostrarMensaje] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log('Formulario guardado (simulado)');
-    setMostrarMensaje(true);
-    setTimeout(() => {
-      navigate(redireccion);
-    }, 1400);
+    if (onSubmit) {
+      onSubmit(event); // Call custom submit handler if provided
+    } else {
+      console.log('Formulario guardado (simulado)');
+      setMostrarMensaje(true);
+      setTimeout(() => {
+        navigate(redireccion);
+      }, 1400);
+    }
   };
 
   return (
     <div className="crear-tarifa" onSubmit={handleSubmit}>
       <h2>{titulo}</h2>
-      <form className="formulario-tarifa">
+      <form className="formulario-tarifa" onSubmit={handleSubmit}>
         {campos.map((campo, index) => {
           if (campo.tipo === 'select') {
             return <SelectField key={index} nombre={campo.nombre} opciones={campo.opciones} />;
           }
           if (campo.tipo === 'input') {
-            return <TextInput key={index} nombre={campo.nombre} tipo={campo.clase}/>;
+            return <TextInput key={index} nombre={campo.nombre} tipo={campo.clase} />;
           }
           if (campo.tipo === 'chip') {
             return <ChipBlock key={index} opciones={campo.opciones} />;

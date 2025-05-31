@@ -5,7 +5,7 @@ import App from './App';
 import CrearTarifa from './CrearTarifa';
 import CrearTransportista from './CrearTransportista'; 
 import Tarifas from './Tarifas';
-import './App.css';
+import './css/app.css';
 import Inicio from './Inicio';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
