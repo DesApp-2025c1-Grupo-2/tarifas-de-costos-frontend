@@ -8,7 +8,6 @@ let vehiculos: Array<string> = ['auto', 'camion'];
 let zonas: Array<string> = ['Hurlingham', 'Ituzaingo'];
 let cargas: Array<string> = ['algodon', 'madera'];
 
-// Define a type for transportista data
 type Transportista = {
   id: string;
   nombre: string;
@@ -17,9 +16,8 @@ type Transportista = {
   telefono: string;
 };
 
-// esto cuando conectemos la api se borra
 const initialTransportistas: Transportista[] = [
-  { id: '1', nombre: 'Juan Pérez',  empresa: 'Acme SRL', correo: 'juan@example.com', telefono: '1234567890' },
+  { id: '1', nombre: 'Juan Pérez', empresa: 'Acme SRL', correo: 'juan@example.com', telefono: '1234567890' },
   { id: '2', nombre: 'María Gómez', empresa: 'Logística SA', correo: 'maria@example.com', telefono: '0987654321' },
 ];
 
@@ -52,44 +50,82 @@ export const FormCrearTarifa: React.FC = () => (
 export const FormCrearTransportista: React.FC = () => {
   const [transportistasList, setTransportistasList] = useState<Transportista[]>(initialTransportistas);
   const [mensaje, setMensaje] = useState('');
+  const [editingTransportista, setEditingTransportista] = useState<Transportista | null>(null);
+  const formRef = React.useRef<HTMLFormElement>(null) as React.RefObject<HTMLFormElement>;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const newTransportista: Transportista = {
-      id: Date.now().toString(), // Simple unique ID
+    const transportistaData: Transportista = {
+      id: editingTransportista ? editingTransportista.id : Date.now().toString(),
       nombre: formData.get('Nombre') as string,
       empresa: formData.get('Empresa') as string,
       correo: formData.get('Correo electrónico') as string,
       telefono: formData.get('Teléfono de contacto') as string,
     };
-    setTransportistasList([...transportistasList, newTransportista]);
-    setMensaje('Transportista registrado con éxito!');
+
+    if (editingTransportista) {
+      setTransportistasList(
+        transportistasList.map(t =>
+          t.id === editingTransportista.id ? transportistaData : t
+        )
+      );
+      setMensaje('Transportista actualizado con éxito!');
+      setEditingTransportista(null);
+    } else {
+      setTransportistasList([...transportistasList, transportistaData]);
+      setMensaje('Transportista registrado con éxito!');
+    }
+
     setTimeout(() => setMensaje(''), 2000);
     event.currentTarget.reset();
+  };
+
+  const handleEdit = (transportista: Transportista) => {
+    setEditingTransportista(transportista);
+    if (formRef.current) {
+      (formRef.current.querySelector('input[name="Nombre"]') as HTMLInputElement)!.value = transportista.nombre;
+      (formRef.current.querySelector('input[name="Empresa"]') as HTMLInputElement)!.value = transportista.empresa;
+      (formRef.current.querySelector('input[name="Correo electrónico"]') as HTMLInputElement)!.value = transportista.correo;
+      (formRef.current.querySelector('input[name="Teléfono de contacto"]') as HTMLInputElement)!.value = transportista.telefono;
+    }
   };
 
   const handleDelete = (id: string) => {
     setTransportistasList(transportistasList.filter(t => t.id !== id));
     setMensaje('Transportista eliminado con éxito!');
+    setEditingTransportista(null);
     setTimeout(() => setMensaje(''), 2000);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTransportista(null);
+    if (formRef.current) {
+      formRef.current.reset();
+    }
   };
 
   return (
     <div className="crear-tarifa">
       <FormularioDinamico
-        titulo="Registrar nuevo transportista"
+        titulo={editingTransportista ? "Editar Transportista" : "Registrar nuevo transportista"}
         campos={camposTransportista}
         redireccion="/"
-        onSubmit={handleSubmit} // Pass custom submit handler
+        onSubmit={handleSubmit}
+        formRef={formRef}
       />
+      {editingTransportista && (
+        <button className="cancel-edit-button" onClick={handleCancelEdit}>
+          Cancelar Edición
+        </button>
+      )}
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
-      <div className="transportista-list" style={{ marginTop: '2em' }}>
+      <div className="transportista-list">
         <h3>Transportistas Registrados</h3>
         {transportistasList.length === 0 ? (
           <p>No hay transportistas registrados.</p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1em' }}>
+          <table>
             <thead>
               <tr>
                 <th>Nombre</th>
@@ -107,17 +143,10 @@ export const FormCrearTransportista: React.FC = () => {
                   <td>{transportista.correo}</td>
                   <td>{transportista.telefono}</td>
                   <td>
-                    <button
-                      style={{
-                        padding: '0.5em 1em',
-                        backgroundColor: '#dc3545',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                      }}
-                      onClick={() => handleDelete(transportista.id)}
-                    >
+                    <button className="edit-button" onClick={() => handleEdit(transportista)}>
+                      Editar
+                    </button>
+                    <button className="delete-button" onClick={() => handleDelete(transportista.id)}>
                       Eliminar
                     </button>
                   </td>

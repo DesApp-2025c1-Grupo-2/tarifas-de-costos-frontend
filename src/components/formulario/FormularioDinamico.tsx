@@ -1,4 +1,5 @@
 // FormularioDinamico.tsx
+// FormularioDinamico.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SelectField, ChipBlock, Resultado, TextInput } from './Campos';
@@ -14,17 +15,18 @@ type Props = {
   titulo: string;
   campos: Campo[];
   redireccion: string;
-  onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void; // Add optional onSubmit prop
+  onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void;
+  formRef?: React.RefObject<HTMLFormElement>; // Add formRef prop
 };
 
-const FormularioDinamico: React.FC<Props> = ({ titulo, campos, redireccion, onSubmit }) => {
+const FormularioDinamico: React.FC<Props> = ({ titulo, campos, redireccion, onSubmit, formRef }) => {
   const [mostrarMensaje, setMostrarMensaje] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (onSubmit) {
-      onSubmit(event); // Call custom submit handler if provided
+      onSubmit(event);
     } else {
       console.log('Formulario guardado (simulado)');
       setMostrarMensaje(true);
@@ -35,9 +37,9 @@ const FormularioDinamico: React.FC<Props> = ({ titulo, campos, redireccion, onSu
   };
 
   return (
-    <div className="crear-tarifa" onSubmit={handleSubmit}>
+    <div className="crear-tarifa">
       <h2>{titulo}</h2>
-      <form className="formulario-tarifa" onSubmit={handleSubmit}>
+      <form className="formulario-tarifa" onSubmit={handleSubmit} ref={formRef}>
         {campos.map((campo, index) => {
           if (campo.tipo === 'select') {
             return <SelectField key={index} nombre={campo.nombre} opciones={campo.opciones} />;

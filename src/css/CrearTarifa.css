@@ -1,22 +1,25 @@
 .crear-tarifa {
-    margin: 2% auto; /* Center horizontally */
-    width: 80%; /* Width as previously set */
-    max-width: 800px; /* Optional: Prevent it from getting too wide */
-    border: 1px solid black;
-    border-radius: 8px;
-    padding: 40px 60px;
-    box-sizing: border-box; /* Ensure padding doesn't affect width */
-    display: flex; /* Use flex to control child alignment */
-    flex-direction: column;
-    align-items: center; /* Center children (form) horizontally */
+  margin: 2% auto; /* Center horizontally */
+  width: 80%; /* Width as previously set */
+  max-width: 800px; /* Optional: Prevent it from getting too wide */
+  border: 1px solid black;
+  border-radius: 8px;
+  padding: 40px 60px;
+  box-sizing: border-box; /* Ensure padding doesn't affect width */
+  display: flex; /* Use flex to control child alignment */
+  flex-direction: column;
+  align-items: center; /* Center children (form) horizontally */
+  /* Remove debugging background */
+  /* background-color: lightgreen; */
 }
 
 .formulario-tarifa {
-    display: flex;
-    flex-direction: column;
-    margin-top: 2em;
-    width: 100%; /* Ensure the form takes full width of its parent */
+  display: flex;
+  flex-direction: column;
+  margin-top: 2em;
+  width: 100%; /* Ensure the form takes full width of its parent */
 }
+
 .mensaje-exito {
   background-color: #d4edda; /* Fondo verde claro */
   color: #155724; /* Texto verde oscuro */
@@ -30,35 +33,42 @@
 }
 
 .double-input {
-    display: flex;
-    gap: 1rem; /* Espacio entre ambos */
-    width: 100%;
-    height: 40px;
-    font-size: 16px;
-}
-.text-field {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    margin: 20px 0;
+  display: flex;
+  gap: 1rem; /* Espacio entre ambos */
+  width: 100%;
+  height: 40px;
+  font-size: 16px;
 }
 
-.select-field{
-    border-radius: 8px;
-    height: 24px;
-    height: 40px;
-    font-size: 16px;
+.text-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 20px 0;
+}
+
+.select-field {
+  border-radius: 8px;
+  height: 40px; /* Use consistent height, removing duplicate height: 24px */
+  font-size: 16px;
 }
 
 .result {
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
+}
+
+.transportista-list {
+  margin-top: 2em; /* Moved from inline style */
 }
 
 .transportista-list table {
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
+  width: 100%; /* Moved from inline style */
+  border-collapse: collapse; /* Moved from inline style */
+  margin-top: 1em; /* Moved from inline style */
 }
 
 .transportista-list th,
@@ -77,14 +87,66 @@
   border-bottom: none;
 }
 
-.transportista-list button:hover {
-  background-color: #c82333;
+/* Consolidated button styles */
+.transportista-list button,
+.cancel-edit-button,
+.edit-button,
+.delete-button {
+  padding: 0.5em 1em;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s ease, background-color 0.2s ease; /* Combine transitions */
 }
 
-.content-area {
-    background-color: lightblue; /* Temporary for debugging */
-}
-.crear-tarifa {
-    background-color: lightgreen; /* Temporary for debugging */
+/* Specific styles for each button */
+.cancel-edit-button {
+  background-color: #6c757d; /* Gray for cancel */
+  margin-top: 1em; /* Moved from inline style */
 }
 
+.edit-button {
+  background-color: #007bff; /* Blue for edit */
+  margin-right: 0.5em; /* Moved from inline style */
+}
+
+.delete-button {
+  background-color: #dc3545; /* Red for delete */
+}
+
+/* Hover effects */
+.transportista-list button:hover,
+.cancel-edit-button:hover,
+.edit-button:hover,
+.delete-button:hover {
+  opacity: 0.9;
+}
+
+.cancel-edit-button:hover {
+  background-color: #5a6268; /* Darker gray on hover */
+}
+
+.edit-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+.delete-button:hover {
+  background-color: #c82333; /* Darker red on hover */
+}
+/* Responsive styles */
+@media (max-width: 768px) {
+  .crear-tarifa {
+    width: 95%; /* Adjust width for smaller screens */
+    padding: 20px; /* Reduce padding */
+  }
+
+  .double-input {
+    flex-direction: column; /* Stack inputs vertically */
+  }
+
+  .text-field,
+  .select-field {
+    width: 100%; /* Ensure full width on smaller screens */
+  }
+}

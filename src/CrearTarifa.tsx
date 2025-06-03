@@ -6,25 +6,21 @@ import './css/App.css';
 import './css/CrearTarifa.css';
 
 const CrearTarifa: React.FC = () => {
-    const [sidebarAbierta, setSidebarAbierta] = useState(false);
+  const [sidebarAbierta, setSidebarAbierta] = useState(false);
 
-    const toggleSidebar = () => {
-        setSidebarAbierta(prev => !prev);
-    };
+  const toggleSidebar = () => {
+    setSidebarAbierta(prev => !prev);
+  };
 
-    return (
-        <div className="app">
-            
-            <HeaderConMenu onImagenClick={toggleSidebar} /> 
-
-            
-            {sidebarAbierta && <Sidebar isOpen={sidebarAbierta} toggleSidebar={toggleSidebar} />} 
-
-            <div className="content-area"> 
-                <FormCrearTarifa />
-            </div>
-        </div>
-    );
+  return (
+    <div className="app" style={{ overflow: 'hidden' }}>
+      <HeaderConMenu onImagenClick={toggleSidebar} />
+      {sidebarAbierta && <Sidebar isOpen={sidebarAbierta} toggleSidebar={toggleSidebar} />}
+      <div className="content-area" style={{ overflow: 'hidden' }}>
+        <FormCrearTarifa />
+      </div>
+    </div>
+  );
 };
 
 export default CrearTarifa;

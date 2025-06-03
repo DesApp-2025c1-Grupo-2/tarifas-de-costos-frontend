@@ -200,37 +200,3 @@ body, html {
 }
 
 
-/* CrearTarifa.css */
-.transportista-list table {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.transportista-list th,
-.transportista-list td {
-  padding: 0.75em;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-}
-
-.transportista-list th {
-  background-color: #f5f7fa;
-  font-weight: bold;
-}
-
-.transportista-list tr:last-child td {
-  border-bottom: none;
-}
-
-.transportista-list button:hover {
-  background-color: #c82333;
-}
-
-.content-area {
-    background-color: lightblue; /* Temporary for debugging */
-}
-.crear-tarifa {
-    background-color: lightgreen; /* Temporary for debugging */
-}
-
