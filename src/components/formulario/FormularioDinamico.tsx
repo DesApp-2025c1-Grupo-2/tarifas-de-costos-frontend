@@ -16,7 +16,7 @@ type Props = {
   campos: Campo[];
   redireccion: string;
   onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void;
-  formRef?: React.RefObject<HTMLFormElement>; // Add formRef prop
+  formRef?: React.RefObject<HTMLFormElement | null>; // Add formRef prop
 };
 
 const FormularioDinamico: React.FC<Props> = ({ titulo, campos, redireccion, onSubmit, formRef }) => {
