@@ -62,6 +62,10 @@
   margin-top: 2em; /* Moved from inline style */
 }
 
+.transportista-list h2{
+  text-align: center; /* Moved from inline style */
+}
+
 .transportista-list table {
   border: 1px solid #ccc;
   border-radius: 8px;

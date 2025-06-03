@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const estiloBoton: React.CSSProperties = {
+export const estiloBoton: React.CSSProperties = {
     padding: '0.5rem 1rem',
     marginTop: '16px',
     backgroundColor: '#1B2A41',

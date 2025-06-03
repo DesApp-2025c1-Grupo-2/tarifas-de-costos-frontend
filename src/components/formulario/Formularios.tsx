@@ -1,6 +1,7 @@
 // Formularios.tsx
 import React, { useState } from 'react';
 import FormularioDinamico, { Campo } from './FormularioDinamico';
+import { estiloBoton } from '../Botones';
 
 let items: Array<string> = ['a', 'b', 'c', 'd'];
 let transportistas: Array<string> = ['uno', 'dos'];
@@ -51,6 +52,7 @@ export const FormCrearTransportista: React.FC = () => {
   const [transportistasList, setTransportistasList] = useState<Transportista[]>(initialTransportistas);
   const [mensaje, setMensaje] = useState('');
   const [editingTransportista, setEditingTransportista] = useState<Transportista | null>(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false); // nuevo estado
   const formRef = React.useRef<HTMLFormElement>(null) as React.RefObject<HTMLFormElement>;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -79,10 +81,12 @@ export const FormCrearTransportista: React.FC = () => {
 
     setTimeout(() => setMensaje(''), 2000);
     event.currentTarget.reset();
+    setMostrarFormulario(false); // ocultar formulario tras enviar
   };
 
   const handleEdit = (transportista: Transportista) => {
     setEditingTransportista(transportista);
+    setMostrarFormulario(true); // mostrar formulario al editar
     if (formRef.current) {
       (formRef.current.querySelector('input[name="Nombre"]') as HTMLInputElement)!.value = transportista.nombre;
       (formRef.current.querySelector('input[name="Empresa"]') as HTMLInputElement)!.value = transportista.empresa;
@@ -103,25 +107,38 @@ export const FormCrearTransportista: React.FC = () => {
     if (formRef.current) {
       formRef.current.reset();
     }
+    setMostrarFormulario(false); // ocultar formulario si se cancela
   };
 
   return (
-    <div className="crear-tarifa">
-      <FormularioDinamico
-        titulo={editingTransportista ? "Editar Transportista" : "Registrar nuevo transportista"}
-        campos={camposTransportista}
-        redireccion="/"
-        onSubmit={handleSubmit}
-        formRef={formRef}
-      />
-      {editingTransportista && (
-        <button className="cancel-edit-button" onClick={handleCancelEdit}>
-          Cancelar Edición
+    <div>
+      {!mostrarFormulario && !editingTransportista && (
+        <button style={estiloBoton} onClick={() => setMostrarFormulario(true)}>
+          Crear nuevo transportista
         </button>
       )}
+
+      {(mostrarFormulario || editingTransportista) && (
+        <>
+          <FormularioDinamico
+            titulo={editingTransportista ? "Editar Transportista" : "Registrar nuevo transportista"}
+            campos={camposTransportista}
+            redireccion="/"
+            onSubmit={handleSubmit}
+            formRef={formRef}
+          />
+          {(mostrarFormulario || editingTransportista) && (
+            <button style={estiloBoton} className="cancel-button" onClick={handleCancelEdit}>
+              Cancelar
+            </button>
+          )}
+        </>
+      )}
+
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
+
       <div className="transportista-list">
-        <h3>Transportistas Registrados</h3>
+        <h2>Transportistas Registrados</h2>
         {transportistasList.length === 0 ? (
           <p>No hay transportistas registrados.</p>
         ) : (
