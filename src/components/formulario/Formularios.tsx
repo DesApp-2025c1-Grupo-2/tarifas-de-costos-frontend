@@ -275,12 +275,12 @@ export const FormCrearTransportista: React.FC = () => {
 
     setTimeout(() => setMensaje(''), 2000);
     event.currentTarget.reset();
-    setMostrarFormulario(false); // ocultar formulario tras enviar
+    setMostrarFormulario(false);
   };
 
   const handleEdit = (transportista: Transportista) => {
     setEditingTransportista(transportista);
-    setMostrarFormulario(true); // mostrar formulario al editar
+    setMostrarFormulario(true);
     if (formRef.current) {
       (formRef.current.querySelector('input[name="Nombre"]') as HTMLInputElement)!.value = transportista.nombre;
       (formRef.current.querySelector('input[name="Empresa"]') as HTMLInputElement)!.value = transportista.empresa;
@@ -301,7 +301,7 @@ export const FormCrearTransportista: React.FC = () => {
     if (formRef.current) {
       formRef.current.reset();
     }
-    setMostrarFormulario(false); // ocultar formulario si se cancela
+    setMostrarFormulario(false);
   };
 
   return (

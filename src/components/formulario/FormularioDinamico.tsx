@@ -1,5 +1,3 @@
-// FormularioDinamico.tsx
-// FormularioDinamico.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SelectField, ChipBlock, Resultado, TextInput } from './Campos';
@@ -16,7 +14,7 @@ type Props = {
   campos: Campo[];
   redireccion: string;
   onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void;
-  formRef?: React.RefObject<HTMLFormElement | null>; // Add formRef prop
+  formRef?: React.RefObject<HTMLFormElement>;
 };
 
 const FormularioDinamico: React.FC<Props> = ({ titulo, campos, redireccion, onSubmit, formRef }) => {

@@ -1,5 +1,3 @@
-
-
 type Text = {
     nombre: string;
     tipo: string;
@@ -8,7 +6,7 @@ type Text = {
 export const TextInput: React.FC<Text> = ({ nombre, tipo }) => {
     return (
       <div className='text-field'>
-        <label htmlFor={nombre} style={{ paddingBottom: '8px' }}>{nombre}</label>
+        <label htmlFor={nombre} className="label-espaciada">{nombre}</label>
         <input id={nombre} type={tipo} className='input-field' />
       </div>
     );
@@ -24,7 +22,7 @@ export const SelectField: React.FC<Select> = ({ nombre, opciones }) => {
   
     return (
       <div className='text-field'>
-        <label htmlFor={name} style={{paddingBottom: '8px'}}>{name}</label>
+        <label htmlFor={nombre} className="label-espaciada">{nombre}</label>
         <select id={name} className='select-field'>
             <option value='default' selected>-</option>
             {opciones.map((e) => 
@@ -60,7 +58,7 @@ type ChipOp = {
 const Chip: React.FC<ChipOp> = ({ id, nombre }) => {
 
     return (
-        <div style={{marginTop: '10px'}}>
+        <div className="div-margin-top">
             <input type='checkbox' id={String(id)} name={nombre} value={nombre}/>
             <label htmlFor={nombre}>{nombre}</label>
         </div>
