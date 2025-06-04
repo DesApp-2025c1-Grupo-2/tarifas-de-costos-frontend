@@ -6,7 +6,7 @@ import TarifaTable from './components/TarifaTable';
 import Filtros from './components/Filtros';
 import { BotonNuevaTarifa } from './components/Botones';
 import Header from './components/Header';
-import './App.css';
+import './css/App.css';
 
 const App: React.FC = () => {
   return (

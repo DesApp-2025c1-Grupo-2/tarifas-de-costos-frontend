@@ -40,8 +40,22 @@ body, html {
   box-sizing: border-box;
   position: sticky; 
   top: 0;
-  z-index: 1001; 
+  z-index: 1001;
 }
+
+.headerConMenu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerConMenu-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+}
+
+
 
 .bg-custom-dark-blue {
     background-color: #1B2A41;
@@ -185,3 +199,5 @@ body, html {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
 }
+
+
