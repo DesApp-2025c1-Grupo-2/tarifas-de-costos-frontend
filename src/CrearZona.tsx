@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import { HeaderConMenu } from './components/Header';
-import { FormCrearTransportista } from './components/formulario/TransportistaForm';
+import { FormCrearZona } from './components/formulario/ZonaForm';
 import './css/App.css';
 import './css/CrearTarifa.css';
 
-const CrearTransportista: React.FC = () => {
+const CrearZona: React.FC = () => {
     const [sidebarAbierta, setSidebarAbierta] = useState(false);
 
     const toggleSidebar = () => {
@@ -21,10 +21,10 @@ const CrearTransportista: React.FC = () => {
             {sidebarAbierta && <Sidebar isOpen={sidebarAbierta} toggleSidebar={toggleSidebar} />} 
             
             <div className="content-area">
-                <FormCrearTransportista />
+                <FormCrearZona />
             </div>
         </div>
     );
 };
 
-export default CrearTransportista;
+export default CrearZona;
