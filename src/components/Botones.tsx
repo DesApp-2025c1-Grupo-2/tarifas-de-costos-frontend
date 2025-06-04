@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const estiloBoton: React.CSSProperties = {
+export const estiloBoton: React.CSSProperties = {
     padding: '0.5rem 1rem',
     marginTop: '16px',
     backgroundColor: '#1B2A41',
@@ -27,10 +27,6 @@ const Boton: React.FC<BotonProps> = ({ to, texto }) => (
     </Link>
 );
 
-export const BotonNuevaTarifa: React.FC = () => (
-    <Boton to='../crear-tarifa' texto='+ Nueva Tarifa' />
-);
-
 export const BotonTarifas: React.FC = () => (
     <Boton to='./tarifas' texto='Tarifas' />
 );
@@ -49,4 +45,21 @@ export const BotonGuardar: React.FC = () => (
     }}>
         Guardar
     </button>
+);
+
+// lo movi para que esten todos los botones juntos
+export const BotonNuevaTarifa: React.FC = () => (
+    <Link to="/crear-tarifa">
+        <button style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#1B2A41',
+            marginLeft: '24px',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
+        }}>
+            + Nueva Tarifa
+        </button>
+    </Link>
 );
