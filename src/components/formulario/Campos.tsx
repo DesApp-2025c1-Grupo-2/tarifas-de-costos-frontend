@@ -3,13 +3,21 @@ type Text = {
     tipo: string;
   };
   
-export const TextInput: React.FC<Text> = ({ nombre, tipo }) => {
-    return (
-      <div className='text-field'>
-        <label htmlFor={nombre} className="label-espaciada">{nombre}</label>
-        <input id={nombre} type={tipo} className='input-field' />
-      </div>
-    );
+export const TextInput = ({ nombre, tipo }: { nombre: string; tipo: string }) => {
+  return (
+    <div className="form-group">
+      <label htmlFor={nombre.replace(/\s+/g, '-').toLowerCase()}>
+        {nombre}:
+      </label>
+      <input
+        type={tipo}
+        id={nombre.replace(/\s+/g, '-').toLowerCase()}
+        name={nombre}
+        className="form-control"
+        required
+      />
+    </div>
+  );
 };
   
 type Select = {
