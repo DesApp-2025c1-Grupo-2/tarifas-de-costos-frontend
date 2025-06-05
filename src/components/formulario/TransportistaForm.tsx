@@ -10,11 +10,6 @@ import {
   Transportista,
 } from '../../services/transportistaService';
 
-const initialTransportistas: Transportista[] = [
-  { id: 1, nombre: 'Juan Pérez', empresa: 'Acme SRL', correo: 'juan@example.com', telefono: '1234567890' },
-  { id: 2, nombre: 'María Gómez', empresa: 'Logística SA', correo: 'maria@example.com', telefono: '0987654321' },
-];
-
 const camposTransportista: Campo[] = [
   { tipo: 'input', nombre: 'Nombre', clase: 'text' }, 
   { tipo: 'input', nombre: 'Empresa', clase: 'text' },
@@ -46,11 +41,11 @@ export const FormCrearTransportista: React.FC = () => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const nuevoTransportista = {
-      nombre: formData.get('Nombre') as string,
-      empresa: formData.get('Empresa') as string,
-      correo: formData.get('Correo electrónico') as string,
-      telefono: formData.get('Teléfono de contacto') as string,
-    };
+      nombreEmpresa: formData.get('Empresa') as string,
+      contactoNombre: formData.get('Nombre') as string,
+      contactoEmail: formData.get('Correo electrónico') as string,
+      contactoTelefono: formData.get('Teléfono de contacto') as string,
+      };
 
     try {
       if (editingTransportista) {
@@ -76,10 +71,10 @@ export const FormCrearTransportista: React.FC = () => {
     setEditingTransportista(transportista);
     setMostrarFormulario(true);
     if (formRef.current) {
-      (formRef.current.querySelector('input[name="Nombre"]') as HTMLInputElement)!.value = transportista.nombre;
-      (formRef.current.querySelector('input[name="Empresa"]') as HTMLInputElement)!.value = transportista.empresa;
-      (formRef.current.querySelector('input[name="Correo electrónico"]') as HTMLInputElement)!.value = transportista.correo;
-      (formRef.current.querySelector('input[name="Teléfono de contacto"]') as HTMLInputElement)!.value = transportista.telefono;
+      (formRef.current.querySelector('input[name="Nombre"]') as HTMLInputElement)!.value = transportista.contactoNombre;
+      (formRef.current.querySelector('input[name="Empresa"]') as HTMLInputElement)!.value = transportista.nombreEmpresa;
+      (formRef.current.querySelector('input[name="Correo electrónico"]') as HTMLInputElement)!.value = transportista.contactoEmail;
+      (formRef.current.querySelector('input[name="Teléfono de contacto"]') as HTMLInputElement)!.value = transportista.contactoTelefono;
     }
   };
 
@@ -143,24 +138,25 @@ export const FormCrearTransportista: React.FC = () => {
                 <th>Acción</th>
               </tr>
             </thead>
-            <tbody>
-              {transportistasList.map(transportista => (
-                <tr key={transportista.id}>
-                  <td>{transportista.nombre}</td>
-                  <td>{transportista.empresa}</td>
-                  <td>{transportista.correo}</td>
-                  <td>{transportista.telefono}</td>
-                  <td>
-                    <button className="edit-button" onClick={() => handleEdit(transportista)}>
-                      Editar
-                    </button>
-                    <button className="delete-button" onClick={() => handleDelete(transportista.id.toString())}>
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+<tbody>
+  {transportistasList.map(transportista => (
+    <tr key={transportista.id}>
+      <td>{transportista.contactoNombre}</td>
+      <td>{transportista.nombreEmpresa}</td>
+      <td>{transportista.contactoEmail}</td>
+      <td>{transportista.contactoTelefono}</td>
+      {/* Envuelve los botones en un td */}
+      <td>
+        <button className="edit-button" onClick={() => handleEdit(transportista)}>
+          Editar
+        </button>
+        <button className="delete-button" onClick={() => handleDelete(transportista.id.toString())}>
+          Eliminar
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
           </table>
         )}
       </div>

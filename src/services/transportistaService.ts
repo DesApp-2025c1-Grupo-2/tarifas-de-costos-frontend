@@ -2,10 +2,10 @@ import { API_BASE_URL } from '../config/api';
 
 export type Transportista = {
   id: number;  // Cambiado de string a number (si usas ID numérico en backend)
-  nombre: string;
-  empresa: string;
-  correo: string;
-  telefono: string;
+  nombreEmpresa: string;       
+  contactoNombre: string;      
+  contactoEmail: string;      
+  contactoTelefono: string;
 };
 
 const TRANSPORTISTAS_URL = `${API_BASE_URL}/transportistas`;
