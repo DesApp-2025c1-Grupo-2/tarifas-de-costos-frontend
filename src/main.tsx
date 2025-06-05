@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import CrearTarifa from './CrearTarifa';
-import CrearTransportista from './CrearTransportista'; 
+import CrearTransportista from './CrearTransportista';
+import CrearZona from './CrearZona';
 import Tarifas from './Tarifas';
 import './css/app.css';
 import Inicio from './Inicio';
@@ -18,6 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/tarifas" element={<Tarifas />} />
         <Route path="/crear-tarifa" element={<CrearTarifa />} />
         <Route path="/crear-transportista" element={<CrearTransportista />} />
+        <Route path="/crear-zona" element={<CrearZona />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
