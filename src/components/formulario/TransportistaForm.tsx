@@ -16,7 +16,7 @@ const initialTransportistas: Transportista[] = [
 ];
 
 const camposTransportista: Campo[] = [
-  { tipo: 'input', nombre: 'Nombre', clase: 'text' },
+  { tipo: 'input', nombre: 'Nombre', clase: 'text' }, 
   { tipo: 'input', nombre: 'Empresa', clase: 'text' },
   { tipo: 'input', nombre: 'Correo electrónico', clase: 'email' },
   { tipo: 'input', nombre: 'Teléfono de contacto', clase: 'tel' },
