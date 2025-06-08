@@ -5,7 +5,7 @@ type Text = {
   
 export const TextInput = ({ nombre, tipo }: { nombre: string; tipo: string }) => {
   return (
-    <div className="form-group">
+    <div className="text-field">
       <label htmlFor={nombre.replace(/\s+/g, '-').toLowerCase()}>
         {nombre}:
       </label>
@@ -13,7 +13,7 @@ export const TextInput = ({ nombre, tipo }: { nombre: string; tipo: string }) =>
         type={tipo}
         id={nombre.replace(/\s+/g, '-').toLowerCase()}
         name={nombre}
-        className="form-control"
+        className="text-field"
         required
       />
     </div>

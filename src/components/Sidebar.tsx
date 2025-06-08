@@ -16,6 +16,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       <Link to="/">Adicionales</Link>
       <Link to="/crear-transportista">Transportistas</Link>
       <Link to="/crear-zona">Zonas</Link>
+      <Link to="/crear-carga">Cargas</Link>
       <Link to="/">Cerrar Sesión</Link>
     </aside>
   );
