@@ -6,7 +6,7 @@ export type Carga = {
   descripcion: string;
 };
 
-const CARGAS_URL = `${API_BASE_URL}/cargas`;
+const CARGAS_URL = `${API_BASE_URL}/tipo-carga-tarifa`;
 
 export async function obtenerCargas(): Promise<Carga[]> {
   const res = await fetch(CARGAS_URL);
