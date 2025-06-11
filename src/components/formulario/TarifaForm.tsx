@@ -8,6 +8,8 @@ import {
   eliminarTarifa,
   Tarifa,
 } from '../../services/tarifaService';
+import { obtenerTransportistas, Transportista } from '../../services/transportistaService';
+import { obtenerTiposVehiculo, TipoVehiculo } from '../../services/tipoVehiculoService';
 
 const items: string[] = ['a', 'b', 'c', 'd'];
 const transportistas: string[] = ['uno', 'dos'];
@@ -15,19 +17,21 @@ const vehiculos: string[] = ['auto', 'camion'];
 const zonas: string[] = ['Hurlingham', 'Ituzaingo'];
 const cargas: string[] = ['algodon', 'madera'];
 
-const camposTarifa: Campo[] = [
-  { tipo: 'select', nombre: 'Transportista', opciones: transportistas },
-  { tipo: 'select', nombre: 'Tipo de vehiculo', opciones: vehiculos },
-  { tipo: 'select', nombre: 'Zona', opciones: zonas },
-  { tipo: 'select', nombre: 'Tipo de carga', opciones: cargas },
-  { tipo: 'chip', opciones: items },
-  { tipo: 'resultado', nombre: 'COSTO BASE :' },
-  { tipo: 'resultado', nombre: 'ADICIONALES :' },
-  { tipo: 'resultado', nombre: 'COSTO TOTAL :' },
-];
+// const camposTarifa: Campo[] = [
+//   { tipo: 'select', nombre: 'Transportista', opciones: transportistas },
+//   { tipo: 'select', nombre: 'Tipo de vehiculo', opciones: vehiculos },
+//   { tipo: 'select', nombre: 'Zona', opciones: zonas },
+//   { tipo: 'select', nombre: 'Tipo de carga', opciones: cargas },
+//   { tipo: 'chip', opciones: items },
+//   { tipo: 'resultado', nombre: 'COSTO BASE :' },
+//   { tipo: 'resultado', nombre: 'ADICIONALES :' },
+//   { tipo: 'resultado', nombre: 'COSTO TOTAL :' },
+// ];
 
 export const FormCrearTarifa: React.FC = () => {
   const [tarifas, setTarifas] = useState<Tarifa[]>([]);
+  const [transportistas, setTransportistas] = useState<Transportista[]>([]);
+  const [tipoVehiculos, setTipoVehiculos] = useState<TipoVehiculo[]>([]);
   const [mensaje, setMensaje] = useState('');
   const [editando, setEditando] = useState<Tarifa | null>(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -35,6 +39,8 @@ export const FormCrearTarifa: React.FC = () => {
 
   useEffect(() => {
     cargarTarifas();
+    cargarTransportistas();
+    cargarTipoVehiculo();
   }, []);
 
   const cargarTarifas = async () => {
@@ -43,6 +49,24 @@ export const FormCrearTarifa: React.FC = () => {
       setTarifas(data);
     } catch (error) {
       console.error('Error al cargar tarifas:', error);
+    }
+  };
+
+  const cargarTransportistas = async () => {
+    try {
+      const data = await obtenerTransportistas();
+      setTransportistas(data);
+    } catch (error) {
+      console.error('Error al cargar transportistas:', error);
+    }
+  };
+
+  const cargarTipoVehiculo = async () => {
+    try {
+      const data = await obtenerTiposVehiculo();
+      setTipoVehiculos(data);
+    } catch (error) {
+      console.error('Error al cargar tipo de vehiculo:', error);
     }
   };
 
@@ -105,6 +129,26 @@ export const FormCrearTarifa: React.FC = () => {
     setMostrarFormulario(false);
     if (formRef.current) formRef.current.reset();
   };
+
+  const camposTarifa: Campo[] = [
+    {
+      tipo: 'select',
+      nombre: 'Transportista',
+      opciones: transportistas.map(t => t.nombreEmpresa),
+    },
+    // Aquí irían vehiculos, zonas y cargas igual, usando su estado
+    {
+      tipo: 'select',
+      nombre: 'Tipo de vehiculo',
+      opciones: tipoVehiculos.map(t => t.nombre),
+    },
+    { tipo: 'select', nombre: 'Zona', opciones: ['Hurlingham', 'Ituzaingo'] },
+    { tipo: 'select', nombre: 'Tipo de carga', opciones: ['algodon', 'madera'] },
+    { tipo: 'chip', opciones: items },
+    { tipo: 'resultado', nombre: 'COSTO BASE :' },
+    { tipo: 'resultado', nombre: 'ADICIONALES :' },
+    { tipo: 'resultado', nombre: 'COSTO TOTAL :' },
+  ];
 
   return (
     <div>
