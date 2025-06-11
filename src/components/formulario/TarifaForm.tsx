@@ -10,6 +10,7 @@ import {
 } from '../../services/tarifaService';
 import { obtenerTransportistas, Transportista } from '../../services/transportistaService';
 import { obtenerTiposVehiculo, TipoVehiculo } from '../../services/tipoVehiculoService';
+import { obtenerCargas, Carga } from '../../services/cargaService';
 
 const items: string[] = ['a', 'b', 'c', 'd'];
 const transportistas: string[] = ['uno', 'dos'];
@@ -32,6 +33,7 @@ export const FormCrearTarifa: React.FC = () => {
   const [tarifas, setTarifas] = useState<Tarifa[]>([]);
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [tipoVehiculos, setTipoVehiculos] = useState<TipoVehiculo[]>([]);
+  const [cargas, setCarga] = useState<Carga[]>([]);
   const [mensaje, setMensaje] = useState('');
   const [editando, setEditando] = useState<Tarifa | null>(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -41,6 +43,7 @@ export const FormCrearTarifa: React.FC = () => {
     cargarTarifas();
     cargarTransportistas();
     cargarTipoVehiculo();
+    cargarCarga();
   }, []);
 
   const cargarTarifas = async () => {
@@ -67,6 +70,15 @@ export const FormCrearTarifa: React.FC = () => {
       setTipoVehiculos(data);
     } catch (error) {
       console.error('Error al cargar tipo de vehiculo:', error);
+    }
+  };
+
+  const cargarCarga = async () => {
+    try {
+      const data = await obtenerCargas();
+      setCarga(data);
+    } catch (error) {
+      console.error('Error al cargar las cargas:', error);
     }
   };
 
@@ -143,7 +155,11 @@ export const FormCrearTarifa: React.FC = () => {
       opciones: tipoVehiculos.map(t => t.nombre),
     },
     { tipo: 'select', nombre: 'Zona', opciones: ['Hurlingham', 'Ituzaingo'] },
-    { tipo: 'select', nombre: 'Tipo de carga', opciones: ['algodon', 'madera'] },
+    {
+      tipo: 'select',
+      nombre: 'Tipo de carga',
+      opciones: cargas.map(t => t.nombre),
+    },
     { tipo: 'chip', opciones: items },
     { tipo: 'resultado', nombre: 'COSTO BASE :' },
     { tipo: 'resultado', nombre: 'ADICIONALES :' },
