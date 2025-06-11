@@ -13,7 +13,7 @@ export const TextInput = ({ nombre, tipo }: { nombre: string; tipo: string }) =>
         type={tipo}
         id={nombre.replace(/\s+/g, '-').toLowerCase()}
         name={nombre}
-        className="form-control"
+        className="text-field"
         required
       />
     </div>

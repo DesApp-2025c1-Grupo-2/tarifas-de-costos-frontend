@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import App from './App';
 import CrearTarifa from './CrearTarifa';
 import CrearTransportista from './CrearTransportista';
 import CrearVehiculo from './CrearVehiculo'
 import CrearZona from './CrearZona';
+import CrearCarga from './CrearCarga'
 import Tarifas from './Tarifas';
-import './css/app.css';
+//import './css/app.css';
 import Inicio from './Inicio';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -22,6 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/crear-transportista" element={<CrearTransportista />} />
         <Route path="/crear-vehiculo" element={<CrearVehiculo />} />
         <Route path="/crear-zona" element={<CrearZona />} />
+        <Route path="/crear-carga" element={<CrearCarga />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
