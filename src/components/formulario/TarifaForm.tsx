@@ -161,7 +161,7 @@ export const FormCrearTarifa: React.FC = () => {
       opciones: cargas.map(t => t.nombre),
     },
     { tipo: 'chip', opciones: items },
-    { tipo: 'resultado', nombre: 'COSTO BASE :' },
+    { tipo: 'costoBase' },
     { tipo: 'resultado', nombre: 'ADICIONALES :' },
     { tipo: 'resultado', nombre: 'COSTO TOTAL :' },
   ];

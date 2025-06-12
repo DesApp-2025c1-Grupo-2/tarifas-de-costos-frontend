@@ -7,6 +7,7 @@ import CrearVehiculo from './CrearVehiculo'
 import CrearZona from './CrearZona';
 import CrearCarga from './CrearCarga'
 import Tarifas from './Tarifas';
+import Reportes from './Reportes';
 //import './css/app.css';
 import Inicio from './Inicio';
 import CrearAdicional from './CrearAdicional';
@@ -17,7 +18,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<Inicio />} />
         <Route path="/generar-tarifa" element={<CrearTarifa />} />
-        {/* <Route path="/" element={<App />} /> */}
+        <Route path="/reportes" element={<Reportes />} />
         <Route path="/tarifas" element={<Tarifas />} />
         <Route path="/crear-tarifa" element={<CrearTarifa />} />
         <Route path="/crear-transportista" element={<CrearTransportista />} />
