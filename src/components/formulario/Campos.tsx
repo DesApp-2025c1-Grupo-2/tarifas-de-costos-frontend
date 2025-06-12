@@ -77,6 +77,15 @@ type Res = {
     nombre: string;
 };
 
+export const CostoBase: React.FC<Res> = ({ nombre }) => {
+    return (
+        <div className='result'>
+            <p>COSTO BASE</p>
+            <input  type="number" />
+        </div>
+    )
+}
+
 export const Resultado: React.FC<Res> = ({ nombre }) => {
     return (
         <div className='result'>
