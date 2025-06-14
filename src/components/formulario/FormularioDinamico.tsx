@@ -57,7 +57,8 @@ const FormularioDinamico: React.FC<Props> = ({ titulo, campos, redireccion, onSu
           }
           return null;
         })}
-        <BotonGuardar />
+        <BotonGuardar></BotonGuardar>
+        
       </form>
 
       {mostrarMensaje && (

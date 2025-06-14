@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { estiloBoton } from '../Botones';
+import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
 import {
   obtenerTiposVehiculo,
   crearTipoVehiculo,
@@ -8,6 +8,7 @@ import {
   eliminarTipoVehiculo,
   TipoVehiculo,
 } from '../../services/tipoVehiculoService';
+import TablaDinamica from '../tablas/tablaDinamica';
 
 const camposTipoVehiculo: Campo[] = [
   { tipo: 'input', nombre: 'Nombre', clase: 'text' },
@@ -102,9 +103,7 @@ export const FormCrearTipoVehiculo: React.FC = () => {
   return (
     <div>
       {!mostrarFormulario && !editingTipo && (
-        <button style={estiloBoton} onClick={() => setMostrarFormulario(true)}>
-          Crear nuevo tipo de vehículo
-        </button>
+        <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nuevo tipo de vehiculo</BotonPrimario>
       )}
 
       {(mostrarFormulario || editingTipo) && (
@@ -116,46 +115,31 @@ export const FormCrearTipoVehiculo: React.FC = () => {
             onSubmit={handleSubmit}
             formRef={formRef}
           />
-          <button style={estiloBoton} className="cancel-button" onClick={handleCancelEdit}>
-            Cancelar
-          </button>
+          <BotonPrimario onClick={handleCancelEdit} >Cancelar</BotonPrimario>
         </>
       )}
 
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
 
-      <div className="transportista-list">
-        <h2>Tipos de Vehículo Registrados</h2>
-        {tiposVehiculoList.length === 0 ? (
-          <p>No hay tipos de vehículo registrados.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Capacidad Peso (KG)</th>
-                <th>Capacidad Volumen (m³)</th>
-                <th>Descripción</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tiposVehiculoList.map(tipo => (
-                <tr key={tipo.id}>
-                  <td>{tipo.nombre}</td>
-                  <td>{tipo.capacidadPesoKG}</td>
-                  <td>{tipo.capacidadVolumenM3}</td>
-                  <td>{tipo.descripcion}</td>
-                  <td>
-                    <button className="edit-button" onClick={() => handleEdit(tipo)}>Editar</button>
-                    <button className="delete-button" onClick={() => handleDelete(tipo.id.toString())}>Eliminar</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <TablaDinamica
+        titulo="Transportistas Registrados"
+        columnas={["Nombre", "Capacidad Peso (KG)", "Capacidad Volumen (m³)", "Descripción", "Acción"]}
+        datos={tiposVehiculoList}
+        mensaje={mensaje}
+        condicionVacio="No hay tipos de vehiculos registrados."
+        renderFila={(t) => (
+          <tr key={t.id}>
+            <td>{t.nombre}</td>
+            <td>{t.capacidadPesoKG}</td>
+            <td>{t.capacidadVolumenM3}</td>
+            <td>{t.descripcion}</td>
+            <td>
+              <BotonEditar onClick={() => handleEdit(t)} children={undefined}></BotonEditar>
+              <BotonEliminar onClick={() => handleDelete(t.id.toString())} children={undefined}></BotonEliminar>
+            </td>
+          </tr>
         )}
-      </div>
+      />
     </div>
   );
 };

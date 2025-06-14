@@ -1,65 +1,40 @@
-import React, { useState } from 'react';
+import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import Button, { ButtonProps } from '@mui/material/Button';
 
-export const estiloBoton: React.CSSProperties = {
-    padding: '0.5rem 1rem',
-    marginTop: '16px',
-    backgroundColor: '#1B2A41',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    display: 'inline-block',
-    textDecoration: 'none',
-    textAlign: 'center'
-};
+// Botón primario reutilizable
 
-interface BotonProps {
-    to: string;
-    texto: string;
-}
+interface BotonProps extends ButtonProps {
+    children: ReactNode;
+  }
+  
+  export function BotonPrimario({ children, onClick }: BotonProps) {
+    return (
+      <Button variant="contained" color="primary" onClick={onClick} >
+        {children}
+      </Button>
+    );
+  }
 
-////////// CREAR NUEVA TARIFA //////////
+  export function BotonGuardar() {
+    return (
+        <Button variant="contained">Guardar</Button>
+    )
+  }
 
-const Boton: React.FC<BotonProps> = ({ to, texto }) => (
-    <Link to={to} style={estiloBoton}>
-        {texto}
-    </Link>
-);
+  export function BotonEditar({ children, onClick }: BotonProps) {
+    return (
+      <Button variant="contained" color="secondary" onClick={onClick} >
+        Editar
+      </Button>
+    );
+  }
 
-export const BotonTarifas: React.FC = () => (
-    <Boton to='./tarifas' texto='Tarifas' />
-);
+  export function BotonEliminar({ children, onClick }: BotonProps) {
+    return (
+      <Button variant="contained" color="error" onClick={onClick} >
+        Eliminar
+      </Button>
+    );
+  }
 
-////////// GUARDAR //////////
-
-export const BotonGuardar: React.FC = () => (
-    <button style={{
-        padding: '0.5rem 1rem',
-        marginTop: '16px',
-        backgroundColor: '#1B2A41',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer'
-    }}>
-        Guardar
-    </button>
-);
-
-// lo movi para que esten todos los botones juntos
-export const BotonNuevaTarifa: React.FC = () => (
-    <Link to="/crear-tarifa">
-        <button style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#1B2A41',
-            marginLeft: '24px',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer'
-        }}>
-            + Nueva Tarifa
-        </button>
-    </Link>
-);

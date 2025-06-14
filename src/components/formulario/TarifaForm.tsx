@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { estiloBoton } from '../Botones';
+import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
 import {
   obtenerTarifas,
   crearTarifa,
@@ -8,6 +8,7 @@ import {
   eliminarTarifa,
   Tarifa,
 } from '../../services/tarifaService';
+import TablaDinamica from '../tablas/tablaDinamica';
 import { obtenerTransportistas, Transportista } from '../../services/transportistaService';
 import { obtenerTiposVehiculo, TipoVehiculo } from '../../services/tipoVehiculoService';
 import { obtenerCargas, Carga } from '../../services/cargaService';
@@ -169,9 +170,8 @@ export const FormCrearTarifa: React.FC = () => {
   return (
     <div>
       {!mostrarFormulario && !editando && (
-        <button style={estiloBoton} onClick={() => setMostrarFormulario(true)}>
-          Crear nueva tarifa
-        </button>
+                <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nueva tarifa</BotonPrimario>
+
       )}
 
       {(mostrarFormulario || editando) && (
@@ -183,45 +183,31 @@ export const FormCrearTarifa: React.FC = () => {
             onSubmit={handleSubmit}
             formRef={formRef}
           />
-          <button style={estiloBoton} onClick={handleCancel}>Cancelar</button>
+          <BotonPrimario onClick={handleCancel} >Cancelar</BotonPrimario>
         </>
       )}
 
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
-      <div className="transportista-list">
-        <h2>Tarifas Registradas</h2>
-        {tarifas.length === 0 ? (
-          <p>No hay tarifas registradas.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Transportista</th>
-                <th>Vehículo</th>
-                <th>Zona</th>
-                <th>Carga</th>
-                <th>Total</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tarifas.map((t) => (
-                <tr key={t.id}>
-                  <td>{t.transportista}</td>
-                  <td>{t.vehiculo}</td>
-                  <td>{t.zona}</td>
-                  <td>{t.carga}</td>
-                  <td>{t.total}</td>
-                  <td>
-                    <button onClick={() => handleEdit(t)}>Editar</button>
-                    <button onClick={() => handleDelete(t.id)}>Eliminar</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <TablaDinamica
+        titulo="Tarifas Registradas"
+        columnas={["Transportista", "Vehículo", "Zona", "Carga", "Total", "Acciones"]}
+        datos={tarifas}
+        mensaje={mensaje}
+        condicionVacio="No hay tarifas registradas."
+        renderFila={(t) => (
+          <tr key={t.id}>
+            <td>{t.transportista}</td>
+            <td>{t.vehiculo}</td>
+            <td>{t.zona}</td>
+            <td>{t.carga}</td>
+            <td>{t.total}</td>
+            <td>
+              <BotonEditar onClick={() => handleEdit(t)} children={undefined}></BotonEditar>
+              <BotonEliminar onClick={() => handleDelete(t.id)} children={undefined}></BotonEliminar>
+            </td>
+          </tr>
         )}
-      </div>
+      />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { estiloBoton } from '../Botones';
+import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
 
 type Zona = {
     id: string;
@@ -81,9 +81,8 @@ export const FormCrearZona: React.FC = () => {
     return (
       <div>
         {!mostrarFormulario && !editingZona && (
-          <button style={estiloBoton} onClick={() => setMostrarFormulario(true)}>
-            Crear nueva zona
-          </button>
+          <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nueva zona</BotonPrimario>
+
         )}
   
         {(mostrarFormulario || editingZona) && (
@@ -95,9 +94,7 @@ export const FormCrearZona: React.FC = () => {
               onSubmit={handleSubmit}
               formRef={formRef}
             />
-            <button style={estiloBoton} className="cancel-button" onClick={handleCancelEdit}>
-              Cancelar
-            </button>
+            <BotonPrimario onClick={handleCancelEdit} >Cancelar</BotonPrimario>
           </>
         )}
   
