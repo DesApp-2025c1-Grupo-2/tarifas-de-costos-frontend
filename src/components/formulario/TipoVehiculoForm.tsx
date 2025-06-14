@@ -9,6 +9,7 @@ import {
   TipoVehiculo,
 } from '../../services/tipoVehiculoService';
 import TablaDinamica from '../tablas/tablaDinamica';
+import DataTable from '../tablas/tablaDinamica';
 
 const camposTipoVehiculo: Campo[] = [
   { tipo: 'input', nombre: 'Nombre', clase: 'text' },
@@ -121,25 +122,7 @@ export const FormCrearTipoVehiculo: React.FC = () => {
 
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
 
-      <TablaDinamica
-        titulo="Transportistas Registrados"
-        columnas={["Nombre", "Capacidad Peso (KG)", "Capacidad Volumen (m³)", "Descripción", "Acción"]}
-        datos={tiposVehiculoList}
-        mensaje={mensaje}
-        condicionVacio="No hay tipos de vehiculos registrados."
-        renderFila={(t) => (
-          <tr key={t.id}>
-            <td>{t.nombre}</td>
-            <td>{t.capacidadPesoKG}</td>
-            <td>{t.capacidadVolumenM3}</td>
-            <td>{t.descripcion}</td>
-            <td>
-              <BotonEditar onClick={() => handleEdit(t)} children={undefined}></BotonEditar>
-              <BotonEliminar onClick={() => handleDelete(t.id.toString())} children={undefined}></BotonEliminar>
-            </td>
-          </tr>
-        )}
-      />
+      <DataTable entidad="tipoDeVehiculo" rows={tiposVehiculoList} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
     </div>
   );
 };

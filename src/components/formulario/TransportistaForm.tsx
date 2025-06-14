@@ -8,7 +8,7 @@ import {
   eliminarTransportista,
   Transportista,
 } from '../../services/transportistaService';
-import TablaDinamica from '../tablas/tablaDinamica';
+import DataTable from '../tablas/tablaDinamica';
 
 
 const camposTransportista: Campo[] = [
@@ -123,25 +123,7 @@ export const FormCrearTransportista: React.FC = () => {
 
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
 
-      <TablaDinamica
-        titulo="Transportistas Registrados"
-        columnas={["Nombre", "Empresa", "Correo", "Teléfono", "Acción"]}
-        datos={transportistasList}
-        mensaje={mensaje}
-        condicionVacio="No hay transportistas registrados."
-        renderFila={(t) => (
-          <tr key={t.id}>
-            <td>{t.contactoNombre}</td>
-            <td>{t.nombreEmpresa}</td>
-            <td>{t.contactoEmail}</td>
-            <td>{t.contactoTelefono}</td>
-            <td>
-              <BotonEditar onClick={() => handleEdit(t)} children={undefined}></BotonEditar>
-              <BotonEliminar onClick={() => handleDelete(t.id.toString())} children={undefined}></BotonEliminar>
-            </td>
-          </tr>
-        )}
-      />
+      <DataTable entidad="transportista" rows={transportistasList} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
     </div>
   );
 }

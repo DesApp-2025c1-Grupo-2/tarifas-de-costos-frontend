@@ -8,10 +8,10 @@ import {
   eliminarTarifa,
   Tarifa,
 } from '../../services/tarifaService';
-import TablaDinamica from '../tablas/tablaDinamica';
 import { obtenerTransportistas, Transportista } from '../../services/transportistaService';
 import { obtenerTiposVehiculo, TipoVehiculo } from '../../services/tipoVehiculoService';
 import { obtenerCargas, Carga } from '../../services/cargaService';
+import DataTable from '../tablas/tablaDinamica';
 
 const items: string[] = ['a', 'b', 'c', 'd'];
 const transportistas: string[] = ['uno', 'dos'];
@@ -125,7 +125,7 @@ export const FormCrearTarifa: React.FC = () => {
     // Opcional: puedes rellenar el formRef manualmente si FormularioDinamico no lo hace
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
       await eliminarTarifa(id);
       setMensaje('Tarifa eliminada con éxito');
@@ -188,26 +188,7 @@ export const FormCrearTarifa: React.FC = () => {
       )}
 
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
-      <TablaDinamica
-        titulo="Tarifas Registradas"
-        columnas={["Transportista", "Vehículo", "Zona", "Carga", "Total", "Acciones"]}
-        datos={tarifas}
-        mensaje={mensaje}
-        condicionVacio="No hay tarifas registradas."
-        renderFila={(t) => (
-          <tr key={t.id}>
-            <td>{t.transportista}</td>
-            <td>{t.vehiculo}</td>
-            <td>{t.zona}</td>
-            <td>{t.carga}</td>
-            <td>{t.total}</td>
-            <td>
-              <BotonEditar onClick={() => handleEdit(t)} children={undefined}></BotonEditar>
-              <BotonEliminar onClick={() => handleDelete(t.id)} children={undefined}></BotonEliminar>
-            </td>
-          </tr>
-        )}
-      />
+      <DataTable entidad="transportista" rows={tarifas} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
     </div>
   );
 };

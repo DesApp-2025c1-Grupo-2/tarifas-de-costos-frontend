@@ -1,44 +1,59 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from 'react';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import Paper from '@mui/material/Paper';
+import { columnas, Entidad } from './columnas';
+import { BotonEditar, BotonEliminar } from '../Botones';
+import {
+  obtenerTransportistas,
+  crearTransportista,
+  actualizarTransportista,
+  eliminarTransportista,
+  Transportista,
+} from '../../services/transportistaService';
 
-interface TablaDinamicaProps<T> {
-  titulo: string;
-  columnas: string[];
-  datos: T[];
-  mensaje?: string;
-  condicionVacio: string;
-  renderFila: (dato: T, index: number) => React.ReactNode;
+
+const tabla = (
+  entidad: Entidad,
+  handleEdit: (row: any) => void,
+  handleDelete: (id: string) => void
+): GridColDef[] => {
+  const base = columnas[entidad];
+  
+
+  return [
+
+    ...columnas[entidad],
+    {
+      field: 'acciones',
+      headerName: 'Acciones',
+      width: 250,
+      renderCell: (params) => (
+        <>
+          <BotonEditar onClick={() => handleEdit(params.row)} children={undefined}/>
+          <BotonEliminar onClick={() => handleDelete(params.row.id.toString())} children={undefined}/>
+        </>
+      ),
+    }
+  ]
 }
 
-function TablaDinamica<T>({
-  titulo,
-  columnas,
-  datos,
-  mensaje,
-  condicionVacio,
-  renderFila,
-}: TablaDinamicaProps<T>) {
+interface DataTableProps {
+  rows: any[];
+  entidad: Entidad;
+  handleEdit: (row: any) => void;
+  handleDelete: (id: string) => void;
+}
+
+export default function DataTable({ rows, entidad, handleEdit, handleDelete }: DataTableProps) {
   return (
-    <div className="transportista-list">
-      {mensaje && <div className="mensaje-exito">{mensaje}</div>}
-      <h2>{titulo}</h2>
-      {datos.length === 0 ? (
-        <p>{condicionVacio}</p>
-      ) : (
-        <table>
-          <thead>
-            <tr>
-              {columnas.map((col, index) => (
-                <th key={index}>{col}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {datos.map((dato, index) => renderFila(dato, index))}
-          </tbody>
-        </table>
-      )}
-    </div>
+    <Paper sx={{ height: '100%', width: '100%' }}>
+      <DataGrid
+        rows={rows}
+        columns={tabla(entidad, handleEdit, handleDelete)}
+        initialState={{ pagination: { paginationModel: { page: 0, pageSize: 5 } } }}
+        pageSizeOptions={[5, 10]}
+        sx={{ border: 0 }}
+      />
+    </Paper>
   );
 }
-
-export default TablaDinamica;
