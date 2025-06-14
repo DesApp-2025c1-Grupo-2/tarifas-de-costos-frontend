@@ -5,47 +5,47 @@ export type Entidad = 'tarifa' | 'transportista' | 'tipoDeVehiculo' | 'tipoDeCar
 export const columnas: Record<Entidad, GridColDef[]> = {
 
     tarifa: [
-        { field: 'transportista', headerName: 'Transportista', width: 130 },
-        { field: 'tipoDeVehiculo', headerName: 'Tipo de vehiculo', width: 130 },
-        { field: 'zona', headerName: 'Zona', width: 130 },
-        { field: 'carga', headerName: 'Carga', width: 130 },
+        { field: 'transportista', headerName: 'Transportista', flex: 1 },
+        { field: 'tipoDeVehiculo', headerName: 'Tipo de vehiculo', flex: 1 },
+        { field: 'zona', headerName: 'Zona', flex: 1 },
+        { field: 'carga', headerName: 'Carga', flex: 1 },
         {
             field: 'total',
             headerName: 'Total',
             type: 'number',
-            width: 160,
+            flex: 1,
         },
     ],
 
     transportista: [
-        { field: 'contactoNombre', headerName: 'Nombre', width: 130 },
-        { field: 'nombreEmpresa', headerName: 'Empresa', width: 130 },
-        { field: 'contactoEmail', headerName: 'Correo', width: 180 },
+        { field: 'contactoNombre', headerName: 'Nombre', flex: 1 },
+        { field: 'nombreEmpresa', headerName: 'Empresa', flex: 1 },
+        { field: 'contactoEmail', headerName: 'Correo', flex: 1 },
         {
         field: 'contactoTelefono',
         headerName: 'Teléfono',
         type: 'number',
-        width: 160,
+        flex: 1,
         },
     ],
 
     tipoDeVehiculo: [
-        { field: 'nombre', headerName: 'Nombre', width: 130 },
+        { field: 'nombre', headerName: 'Nombre', flex: 1 },
         {
         field: 'capacidadPesoKG',
         headerName: 'Capacidad de Peso (KG)',
-        width: 160,
+        flex: 1,
         },
         {
         field: 'capacidadVolumenM3',
         headerName: 'Capacidad de Volumen (M3)',
-        width: 160,
+        flex: 1,
         },
-        { field: 'descripcion', headerName: 'Descripcion', width: 130 }
+        { field: 'descripcion', headerName: 'Descripcion', flex: 1 }
     ],
 
     tipoDeCarga: [
-        { field: 'nombre', headerName: 'Nombre', width: 130 },
-        { field: 'descripcion', headerName: 'Descripcion', width: 130 }
+        { field: 'nombre', headerName: 'Nombre', flex: 1 },
+        { field: 'descripcion', headerName: 'Descripcion', flex: 1 }
     ]
 }

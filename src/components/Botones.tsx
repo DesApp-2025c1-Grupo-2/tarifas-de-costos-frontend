@@ -18,7 +18,7 @@ interface BotonProps extends ButtonProps {
 
   export function BotonGuardar() {
     return (
-        <Button variant="contained">Guardar</Button>
+        <Button type="submit" variant="contained">Guardar</Button>
     )
   }
 

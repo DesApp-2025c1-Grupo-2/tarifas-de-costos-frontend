@@ -21,6 +21,7 @@ export async function obtenerTarifas(): Promise<Tarifa[]> {
 }
 
 export async function crearTarifa(data: Omit<Tarifa, 'id'>): Promise<Tarifa> {
+  console.log(data)
   const res = await fetch(TARIFAS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
