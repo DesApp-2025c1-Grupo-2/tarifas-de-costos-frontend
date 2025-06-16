@@ -6,34 +6,21 @@ import {
   crearTarifa,
   actualizarTarifa,
   eliminarTarifa,
-  Tarifa,
+  Tarifa
 } from '../../services/tarifaService';
 import { obtenerTransportistas, Transportista } from '../../services/transportistaService';
 import { obtenerTiposVehiculo, TipoVehiculo } from '../../services/tipoVehiculoService';
+import { obtenerZonas, ZonaViaje } from '../../services/zonaService';
+
 import { obtenerCargas, Carga } from '../../services/cargaService';
 import DataTable from '../tablas/tablaDinamica';
 
-const items: string[] = ['a', 'b', 'c', 'd'];
-const transportistas: string[] = ['uno', 'dos'];
-const vehiculos: string[] = ['auto', 'camion'];
-const zonas: string[] = ['Hurlingham', 'Ituzaingo'];
-const cargas: string[] = ['algodon', 'madera'];
-
-// const camposTarifa: Campo[] = [
-//   { tipo: 'select', nombre: 'Transportista', opciones: transportistas },
-//   { tipo: 'select', nombre: 'Tipo de vehiculo', opciones: vehiculos },
-//   { tipo: 'select', nombre: 'Zona', opciones: zonas },
-//   { tipo: 'select', nombre: 'Tipo de carga', opciones: cargas },
-//   { tipo: 'chip', opciones: items },
-//   { tipo: 'resultado', nombre: 'COSTO BASE :' },
-//   { tipo: 'resultado', nombre: 'ADICIONALES :' },
-//   { tipo: 'resultado', nombre: 'COSTO TOTAL :' },
-// ];
 
 export const FormCrearTarifa: React.FC = () => {
   const [tarifas, setTarifas] = useState<Tarifa[]>([]);
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [tipoVehiculos, setTipoVehiculos] = useState<TipoVehiculo[]>([]);
+  const [zonas, setZonas] = useState<ZonaViaje[]>([]);
   const [cargas, setCarga] = useState<Carga[]>([]);
   const [mensaje, setMensaje] = useState('');
   const [editando, setEditando] = useState<Tarifa | null>(null);
@@ -44,6 +31,7 @@ export const FormCrearTarifa: React.FC = () => {
     cargarTarifas();
     cargarTransportistas();
     cargarTipoVehiculo();
+    cargarZona();
     cargarCarga();
   }, []);
 
@@ -74,6 +62,15 @@ export const FormCrearTarifa: React.FC = () => {
     }
   };
 
+  const cargarZona = async () => {
+    try {
+      const data = await obtenerZonas();
+      setZonas(data);
+    } catch (error) {
+      console.error('Error al cargar zonas:', error);
+    }
+  }
+
   const cargarCarga = async () => {
     try {
       const data = await obtenerCargas();
@@ -83,30 +80,40 @@ export const FormCrearTarifa: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+  const handleSubmit = async (valores: Record<string, any>) => {
+    // Ejemplo de validación sencilla
+    const getNumber = (key: string): number => {
+      const value = valores[key];
+      //console.log(`Valor de ${key}:`, value);
 
-    const nuevaTarifa = {
-      transportista: formData.get('Transportista') as string,
-      vehiculo: formData.get('Tipo de vehiculo') as string,
-      zona: formData.get('Zona') as string,
-      carga: formData.get('Tipo de carga') as string,
-      items: formData.getAll('chip') as string[],
-      costoBase: 100,
-      adicionales: 20,
-      total: 120,
+      if (value === undefined || isNaN(Number(value))) {
+        throw new Error(`El campo ${key} es inválido o está vacío`);
+      }
+      return Number(value);
     };
+  
+    const costoBase = getNumber('costoBase');
 
+    const nuevaTarifa:  Omit<Tarifa, 'id'> = {
+      transportista: { id: getNumber('transportistaId') },
+      tipoVehiculo: { id: getNumber('vehiculoId') },
+      zonaViaje: { id: getNumber('zona') },
+      tipoCargaTarifa: { id: getNumber('cargaId') },
+      valorBase: getNumber('costoBase'),
+      total: getNumber('costoBase'),
+      adicionales: [],
+    };
+  
     try {
       if (editando) {
         await actualizarTarifa(editando.id, nuevaTarifa);
         setMensaje('Tarifa actualizada con éxito');
       } else {
+        console.log('Payload que se envía:', nuevaTarifa);
         await crearTarifa(nuevaTarifa);
         setMensaje('Tarifa creada con éxito');
       }
-
+  
       setEditando(null);
       setMostrarFormulario(false);
       if (formRef.current) formRef.current.reset();
@@ -115,7 +122,7 @@ export const FormCrearTarifa: React.FC = () => {
       console.error(err);
       setMensaje('Error al guardar la tarifa');
     }
-
+  
     setTimeout(() => setMensaje(''), 2000);
   };
 
@@ -147,48 +154,73 @@ export const FormCrearTarifa: React.FC = () => {
     {
       tipo: 'select',
       nombre: 'Transportista',
-      opciones: transportistas.map(t => t.nombreEmpresa),
+      clave: 'transportistaId',
+      opciones: transportistas.map(t => ({
+        id: t.id,
+        nombre: t.nombreEmpresa,
+      })),
     },
-    // Aquí irían vehiculos, zonas y cargas igual, usando su estado
     {
       tipo: 'select',
       nombre: 'Tipo de vehiculo',
-      opciones: tipoVehiculos.map(t => t.nombre),
+      clave: 'vehiculoId',
+      opciones: tipoVehiculos.map(t => ({
+        id: t.id,
+        nombre: t.nombre,
+      })),
     },
-    { tipo: 'select', nombre: 'Zona', opciones: ['Hurlingham', 'Ituzaingo'] },
+    {
+      tipo: 'select',
+      nombre: 'Zona',
+      clave: 'zona',
+      opciones: zonas.map(t => ({
+        id: t.id,
+        nombre: t.nombre,
+      })),
+    },
     {
       tipo: 'select',
       nombre: 'Tipo de carga',
-      opciones: cargas.map(t => t.nombre),
+      clave: 'cargaId',
+      opciones: cargas.map(t => ({
+        id: t.id,
+        nombre: t.nombre,
+      })),
     },
-    { tipo: 'chip', opciones: items },
-    { tipo: 'costoBase' },
-    { tipo: 'resultado', nombre: 'ADICIONALES :' },
-    { tipo: 'resultado', nombre: 'COSTO TOTAL :' },
+    { tipo: 'costoBase', nombre: 'Costo Base', clave: 'costoBase' },
+    { tipo: 'resultado', nombre: 'ADICIONALES :', clave: 'adicionales' },
+    { tipo: 'resultado', nombre: 'COSTO TOTAL :', clave: 'total' },
   ];
 
   return (
     <div>
       {!mostrarFormulario && !editando && (
-                <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nueva tarifa</BotonPrimario>
-
+        <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nueva tarifa</BotonPrimario>
       )}
 
       {(mostrarFormulario || editando) && (
         <>
-          <FormularioDinamico
+          {/* <FormularioDinamico
             titulo={editando ? 'Editar Tarifa' : 'Registrar nueva Tarifa'}
             campos={camposTarifa}
             redireccion="/"
             onSubmit={handleSubmit}
             formRef={formRef}
+          /> */}
+          <FormularioDinamico
+            titulo={editando ? 'Editar Tarifa' : 'Registrar nueva Tarifa'}
+            campos={camposTarifa}
+            onSubmit={handleSubmit}
+            modal
+            open={mostrarFormulario}
+            onClose={handleCancel}
           />
           <BotonPrimario onClick={handleCancel} >Cancelar</BotonPrimario>
         </>
       )}
 
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
-      <DataTable entidad="transportista" rows={tarifas} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
+      <DataTable entidad="tarifa" rows={tarifas} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
     </div>
   );
 };

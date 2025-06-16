@@ -1,68 +1,154 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SelectField, ChipBlock, CostoBase, Resultado, TextInput } from './Campos';
+import {
+  BasicTextFields,
+  BasicSelect,
+  Resultado,
+  NumberField
+} from './Campos';
 import { BotonGuardar } from '../Botones';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
-export type Campo =
-  | { tipo: 'select'; nombre: string; opciones: string[] }
-  | { tipo: 'input'; nombre: string; clase: string }
-  | { tipo: 'chip'; opciones: string[] }
-  | { tipo: 'costoBase'; }
-  | { tipo: 'resultado'; nombre: string };
+export type Campo = {
+  tipo: 'text' | 'input' | 'email' | 'tel' | 'select' | 'resultado' | 'costoBase';
+  nombre: string;
+  clave: string;
+  opciones?: { id: number | string; nombre: string }[]; // solo para selects
+};
 
 type Props = {
   titulo: string;
   campos: Campo[];
-  redireccion: string;
-  onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void;
+  redireccion?: string;
+  onSubmit?: (valores: Record<string, any>) => void;
   formRef?: React.RefObject<HTMLFormElement | null>;
+
+  // props opcionales para el modo modal
+  modal?: boolean;
+  open?: boolean;
+  onClose?: () => void;
 };
 
-const FormularioDinamico: React.FC<Props> = ({ titulo, campos, redireccion, onSubmit, formRef }) => {
+const FormularioDinamico: React.FC<Props> = ({
+  titulo,
+  campos,
+  redireccion,
+  onSubmit,
+  formRef,
+  modal = false,
+  open = false,
+  onClose
+}) => {
   const [mostrarMensaje, setMostrarMensaje] = useState(false);
+  const [valores, setValores] = useState<Record<string, any>>({});
   const navigate = useNavigate();
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleChange = (clave: string, valor: any) => {
+    setValores((prev) => ({ ...prev, [clave]: valor }));
+  };
+
+  const handleInternalSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (onSubmit) {
-      onSubmit(event);
-    } else {
-      console.log('Formulario guardado (simulado)');
-      setMostrarMensaje(true);
+    onSubmit?.(valores);
+    setMostrarMensaje(true);
+
+    if (!modal && redireccion) {
       setTimeout(() => {
         navigate(redireccion);
-      }, 1400);
+      }, 1500);
+    }
+
+    if (modal && onClose) {
+      onClose(); // cerrar modal tras submit si aplica
     }
   };
+
+  const contenidoFormulario = (
+    <form className="formulario-tarifa" onSubmit={handleInternalSubmit} ref={formRef}>
+      {campos.map((campo) => {
+        switch (campo.tipo) {
+          case 'text':
+            return (
+              <BasicTextFields
+                key={campo.clave}
+                label={campo.nombre}
+                value={valores[campo.clave] || ''}
+                onChange={(val: string) => handleChange(campo.clave, val)}
+              />
+            );
+
+          case 'select':
+            return (
+              <BasicSelect
+                key={campo.clave}
+                label={campo.nombre}
+                opciones={campo.opciones || []}
+                value={valores[campo.clave] || ''}
+                onChange={(val: string) => handleChange(campo.clave, val)}
+              />
+            );
+
+          case 'resultado':
+            return (
+              <Resultado
+                key={campo.clave}
+                nombre={campo.nombre}
+                value={valores[campo.clave] || ''}
+              />
+            );
+
+          case 'costoBase':
+            return (
+              <NumberField
+                key={campo.clave}
+                label="COSTO BASE"
+                value={valores[campo.clave] || ''}
+                onChange={(val) => setValores(prev => ({ ...prev, [campo.clave]: val }))}
+              />
+            );
+
+          default:
+            return null;
+        }
+      })}
+
+      <BotonGuardar />
+    </form>
+  );
+
+  if (modal) {
+    return (
+      <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <DialogTitle>
+          {titulo}
+          <IconButton
+            aria-label="close"
+            onClick={onClose}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {contenidoFormulario}
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <div className="crear-tarifa">
       <h2>{titulo}</h2>
-      <form className="formulario-tarifa" onSubmit={handleSubmit} ref={formRef}>
-        {campos.map((campo, index) => {
-          if (campo.tipo === 'select') {
-            return <SelectField key={index} nombre={campo.nombre} opciones={campo.opciones} />;
-          }
-          if (campo.tipo === 'input') {
-            return <TextInput key={index} nombre={campo.nombre} tipo={campo.clase} />;
-          }
-          if (campo.tipo === 'chip') {
-            return <ChipBlock key={index} opciones={campo.opciones} />;
-          }
-          if (campo.tipo === 'costoBase') {
-            return <CostoBase key={index} nombre={''} />;
-          }
-          if (campo.tipo === 'resultado') {
-            return <Resultado key={index} nombre={campo.nombre} />;
-          }
-          return null;
-        })}
-        <BotonGuardar></BotonGuardar>
-        
-      </form>
+      {contenidoFormulario}
 
       {mostrarMensaje && (
-        <div className="mensaje-exito">Su registro se ha guardado con éxito!</div>
+        <div className="mensaje-exito">¡Guardado con éxito!</div>
       )}
     </div>
   );

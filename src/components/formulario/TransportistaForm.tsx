@@ -10,12 +10,11 @@ import {
 } from '../../services/transportistaService';
 import DataTable from '../tablas/tablaDinamica';
 
-
 const camposTransportista: Campo[] = [
-  { tipo: 'input', nombre: 'Nombre', clase: 'text' }, 
-  { tipo: 'input', nombre: 'Empresa', clase: 'text' },
-  { tipo: 'input', nombre: 'Correo electrónico', clase: 'email' },
-  { tipo: 'input', nombre: 'Teléfono de contacto', clase: 'tel' },
+  { tipo: 'text', nombre: 'Nombre', clave: "nombre" },
+  { tipo: 'text', nombre: 'Empresa', clave: "empresa" },
+  { tipo: 'text', nombre: 'Correo', clave: "correo" },
+  { tipo: 'text', nombre: 'Telefono', clave: "telefono" }
 ];
 
 export const FormCrearTransportista: React.FC = () => {
@@ -38,15 +37,13 @@ export const FormCrearTransportista: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+  const handleSubmit = async (valores: Record<string, string>) => {
     const nuevoTransportista = {
-      nombreEmpresa: formData.get('Empresa') as string,
-      contactoNombre: formData.get('Nombre') as string,
-      contactoEmail: formData.get('Correo electrónico') as string,
-      contactoTelefono: formData.get('Teléfono de contacto') as string,
-      };
+      contactoNombre: valores['nombre'],
+      nombreEmpresa: valores['empresa'],
+      contactoEmail: valores['correo'],
+      contactoTelefono: valores['telefono']
+    };
 
     try {
       if (editingTransportista) {
@@ -113,9 +110,10 @@ export const FormCrearTransportista: React.FC = () => {
           <FormularioDinamico
             titulo={editingTransportista ? 'Editar Transportista' : 'Registrar nuevo transportista'}
             campos={camposTransportista}
-            redireccion="/"
             onSubmit={handleSubmit}
-            formRef={formRef}
+            modal
+            open={mostrarFormulario}
+            onClose={handleCancelEdit}
           />
           <BotonPrimario onClick={handleCancelEdit} >Cancelar</BotonPrimario>
         </>

@@ -1,15 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
 import { columnas, Entidad } from './columnas';
 import { BotonEditar, BotonEliminar } from '../Botones';
-import {
-  obtenerTransportistas,
-  crearTransportista,
-  actualizarTransportista,
-  eliminarTransportista,
-  Transportista,
-} from '../../services/transportistaService';
 
 
 const tabla = (

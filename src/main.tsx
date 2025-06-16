@@ -23,6 +23,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/crear-tarifa" element={<CrearTarifa />} />
         <Route path="/crear-transportista" element={<CrearTransportista />} />
         <Route path="/crear-vehiculo" element={<CrearVehiculo />} />
+        <Route path="/crear-carga" element={<CrearCarga />} />
         <Route path="/crear-zona" element={<CrearZona />} />
         <Route path="/crear-adicional" element={<CrearAdicional />} />
       </Routes>

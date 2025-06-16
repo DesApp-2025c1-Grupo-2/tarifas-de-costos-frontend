@@ -1,21 +1,22 @@
 import { GridColDef } from '@mui/x-data-grid';
+import {Tarifa} from '../../services/tarifaService';
 
-export type Entidad = 'tarifa' | 'transportista' | 'tipoDeVehiculo' | 'tipoDeCarga';
+export type Entidad = 'tarifa' | 'transportista' | 'tipoDeVehiculo' | 'tipoDeCarga' | 'zona';
 
 export const columnas: Record<Entidad, GridColDef[]> = {
 
     tarifa: [
-        { field: 'transportista', headerName: 'Transportista', flex: 1 },
-        { field: 'tipoDeVehiculo', headerName: 'Tipo de vehiculo', flex: 1 },
-        { field: 'zona', headerName: 'Zona', flex: 1 },
-        { field: 'carga', headerName: 'Carga', flex: 1 },
+        { field: 'transportistaNombre', headerName: 'Transportista', flex: 1 },
+        { field: 'tipoVehiculoNombre', headerName: 'Tipo de vehículo', flex: 1 },
+        { field: 'zonaNombre', headerName: 'Zona', flex: 1 },
+        { field: 'tipoCargaNombre', headerName: 'Carga', flex: 1 },
         {
-            field: 'total',
-            headerName: 'Total',
-            type: 'number',
-            flex: 1,
+          field: 'valorBase',
+          headerName: 'Total',
+          type: 'number',
+          flex: 1,
         },
-    ],
+      ],
 
     transportista: [
         { field: 'contactoNombre', headerName: 'Nombre', flex: 1 },
@@ -47,5 +48,11 @@ export const columnas: Record<Entidad, GridColDef[]> = {
     tipoDeCarga: [
         { field: 'nombre', headerName: 'Nombre', flex: 1 },
         { field: 'descripcion', headerName: 'Descripcion', flex: 1 }
+    ],
+
+    zona: [
+        { field: 'nombre', headerName: 'Nombre', flex: 1 },
+        { field: 'descripcion', headerName: 'Descripcion', flex: 1 },
+        { field: 'regionMapa', headerName: 'Region', flex: 1 }
     ]
 }
