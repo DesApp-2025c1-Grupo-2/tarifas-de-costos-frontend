@@ -27,7 +27,7 @@ export async function obtenerTransportistas(): Promise<Transportista[]> {
     return res.json();
   }
   
-  export async function actualizarTransportista(id: string, data: Omit<Transportista, 'id'>): Promise<Transportista> {
+  export async function actualizarTransportista(id: number, data: Omit<Transportista, 'id'>): Promise<Transportista> {
     const res = await fetch(`${TRANSPORTISTAS_URL}/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -37,7 +37,7 @@ export async function obtenerTransportistas(): Promise<Transportista[]> {
     return res.json();
   }
   
-  export async function eliminarTransportista(id: string): Promise<void> {
+  export async function eliminarTransportista(id: number): Promise<void> {
     const res = await fetch(`${TRANSPORTISTAS_URL}/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Error al eliminar transportista');
   }

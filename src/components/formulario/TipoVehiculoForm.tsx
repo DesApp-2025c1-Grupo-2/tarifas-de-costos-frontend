@@ -78,9 +78,9 @@ export const FormCrearTipoVehiculo: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
-      await eliminarTipoVehiculo(id);
+      await eliminarTipoVehiculo(id.toString());
       setMensaje('Tipo de vehículo eliminado con éxito!');
       cargarTiposVehiculo();
     } catch (error) {
@@ -102,6 +102,7 @@ export const FormCrearTipoVehiculo: React.FC = () => {
     <div>
       {!mostrarFormulario && !editingTipo && (
         <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nuevo tipo de vehiculo</BotonPrimario>
+        
       )}
 
       {(mostrarFormulario || editingTipo) && (

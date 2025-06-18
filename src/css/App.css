@@ -1,4 +1,4 @@
-
+/* --- RESET Y BASE --- */
 body, html {
   margin: 0;
   padding: 0;
@@ -7,7 +7,7 @@ body, html {
   overflow-x: hidden; 
 }
 
-
+/* --- ESTRUCTURA GENERAL DE LA APP --- */
 .app {
   display: flex;
   flex-direction: column;
@@ -21,12 +21,11 @@ body, html {
   transition: margin-left 0.3s ease-in-out; 
 }
 
-
 .app.sidebar-open .content-area {
   margin-left: 250px; 
 }
 
-
+/* --- CABECERA --- */
 .header {
   background-color: #1B2A41; 
   color: white;
@@ -55,12 +54,6 @@ body, html {
   color: white;
 }
 
-
-
-.bg-custom-dark-blue {
-    background-color: #1B2A41;
-}
-
 .headerConMenu-icon {
   cursor: pointer;
   width: 30px; 
@@ -69,6 +62,11 @@ body, html {
   margin-right: 20px; 
 }
 
+.bg-custom-dark-blue {
+  background-color: #1B2A41;
+}
+
+/* --- BARRA LATERAL (SIDEBAR) --- */
 .sidebar {
   position: fixed;
   top: 60px;
@@ -109,37 +107,23 @@ body, html {
   background-color: #F39237;
 }
 
-@media (max-width: 768px) {
-  .header {
-    padding: 0 10px;
-  }
-
-  .header .empresa {
-    font-size: 14px;
-    margin-left: 10px; 
-  }
-
-  .header .usuario {
-    font-size: 12px;
-  }
-
-
-  .app.sidebar-open .content-area {
-    margin-left: 0; 
-  }
+.sidebar h2 { 
+  color: white; 
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-
+/* --- CONTENIDO PRINCIPAL Y TARJETAS --- */
 .main {
   padding: 2rem;
   flex: 1;
 }
-  
+
 .grid {
   display: block; 
   gap: 2rem;
 }
-  
+
 .card {
   background-color: white;
   display: flex;
@@ -148,17 +132,18 @@ body, html {
   padding: 1.5rem;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
-  
 
+/* --- LOGO (IMAGEN) --- */
 .logo-acme {
-  max-width: 800px;      
-  width: 100%;      
-  height: auto; 
+  max-width: 800px;
+  width: 100%;
+  max-height: 500px; /* Limita la altura para que no crezca demasiado */
+  height: auto;
   display: block;
-  margin: 40px auto;     
-  object-fit: contain;   
+  margin: 20px auto; /* menos margen para dar más espacio */
+  object-fit: contain;
 }
-
+/* --- BOTONES --- */
 .boton-contenedor {
   display: flex;
   justify-content: center;
@@ -166,7 +151,7 @@ body, html {
 }
 
 .boton-Inicio {
-  background-color: #1B2A41;
+  background-color: #ff7300;
   color: white;
   font-size: 1.1rem;
   font-weight: 600;
@@ -183,6 +168,13 @@ body, html {
   transform: translateY(-2px);
 }
 
+.contenedor-centrado {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+/* --- FOOTER --- */
 .footer-franja {
   position: fixed;
   bottom: 0;
@@ -194,10 +186,23 @@ body, html {
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.sidebar h2 { 
-  color: white; 
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
+/* --- MEDIA QUERIES --- */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 10px;
+  }
+
+  .header .empresa {
+    font-size: 14px;
+    margin-left: 10px; 
+  }
+
+  .header .usuario {
+    font-size: 12px;
+  }
+
+  /* Evitar que el sidebar empuje el contenido en móviles */
+  .app.sidebar-open .content-area {
+    margin-left: 0; 
+  }
 }
-
-
