@@ -47,7 +47,7 @@ export const FormCrearTransportista: React.FC = () => {
 
     try {
       if (editingTransportista) {
-        await actualizarTransportista(editingTransportista.id.toString(), nuevoTransportista);
+        await actualizarTransportista(editingTransportista.id, nuevoTransportista);
         setMensaje('Transportista actualizado con éxito!');
       } else {
         await crearTransportista(nuevoTransportista);
@@ -76,7 +76,7 @@ export const FormCrearTransportista: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await eliminarTransportista(id);
       setMensaje('Transportista eliminado con éxito!');

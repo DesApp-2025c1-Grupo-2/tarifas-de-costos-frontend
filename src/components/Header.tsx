@@ -13,7 +13,6 @@ const Header: React.FC = () => (
         </div>
       </strong>
     </div>
-    <div className="usuario">Usuario: Juan Pérez</div>
   </header>
 );
 
@@ -37,8 +36,6 @@ const HeaderConMenu: React.FC<HeaderConMenuProps> = ({ onImagenClick }) => (
         </a>
       </span>
     </div>
-
-    <div className="usuario text-sm">Usuario: Juan Pérez</div>
   </header>
 );
 

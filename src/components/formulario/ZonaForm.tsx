@@ -119,7 +119,7 @@ export const FormCrearZona: React.FC = () => {
           entidad="zona" 
           rows={zonasList} 
           handleEdit={handleEdit} 
-          handleDelete={(id: string) => handleDelete(Number(id))}>
+          handleDelete={(id: number) => handleDelete(Number(id))}>
         </DataTable>
       </div>
     );
