@@ -132,7 +132,7 @@ export const FormCrearTarifa: React.FC = () => {
     // Opcional: puedes rellenar el formRef manualmente si FormularioDinamico no lo hace
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await eliminarTarifa(id);
       setMensaje('Tarifa eliminada con éxito');
@@ -200,13 +200,6 @@ export const FormCrearTarifa: React.FC = () => {
 
       {(mostrarFormulario || editando) && (
         <>
-          {/* <FormularioDinamico
-            titulo={editando ? 'Editar Tarifa' : 'Registrar nueva Tarifa'}
-            campos={camposTarifa}
-            redireccion="/"
-            onSubmit={handleSubmit}
-            formRef={formRef}
-          /> */}
           <FormularioDinamico
             titulo={editando ? 'Editar Tarifa' : 'Registrar nueva Tarifa'}
             campos={camposTarifa}

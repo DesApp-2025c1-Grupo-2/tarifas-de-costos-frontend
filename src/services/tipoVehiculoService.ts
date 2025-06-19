@@ -37,6 +37,6 @@ export async function actualizarTipoVehiculo(id: string, data: Omit<TipoVehiculo
 }
 
 export async function eliminarTipoVehiculo(id: string): Promise<void> {
-  const res = await fetch(`${TIPOS_VEHICULO_URL}/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${TIPOS_VEHICULO_URL}/${id}/baja`, { method: 'PUT' });
   if (!res.ok) throw new Error('Error al eliminar tipo de vehículo');
 }

@@ -36,6 +36,6 @@ export async function actualizarZona(id: number, data: Omit<ZonaViaje, 'id'>): P
 }
 
 export async function eliminarZona(id: number): Promise<void> {
-  const res = await fetch(`${ZONAS_URL}/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${ZONAS_URL}/${id}/baja`, { method: 'PUT' });
   if (!res.ok) throw new Error('Error al eliminar zona');
 }

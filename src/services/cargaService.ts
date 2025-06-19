@@ -34,9 +34,9 @@ export async function actualizarCarga(id: string, data: Omit<Carga, 'id'>): Prom
   return res.json();
 }
 
-export async function eliminarCarga(id: string): Promise<void> {
-  const res = await fetch(`${CARGAS_URL}/${id}`, {
-    method: 'DELETE',
+export async function eliminarCarga(id: number): Promise<void> {
+  const res = await fetch(`${CARGAS_URL}/${id}/baja`, {
+    method: 'PUT',
   });
   if (!res.ok) throw new Error('Error al eliminar carga');
 }

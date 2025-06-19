@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 
+
 interface DataTableProps {
   rows: any[];
   entidad: Entidad;
@@ -25,18 +26,23 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
   const columnasBase = columnas[entidad];
   const [filtros, setFiltros] = useState<{ [key: string]: string }>({});
 
-  // Obtener valores únicos para cada columna (solo texto)
+  // ⚠️ Solo considerar los activos
+  const rowsActivos = useMemo(() => {
+    return rows.filter((row) => row.activo !== false);
+  }, [rows]);
+
+  // Valores únicos para filtros, basados en los activos
   const valoresUnicosPorColumna = useMemo(() => {
     const valores: { [key: string]: string[] } = {};
 
     columnasBase.forEach((col) => {
       const field = col.field;
-      const unicos = Array.from(new Set(rows.map((r) => r[field]).filter(Boolean)));
+      const unicos = Array.from(new Set(rowsActivos.map((r) => r[field]).filter(Boolean)));
       valores[field] = unicos;
     });
 
     return valores;
-  }, [rows, columnasBase]);
+  }, [rowsActivos, columnasBase]);
 
   const handleFiltroChange = (campo: string, valor: string) => {
     setFiltros((prev) => ({ ...prev, [campo]: valor }));
@@ -44,13 +50,16 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
 
   const limpiarFiltros = () => setFiltros({});
 
-  const rowsFiltrados = rows.filter((row) =>
-    columnasBase.every((col) => {
-      const valFiltro = filtros[col.field];
-      if (!valFiltro) return true;
-      return row[col.field]?.toString() === valFiltro;
-    })
-  );
+  // Aplicar filtros sobre los datos activos
+  const rowsFiltrados = useMemo(() => {
+    return rowsActivos.filter((row) =>
+      columnasBase.every((col) => {
+        const valFiltro = filtros[col.field];
+        if (!valFiltro) return true;
+        return row[col.field]?.toString() === valFiltro;
+      })
+    );
+  }, [rowsActivos, filtros, columnasBase]);
 
   const columnasConAcciones: GridColDef[] = [
     ...columnasBase,
@@ -75,7 +84,7 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
         </Typography>
         <Grid component="div" sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
           {columnasBase.map((col) => (
-            <Grid component="div" sx={{ flex: '1 1 25%' }}>
+            <Grid key={col.field} component="div" sx={{ flex: '1 1 25%' }}>
               <FormControl fullWidth variant="outlined" size="small" className="filtro-grande">
                 <InputLabel>{col.headerName}</InputLabel>
                 <Select
@@ -106,7 +115,6 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
         </Grid>
       </Paper>
 
-      {/* Tabla con filtros aplicados */}
       <Paper sx={{ p: 2 }}>
         <DataGrid
           rows={rowsFiltrados}
@@ -115,6 +123,7 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
             pagination: { paginationModel: { page: 0, pageSize: 5 } },
           }}
           pageSizeOptions={[5, 10]}
+          hideFooter 
           sx={{ border: 0 }}
         />
       </Paper>

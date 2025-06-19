@@ -70,7 +70,7 @@ export const FormCrearCarga: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await eliminarCarga(id);
       setMensaje('Carga eliminada con éxito!');

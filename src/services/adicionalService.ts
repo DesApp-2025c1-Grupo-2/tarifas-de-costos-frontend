@@ -65,8 +65,8 @@ export async function actualizarAdicional(id: string | number, data: Omit<Adicio
  * @returns 
  */
 export async function eliminarAdicional(id: string | number): Promise<void> {
-  const res = await fetch(`${ADICIONALES_URL}/${id}`, { 
-    method: 'DELETE',
+  const res = await fetch(`${ADICIONALES_URL}/${id}/baja`, { 
+    method: 'PUT',
   });
   if (!res.ok) {
     const errorText = await res.text();

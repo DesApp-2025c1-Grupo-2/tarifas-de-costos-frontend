@@ -9,7 +9,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <h2 style={{paddingLeft: "0.4em"}}>Menú Principal</h2>
+      <h2 style={{paddingLeft: "0.8em"}}>Menú Principal</h2>
       
       <Link to="/reportes">Reportes</Link>
       <Link to="/crear-tarifa">Tarifas</Link>

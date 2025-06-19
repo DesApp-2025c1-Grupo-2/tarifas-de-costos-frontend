@@ -38,6 +38,6 @@ export async function obtenerTransportistas(): Promise<Transportista[]> {
   }
   
   export async function eliminarTransportista(id: number): Promise<void> {
-    const res = await fetch(`${TRANSPORTISTAS_URL}/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${TRANSPORTISTAS_URL}/${id}/baja`, { method: 'PUT' });
     if (!res.ok) throw new Error('Error al eliminar transportista');
   }
