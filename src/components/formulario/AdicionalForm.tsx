@@ -1,89 +1,132 @@
-import React, { useState } from 'react';
-import '../../css/CrearTarifa.css'; 
 
+import React, { useState, useEffect, useRef } from 'react';
+import FormularioDinamico, { Campo } from './FormularioDinamico';
+import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
+import {
+  obtenerAdicionales,
+  crearAdicional,
+  actualizarAdicional,
+  eliminarAdicional,
+  Adicional
+} from '../../services/adicionalService';
 
-interface AdicionalFormProps {
-    onSubmit: (adicionalData: { nombre: string; costoDefault: number; descripcion: string }) => void;
-}
+import DataTable from '../tablas/tablaDinamica'; 
 
-export const AdicionalForm: React.FC<AdicionalFormProps> = ({ onSubmit }) => {
-    const [nombre, setNombre] = useState('');
-    const [costoDefault, setCostoDefault] = useState<number | ''>('');
-    const [descripcion, setDescripcion] = useState('');
-    const [errores, setErrores] = useState<{ [key: string]: string }>({});
+export const AdicionalForm: React.FC = () => {
+  const [adicionales, setAdicionales] = useState<Adicional[]>([]);
+  const [mensaje, setMensaje] = useState('');
+  const [editando, setEditando] = useState<Adicional | null>(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-    const validarFormulario = () => {
-        const nuevosErrores: { [key: string]: string } = {};
-        if (!nombre.trim()) {
-            nuevosErrores.nombre = 'El nombre es obligatorio.';
-        }
-        if (costoDefault === '' || isNaN(Number(costoDefault)) || Number(costoDefault) < 0) {
-            nuevosErrores.costoDefault = 'El costo por defecto debe ser un número positivo.';
-        }
+  useEffect(() => {
+    cargarAdicionales();
+  }, []);
 
-        setErrores(nuevosErrores);
-        return Object.keys(nuevosErrores).length === 0;
+  const cargarAdicionales = async () => {
+    try {
+      const data = await obtenerAdicionales();
+      setAdicionales(data);
+    } catch (error) {
+      console.error('Error al cargar adicionales:', error);
+      setMensaje('Error al cargar los adicionales. Inténtalo de nuevo más tarde.');
+    }
+  };
+
+  const handleSubmit = async (valores: Record<string, any>) => {
+    if (!valores.nombreAdicional || valores.nombreAdicional.trim() === '' ||
+        !valores.costoAdicional || isNaN(Number(valores.costoAdicional)) ||
+        !valores.descripcionAdicional || valores.descripcionAdicional.trim() === '') {
+      setMensaje('Por favor, completa todos los campos (Nombre, Costo y Descripción).');
+      setTimeout(() => setMensaje(''), 2000);
+      return;
+    }
+
+    const nuevoAdicional: Omit<Adicional, 'id'> = {
+      nombre: valores.nombreAdicional,
+      costoDefault: Number(valores.costoAdicional),
+      descripcion: valores.descripcionAdicional,
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (validarFormulario()) {
-            onSubmit({
-                nombre,
-                costoDefault: Number(costoDefault),
-                descripcion,
-            });
+    try {
+      if (editando) {
+        await actualizarAdicional(String(editando.id), nuevoAdicional);
+        setMensaje('Adicional actualizado con éxito.');
+      } else {
+        await crearAdicional(nuevoAdicional);
+        setMensaje('Adicional creado con éxito.');
+      }
 
-            setNombre('');
-            setCostoDefault('');
-            setDescripcion('');
-            setErrores({});
-        } else {
-            console.log('Formulario con errores, por favor corregir.');
-        }
-    };
+      setEditando(null);
+      setMostrarFormulario(false);
+      if (formRef.current) formRef.current.reset();
+      cargarAdicionales();
+    } catch (err) {
+      console.error('Error al guardar el adicional:', err);
+      setMensaje(`Error al guardar el adicional: ${(err as Error).message || 'Hubo un problema.'}`);
+    }
 
-    return (
-        <div className="form-container">
-            <form onSubmit={handleSubmit} className="form">
-                <div className="form-group">
-                    <label htmlFor="nombre">Nombre del Adicional:</label>
-                    <input
-                        type="text"
-                        id="nombre"
-                        value={nombre}
-                        onChange={(e) => setNombre(e.target.value)}
-                        className={errores.nombre ? 'input-error' : ''}
-                    />
-                    {errores.nombre && <p className="error-message">{errores.nombre}</p>}
-                </div>
+    setTimeout(() => setMensaje(''), 3000);
+  };
 
-                <div className="form-group">
-                    <label htmlFor="costoDefault">Costo por Defecto:</label>
-                    <input
-                        type="number"
-                        id="costoDefault"
-                        value={costoDefault}
-                        onChange={(e) => setCostoDefault(e.target.value === '' ? '' : Number(e.target.value))}
-                        className={errores.costoDefault ? 'input-error' : ''}
-                    />
-                    {errores.costoDefault && <p className="error-message">{errores.costoDefault}</p>}
-                </div>
+  const handleEdit = (adicional: Adicional) => {
+    setEditando(adicional);
+    setMostrarFormulario(true);
+  };
 
-                <div className="form-group">
-                    <label htmlFor="descripcion">Descripción (Opcional):</label>
-                    <textarea
-                        id="descripcion"
-                        value={descripcion}
-                        onChange={(e) => setDescripcion(e.target.value)}
-                        rows={3}
-                    ></textarea>
-                </div>
+  const handleDelete = async (id: number) => {
+    try {
+      await eliminarAdicional(String(id));
+      setMensaje('Adicional eliminado con éxito.');
+      cargarAdicionales();
+    } catch (err) {
+      console.error('Error al eliminar el adicional:', err);
+      setMensaje(`Error al eliminar el adicional: ${(err as Error).message || 'Hubo un problema.'}`);
+    }
+    setTimeout(() => setMensaje(''), 3000);
+  };
 
-                <button type="submit" className="submit-button">
-                    Crear Adicional
-                </button>
-            </form>
-        </div>
-    );
+   const handleCancel = () => {
+    setEditando(null);
+    setMostrarFormulario(false);
+    if (formRef.current) formRef.current.reset();
+  };
+
+  const camposAdicional: Campo[] = [
+    { tipo: 'text', nombre: 'Nombre del Adicional', clave: 'nombreAdicional' },
+    { tipo: 'costoBase', nombre: 'Costo del Adicional', clave: 'costoAdicional' },
+    { tipo: 'text', nombre: 'Descripción', clave: 'descripcionAdicional' },
+  ];
+
+  return (
+    <div>
+      {!mostrarFormulario && !editando && (
+        <BotonPrimario onClick={() => setMostrarFormulario(true)}>Crear nuevo adicional</BotonPrimario>
+      )}
+
+      {(mostrarFormulario || editando) && (
+        <>
+          <FormularioDinamico
+            titulo={editando ? 'Editar Adicional' : 'Registrar Nuevo Adicional'}
+            campos={camposAdicional}
+            onSubmit={handleSubmit}
+            modal={true}
+            open={mostrarFormulario || !!editando}
+            onClose={handleCancel}
+            formRef={formRef}
+          />
+        </>
+      )}
+
+      {mensaje && <div className="mensaje-exito">{mensaje}</div>}
+
+      
+      <DataTable
+        entidad="adicional"
+        rows={adicionales}
+        handleEdit={handleEdit} 
+        handleDelete={handleDelete} 
+      />
+    </div>
+  );
 };

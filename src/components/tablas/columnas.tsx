@@ -1,7 +1,7 @@
 import { GridColDef } from '@mui/x-data-grid';
 import {Tarifa} from '../../services/tarifaService';
 
-export type Entidad = 'tarifa' | 'transportista' | 'tipoDeVehiculo' | 'tipoDeCarga' | 'zona';
+export type Entidad = 'tarifa' | 'transportista' | 'tipoDeVehiculo' | 'tipoDeCarga' | 'zona' | 'adicional';
 
 export const columnas: Record<Entidad, GridColDef[]> = {
 
@@ -54,5 +54,12 @@ export const columnas: Record<Entidad, GridColDef[]> = {
         { field: 'nombre', headerName: 'Nombre', flex: 1 },
         { field: 'descripcion', headerName: 'Descripcion', flex: 1 },
         { field: 'regionMapa', headerName: 'Region', flex: 1 }
+    ],
+
+    adicional: [
+        { field: 'id', headerName: 'ID', flex: 1 }, 
+        { field: 'nombre', headerName: 'Nombre', flex: 1 },
+        { field: 'costoDefault', headerName: 'Costo', type: 'number', flex: 1 },
+        { field: 'descripcion', headerName: 'Descripción', flex: 1 },
     ]
 }
