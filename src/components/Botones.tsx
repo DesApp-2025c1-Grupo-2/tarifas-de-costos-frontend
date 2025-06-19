@@ -1,65 +1,52 @@
-import React, { useState } from 'react';
+
+import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import Button, { ButtonProps } from '@mui/material/Button';
+import Box from '@mui/material/Box';
 
-export const estiloBoton: React.CSSProperties = {
-    padding: '0.5rem 1rem',
-    marginTop: '16px',
-    backgroundColor: '#1B2A41',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    display: 'inline-block',
-    textDecoration: 'none',
-    textAlign: 'center'
-};
 
-interface BotonProps {
-    to: string;
-    texto: string;
+interface GenericBotonProps extends ButtonProps {
+    children?: ReactNode;
 }
 
-////////// CREAR NUEVA TARIFA //////////
 
-const Boton: React.FC<BotonProps> = ({ to, texto }) => (
-    <Link to={to} style={estiloBoton}>
-        {texto}
-    </Link>
-);
+interface BotonPrimarioProps extends ButtonProps {
+    children: ReactNode;
+}
 
-export const BotonTarifas: React.FC = () => (
-    <Boton to='./tarifas' texto='Tarifas' />
-);
+export function BotonPrimario({ children, onClick, ...props }: BotonPrimarioProps) {
+    return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+            <Button variant="contained" color="primary" onClick={onClick} {...props}>
+                {children}
+            </Button>
+        </Box>
+    );
+}
 
-////////// GUARDAR //////////
+export function BotonGuardar() {
+    return (
+        <Button type="submit" variant="contained">Guardar</Button>
+    )
+}
 
-export const BotonGuardar: React.FC = () => (
-    <button style={{
-        padding: '0.5rem 1rem',
-        marginTop: '16px',
-        backgroundColor: '#1B2A41',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer'
-    }}>
-        Guardar
-    </button>
-);
 
-// lo movi para que esten todos los botones juntos
-export const BotonNuevaTarifa: React.FC = () => (
-    <Link to="/crear-tarifa">
-        <button style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#1B2A41',
-            marginLeft: '24px',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer'
-        }}>
-            + Nueva Tarifa
-        </button>
-    </Link>
-);
+interface AccionBotonProps extends ButtonProps {
+
+}
+
+export function BotonEditar({ onClick, ...props }: AccionBotonProps) {
+    return (
+        <Button variant="contained" color="secondary" onClick={onClick} {...props} >
+            Editar
+        </Button>
+    );
+}
+
+export function BotonEliminar({ onClick, ...props }: AccionBotonProps) { 
+    return (
+        <Button variant="contained" color="error" onClick={onClick} {...props} >
+            Eliminar
+        </Button>
+    );
+}

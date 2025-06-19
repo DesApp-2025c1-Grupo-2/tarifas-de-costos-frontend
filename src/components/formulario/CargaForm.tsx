@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { estiloBoton } from '../Botones';
+import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
 import {
   obtenerCargas,
   crearCarga,
@@ -8,10 +8,11 @@ import {
   eliminarCarga,
   Carga,
 } from '../../services/cargaService';
+import DataTable from '../tablas/tablaDinamica';
 
 const camposCarga: Campo[] = [
-  { tipo: 'input', nombre: 'Nombre', clase: 'text' },
-  { tipo: 'input', nombre: 'Descripción', clase: 'textarea' },
+  { tipo: 'text', nombre: 'Nombre', clave: "nombre" },
+  { tipo: 'text', nombre: 'Descripción', clave: "descripcion" }
 ];
 
 export const FormCrearCarga: React.FC = () => {
@@ -34,12 +35,10 @@ export const FormCrearCarga: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+  const handleSubmit = async (valores: Record<string, string>) => {
     const nuevaCarga = {
-      nombre: formData.get('Nombre') as string,
-      descripcion: formData.get('Descripción') as string,
+      nombre: valores['nombre'],
+      descripcion: valores['descripcion']
     };
 
     try {
@@ -94,60 +93,26 @@ export const FormCrearCarga: React.FC = () => {
   return (
     <div>
       {!mostrarFormulario && !editingCarga && (
-        <button style={estiloBoton} onClick={() => setMostrarFormulario(true)}>
-          Crear nueva carga
-        </button>
+        <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nuevo Tipo de Carga</BotonPrimario>
       )}
 
       {(mostrarFormulario || editingCarga) && (
         <>
           <FormularioDinamico
-            titulo={editingCarga ? 'Editar Carga' : 'Registrar nueva carga'}
+            titulo={editingCarga ? 'Editar Tipo de Carga' : 'Registrar nuevo Tipo de Carga'}
             campos={camposCarga}
-            redireccion="/"
             onSubmit={handleSubmit}
-            formRef={formRef}
+            modal
+            open={mostrarFormulario}
+            onClose={handleCancelEdit}
           />
-          <button style={estiloBoton} className="cancel-button" onClick={handleCancelEdit}>
-            Cancelar
-          </button>
+          <BotonPrimario onClick={handleCancelEdit} >Cancelar</BotonPrimario>
         </>
       )}
 
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
 
-      <div className="transportista-list">
-        <h2>Cargas Registradas</h2>
-        {cargasList.length === 0 ? (
-          <p>No hay cargas registradas.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cargasList.map(carga => (
-                <tr key={carga.id}>
-                  <td>{carga.nombre}</td>
-                  <td>{carga.descripcion}</td>
-                  <td>
-                    <button className="edit-button" onClick={() => handleEdit(carga)}>
-                      Editar
-                    </button>
-                    <button className="delete-button" onClick={() => handleDelete(carga.id.toString())}>
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <DataTable entidad="tipoDeCarga" rows={cargasList} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
     </div>
   );
 };

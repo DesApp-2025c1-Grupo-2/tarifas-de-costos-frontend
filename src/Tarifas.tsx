@@ -2,7 +2,7 @@ import React from 'react';
 import Header from './components/Header';
 import TarifaTable from './components/TarifaTable';
 import Filtros from './components/Filtros';
-import { BotonNuevaTarifa} from './components/Botones';
+//import { BotonNuevaTarifa} from './components/Botones';
 import './css/App.css';
 
 const Tarifas: React.FC = () => {
@@ -12,8 +12,7 @@ const Tarifas: React.FC = () => {
       <main className="main">
         <div className="grid" >
           <Filtros />     
-          <BotonNuevaTarifa />
-          <TarifaTable />
+          {/* <TarifaTable /> */}
         </div>
       </main>
     </div>

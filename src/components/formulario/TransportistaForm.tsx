@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { estiloBoton } from '../Botones';
+import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
 import {
   obtenerTransportistas,
   crearTransportista,
@@ -9,12 +8,13 @@ import {
   eliminarTransportista,
   Transportista,
 } from '../../services/transportistaService';
+import DataTable from '../tablas/tablaDinamica';
 
 const camposTransportista: Campo[] = [
-  { tipo: 'input', nombre: 'Nombre', clase: 'text' }, 
-  { tipo: 'input', nombre: 'Empresa', clase: 'text' },
-  { tipo: 'input', nombre: 'Correo electrónico', clase: 'email' },
-  { tipo: 'input', nombre: 'Teléfono de contacto', clase: 'tel' },
+  { tipo: 'text', nombre: 'Nombre', clave: "nombre" },
+  { tipo: 'text', nombre: 'Empresa', clave: "empresa" },
+  { tipo: 'text', nombre: 'Correo', clave: "correo" },
+  { tipo: 'text', nombre: 'Telefono', clave: "telefono" }
 ];
 
 export const FormCrearTransportista: React.FC = () => {
@@ -37,19 +37,17 @@ export const FormCrearTransportista: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+  const handleSubmit = async (valores: Record<string, string>) => {
     const nuevoTransportista = {
-      nombreEmpresa: formData.get('Empresa') as string,
-      contactoNombre: formData.get('Nombre') as string,
-      contactoEmail: formData.get('Correo electrónico') as string,
-      contactoTelefono: formData.get('Teléfono de contacto') as string,
-      };
+      contactoNombre: valores['nombre'],
+      nombreEmpresa: valores['empresa'],
+      contactoEmail: valores['correo'],
+      contactoTelefono: valores['telefono']
+    };
 
     try {
       if (editingTransportista) {
-        await actualizarTransportista(editingTransportista.id.toString(), nuevoTransportista);
+        await actualizarTransportista(editingTransportista.id, nuevoTransportista);
         setMensaje('Transportista actualizado con éxito!');
       } else {
         await crearTransportista(nuevoTransportista);
@@ -78,7 +76,7 @@ export const FormCrearTransportista: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await eliminarTransportista(id);
       setMensaje('Transportista eliminado con éxito!');
@@ -101,9 +99,10 @@ export const FormCrearTransportista: React.FC = () => {
   return (
     <div>
       {!mostrarFormulario && !editingTransportista && (
-        <button style={estiloBoton} onClick={() => setMostrarFormulario(true)}>
-          Crear nuevo transportista
-        </button>
+        // <Button variant="contained" onClick={() => setMostrarFormulario(true)}>
+        //   Crear nuevo transportista
+        // </Button>
+        <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nuevo transportista</BotonPrimario>
       )}
 
       {(mostrarFormulario || editingTransportista) && (
@@ -111,55 +110,18 @@ export const FormCrearTransportista: React.FC = () => {
           <FormularioDinamico
             titulo={editingTransportista ? 'Editar Transportista' : 'Registrar nuevo transportista'}
             campos={camposTransportista}
-            redireccion="/"
             onSubmit={handleSubmit}
-            formRef={formRef}
+            modal
+            open={mostrarFormulario}
+            onClose={handleCancelEdit}
           />
-          <button style={estiloBoton} className="cancel-button" onClick={handleCancelEdit}>
-            Cancelar
-          </button>
+          <BotonPrimario onClick={handleCancelEdit} >Cancelar</BotonPrimario>
         </>
       )}
 
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
 
-      <div className="transportista-list">
-        <h2>Transportistas Registrados</h2>
-        {transportistasList.length === 0 ? (
-          <p>No hay transportistas registrados.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Empresa</th>
-                <th>Correo</th>
-                <th>Teléfono</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-<tbody>
-  {transportistasList.map(transportista => (
-    <tr key={transportista.id}>
-      <td>{transportista.contactoNombre}</td>
-      <td>{transportista.nombreEmpresa}</td>
-      <td>{transportista.contactoEmail}</td>
-      <td>{transportista.contactoTelefono}</td>
-      {/* Envuelve los botones en un td */}
-      <td>
-        <button className="edit-button" onClick={() => handleEdit(transportista)}>
-          Editar
-        </button>
-        <button className="delete-button" onClick={() => handleDelete(transportista.id.toString())}>
-          Eliminar
-        </button>
-      </td>
-    </tr>
-  ))}
-</tbody>
-          </table>
-        )}
-      </div>
+      <DataTable entidad="transportista" rows={transportistasList} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
     </div>
   );
 }

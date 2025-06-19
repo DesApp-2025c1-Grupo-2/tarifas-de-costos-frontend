@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { estiloBoton } from '../Botones';
+import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
 import {
   obtenerTiposVehiculo,
   crearTipoVehiculo,
@@ -8,12 +8,14 @@ import {
   eliminarTipoVehiculo,
   TipoVehiculo,
 } from '../../services/tipoVehiculoService';
+import TablaDinamica from '../tablas/tablaDinamica';
+import DataTable from '../tablas/tablaDinamica';
 
 const camposTipoVehiculo: Campo[] = [
-  { tipo: 'input', nombre: 'Nombre', clase: 'text' },
-  { tipo: 'input', nombre: 'Capacidad de peso (KG)', clase: 'number' },
-  { tipo: 'input', nombre: 'Capacidad de volumen (m³)', clase: 'number' },
-  { tipo: 'input', nombre: 'Descripción', clase: 'text' },
+  { tipo: 'text', nombre: 'Nombre', clave: "nombre" },
+  { tipo: 'text', nombre: 'Capacidad de peso (KG)', clave: "peso" },
+  { tipo: 'text', nombre: 'Capacidad de volumen (m³)', clave: "volumen" },
+  { tipo: 'text', nombre: 'Descripción', clave: "descripcion" }
 ];
 
 export const FormCrearTipoVehiculo: React.FC = () => {
@@ -36,16 +38,13 @@ export const FormCrearTipoVehiculo: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-
-    const nuevoTipo: Omit<TipoVehiculo, 'id'> = {
-      nombre: formData.get('Nombre') as string,
-      capacidadPesoKG: parseFloat(formData.get('Capacidad de peso (KG)') as string),
-      capacidadVolumenM3: parseFloat(formData.get('Capacidad de volumen (m³)') as string),
-      descripcion: formData.get('Descripción') as string,
-    };
+    const handleSubmit = async (valores: Record<string, string>) => {
+      const nuevoTipo = {
+        nombre: valores['nombre'],
+        capacidadPesoKG: parseFloat(valores['peso']),
+        capacidadVolumenM3: parseFloat(valores['volumen']),
+        descripcion: valores['descripcion']
+      };
 
     try {
       if (editingTipo) {
@@ -79,9 +78,9 @@ export const FormCrearTipoVehiculo: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
-      await eliminarTipoVehiculo(id);
+      await eliminarTipoVehiculo(id.toString());
       setMensaje('Tipo de vehículo eliminado con éxito!');
       cargarTiposVehiculo();
     } catch (error) {
@@ -102,9 +101,8 @@ export const FormCrearTipoVehiculo: React.FC = () => {
   return (
     <div>
       {!mostrarFormulario && !editingTipo && (
-        <button style={estiloBoton} onClick={() => setMostrarFormulario(true)}>
-          Crear nuevo tipo de vehículo
-        </button>
+        <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nuevo tipo de vehiculo</BotonPrimario>
+        
       )}
 
       {(mostrarFormulario || editingTipo) && (
@@ -112,50 +110,18 @@ export const FormCrearTipoVehiculo: React.FC = () => {
           <FormularioDinamico
             titulo={editingTipo ? 'Editar Tipo de Vehículo' : 'Registrar nuevo Tipo de Vehículo'}
             campos={camposTipoVehiculo}
-            redireccion="/"
             onSubmit={handleSubmit}
-            formRef={formRef}
+            modal
+            open={mostrarFormulario}
+            onClose={handleCancelEdit}
           />
-          <button style={estiloBoton} className="cancel-button" onClick={handleCancelEdit}>
-            Cancelar
-          </button>
+          <BotonPrimario onClick={handleCancelEdit} >Cancelar</BotonPrimario>
         </>
       )}
 
       {mensaje && <div className="mensaje-exito">{mensaje}</div>}
 
-      <div className="transportista-list">
-        <h2>Tipos de Vehículo Registrados</h2>
-        {tiposVehiculoList.length === 0 ? (
-          <p>No hay tipos de vehículo registrados.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Capacidad Peso (KG)</th>
-                <th>Capacidad Volumen (m³)</th>
-                <th>Descripción</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tiposVehiculoList.map(tipo => (
-                <tr key={tipo.id}>
-                  <td>{tipo.nombre}</td>
-                  <td>{tipo.capacidadPesoKG}</td>
-                  <td>{tipo.capacidadVolumenM3}</td>
-                  <td>{tipo.descripcion}</td>
-                  <td>
-                    <button className="edit-button" onClick={() => handleEdit(tipo)}>Editar</button>
-                    <button className="delete-button" onClick={() => handleDelete(tipo.id.toString())}>Eliminar</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <DataTable entidad="tipoDeVehiculo" rows={tiposVehiculoList} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
     </div>
   );
 };

@@ -2,14 +2,13 @@ import { API_BASE_URL } from '../config/api';
 
 export type Tarifa = {
   id: number;
-  transportista: string;
-  vehiculo: string;
-  zona: string;
-  carga: string;
-  items: string[];
-  costoBase: number;
-  adicionales: number;
+  transportista: { id: number };
+  tipoVehiculo: { id: number };
+  zonaViaje: { id: number };
+  tipoCargaTarifa: { id: number };
+  valorBase: number;
   total: number;
+  adicionales: any[];
 };
 
 const TARIFAS_URL = `${API_BASE_URL}/tarifas`;
@@ -20,15 +19,22 @@ export async function obtenerTarifas(): Promise<Tarifa[]> {
   return res.json();
 }
 
-export async function crearTarifa(data: Omit<Tarifa, 'id'>): Promise<Tarifa> {
-  const res = await fetch(TARIFAS_URL, {
+export const crearTarifa = async (tarifa: Omit<Tarifa, 'id'>) => {
+  const response = await fetch('/api/tarifas', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(tarifa),
   });
-  if (!res.ok) throw new Error('Error al crear tarifa');
-  return res.json();
-}
+
+  if (!response.ok) {
+    throw new Error('Error al crear la tarifa');
+  }
+
+  return await response.json(); // o como manejes la respuesta
+};
+
 
 export async function actualizarTarifa(id: number | string, data: Omit<Tarifa, 'id'>): Promise<Tarifa> {
   const res = await fetch(`${TARIFAS_URL}/${id}`, {

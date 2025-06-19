@@ -1,3 +1,4 @@
+/* --- CONTENEDOR GENERAL --- */
 .crear-tarifa {
   margin: 2% auto;
   width: 80%;
@@ -11,23 +12,12 @@
   align-items: center;
 }
 
+/* --- FORMULARIO --- */
 .formulario-tarifa {
   display: flex;
   flex-direction: column;
   margin-top: 2em;
   width: 100%;
-}
-
-.mensaje-exito {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-  padding: 15px;
-  margin-top: 1rem;
-  border-radius: 8px; 
-  text-align: center;
-  font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .double-input {
@@ -51,34 +41,49 @@
   font-size: 16px;
 }
 
+/* --- MENSAJE DE ÉXITO --- */
+.mensaje-exito {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  padding: 15px;
+  margin-top: 1rem;
+  border-radius: 8px; 
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* --- RESULTADO --- */
 .result {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
+/* --- LISTADO DE TRANSPORTISTAS --- */
 .transportista-list {
   margin-top: 2em;
 }
 
-.transportista-list h2{
+.transportista-list h2 {
   text-align: center; 
 }
 
 .transportista-list table {
+  width: 100%;
   border: 1px solid #ccc;
   border-radius: 8px;
+  border-collapse: collapse;
   overflow: hidden;
-  width: 100%; 
-  border-collapse: collapse; 
   margin-top: 1em; 
 }
 
 .transportista-list th,
 .transportista-list td {
   padding: 0.75em;
-  border-bottom: 1px solid #eee;
   text-align: left;
+  border-bottom: 1px solid #eee;
 }
 
 .transportista-list th {
@@ -90,6 +95,7 @@
   border-bottom: none;
 }
 
+/* --- BOTONES --- */
 .transportista-list button,
 .cancel-edit-button,
 .edit-button,
@@ -135,6 +141,7 @@
   background-color: #c82333;
 }
 
+/* --- UTILIDADES --- */
 .label-espaciada {
   padding-bottom: 8px;
 }
@@ -142,9 +149,18 @@
 .div-margin-top {
   margin-top: 10px;
 }
+/* --- FILTROS --- */
 
+.filtro-grande .MuiInputBase-root {
+  height: 50px;
+  font-size: 1rem;
+}
 
+.filtro-grande .MuiInputLabel-root {
+  font-size: 1rem;
+}
 
+/* --- RESPONSIVE DESIGN --- */
 @media (max-width: 768px) {
   .crear-tarifa {
     width: 95%;

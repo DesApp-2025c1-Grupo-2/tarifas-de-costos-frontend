@@ -10,6 +10,7 @@ import Tarifas from './Tarifas';
 import Reportes from './Reportes';
 //import './css/app.css';
 import Inicio from './Inicio';
+import CrearAdicional from './CrearAdicional';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -22,8 +23,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/crear-tarifa" element={<CrearTarifa />} />
         <Route path="/crear-transportista" element={<CrearTransportista />} />
         <Route path="/crear-vehiculo" element={<CrearVehiculo />} />
-        <Route path="/crear-zona" element={<CrearZona />} />
         <Route path="/crear-carga" element={<CrearCarga />} />
+        <Route path="/crear-zona" element={<CrearZona />} />
+        <Route path="/crear-adicional" element={<CrearAdicional />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
