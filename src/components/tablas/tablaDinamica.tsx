@@ -28,7 +28,14 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
 
   // ⚠️ Solo considerar los activos
   const rowsActivos = useMemo(() => {
-    return rows.filter((row) => row.activo !== false);
+    return rows.filter((row) => {
+      if ('activo' in row) {
+        return row.activo === true;
+      } else if ('esVigente' in row) {
+        return row.esVigente === true;
+      }
+      return true; // Si no tiene ninguno de los dos campos, se incluye
+    });
   }, [rows]);
 
   // Valores únicos para filtros, basados en los activos
@@ -122,8 +129,7 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
           initialState={{
             pagination: { paginationModel: { page: 0, pageSize: 5 } },
           }}
-          pageSizeOptions={[5, 10]}
-          hideFooter 
+          pageSizeOptions={[5, 10]} 
           sx={{ border: 0 }}
         />
       </Paper>
