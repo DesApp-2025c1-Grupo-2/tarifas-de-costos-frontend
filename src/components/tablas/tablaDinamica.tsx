@@ -133,8 +133,14 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
         <DataGrid
           rows={rowsFiltrados}
           columns={columnasConAcciones}
+          disableColumnMenu
           initialState={{
-            pagination: { paginationModel: { page: 0, pageSize: 5 } },
+            sorting: {
+              sortModel: [{ field: 'id', sort: 'desc' }], // o 'id'
+            },
+            pagination: { 
+              paginationModel: { page: 0, pageSize: 5 } 
+            }
           }}
           pageSizeOptions={[5, 10]} 
           sx={{ border: 0 }}
