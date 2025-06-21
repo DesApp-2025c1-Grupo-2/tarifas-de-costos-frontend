@@ -14,6 +14,7 @@ import { obtenerZonas, ZonaViaje } from '../../services/zonaService';
 
 import { obtenerCargas, Carga } from '../../services/cargaService';
 import DataTable from '../tablas/tablaDinamica';
+import { obtenerAdicionales, Adicional } from '../../services/adicionalService';
 
 
 export const FormCrearTarifa: React.FC = () => {
@@ -22,6 +23,7 @@ export const FormCrearTarifa: React.FC = () => {
   const [tipoVehiculos, setTipoVehiculos] = useState<TipoVehiculo[]>([]);
   const [zonas, setZonas] = useState<ZonaViaje[]>([]);
   const [cargas, setCarga] = useState<Carga[]>([]);
+  const [adicionales, setAdicionales] = useState<Adicional[]>([]);
   const [mensaje, setMensaje] = useState('');
   const [editando, setEditando] = useState<Tarifa | null>(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -33,6 +35,7 @@ export const FormCrearTarifa: React.FC = () => {
     cargarTipoVehiculo();
     cargarZona();
     cargarCarga();
+    cargarAdicionales();
   }, []);
 
   const cargarTarifas = async () => {
@@ -83,6 +86,16 @@ export const FormCrearTarifa: React.FC = () => {
       console.error('Error al cargar las cargas:', error);
     }
   };
+  
+  const cargarAdicionales = async () => {
+    try {
+      const data = await obtenerAdicionales();
+      const activos = data.filter((c: Adicional) => c.activo);
+      setAdicionales(activos);
+    } catch (error) {
+      console.error('Error al cargar los adicionales:', error);
+    }
+  };
 
   const handleSubmit = async (valores: Record<string, any>) => {
     // Ejemplo de validación sencilla
@@ -96,7 +109,10 @@ export const FormCrearTarifa: React.FC = () => {
       return Number(value);
     };
   
-    const costoBase = getNumber('costoBase');
+    const adicionalesSeleccionados = (valores['adicionales'] || []).map((a: any) => ({
+      adicional: { id: a.id },
+      costoEspecifico: parseFloat(a.precio ?? '0'),
+    }));
 
     const nuevaTarifa:  Omit<Tarifa, 'id'> = {
       transportista: { id: getNumber('transportistaId') },
@@ -104,8 +120,8 @@ export const FormCrearTarifa: React.FC = () => {
       zonaViaje: { id: getNumber('zona') },
       tipoCargaTarifa: { id: getNumber('cargaId') },
       valorBase: getNumber('costoBase'),
-      total: getNumber('costoBase'),
-      adicionales: [],
+      total: getNumber('costoBase') + adicionalesSeleccionados.reduce((acc: any, a: { costoEspecifico: any; }) => acc + a.costoEspecifico, 0),
+      adicionales: adicionalesSeleccionados,
     };
   
     try {
@@ -191,8 +207,19 @@ export const FormCrearTarifa: React.FC = () => {
         nombre: t.nombre,
       })),
     },
+    {
+      tipo: 'adicionales',
+      nombre: 'Adicionales',
+      clave: 'adicionales',
+      opciones: adicionales.map((a) => ({
+        id: a.id,
+        nombre: a.nombre,
+        descripcion: a.descripcion,
+        precio: a.costoDefault,
+      })),
+    },
     { tipo: 'costoBase', nombre: 'Costo Base', clave: 'costoBase' },
-    { tipo: 'resultado', nombre: 'ADICIONALES :', clave: 'adicionales' },
+    { tipo: 'resultado', nombre: 'ADICIONALES :', clave: 'add' },
     { tipo: 'resultado', nombre: 'COSTO TOTAL :', clave: 'total' },
   ];
 

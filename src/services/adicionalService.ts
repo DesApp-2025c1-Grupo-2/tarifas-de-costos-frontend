@@ -2,6 +2,7 @@
 import { API_BASE_URL } from '../config/api'; 
 
 export type Adicional = {
+  activo: boolean;
   id: number; 
   nombre: string;
   costoDefault: number; 

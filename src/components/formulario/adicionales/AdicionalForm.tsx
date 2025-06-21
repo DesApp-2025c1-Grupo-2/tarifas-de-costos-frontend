@@ -1,16 +1,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
+import FormularioDinamico, { Campo } from '../FormularioDinamico';
+import { BotonPrimario, BotonEditar, BotonEliminar } from '../../Botones';
 import {
   obtenerAdicionales,
   crearAdicional,
   actualizarAdicional,
   eliminarAdicional,
   Adicional
-} from '../../services/adicionalService';
+} from '../../../services/adicionalService';
 
-import DataTable from '../tablas/tablaDinamica'; 
+import DataTable from '../../tablas/tablaDinamica'; 
 
 export const AdicionalForm: React.FC = () => {
   const [adicionales, setAdicionales] = useState<Adicional[]>([]);
@@ -33,20 +33,13 @@ export const AdicionalForm: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (valores: Record<string, any>) => {
-    if (!valores.nombreAdicional || valores.nombreAdicional.trim() === '' ||
-        !valores.costoAdicional || isNaN(Number(valores.costoAdicional)) ||
-        !valores.descripcionAdicional || valores.descripcionAdicional.trim() === '') {
-      setMensaje('Por favor, completa todos los campos (Nombre, Costo y Descripción).');
-      setTimeout(() => setMensaje(''), 2000);
-      return;
-    }
-
-    const nuevoAdicional: Omit<Adicional, 'id'> = {
+  const handleSubmit = async (valores: Record<string, string>) => {
+    const nuevoAdicional = {
       nombre: valores.nombreAdicional,
-      costoDefault: Number(valores.costoAdicional),
       descripcion: valores.descripcionAdicional,
+      costoDefault: Number(valores.costoAdicional),
     };
+    
 
     try {
       if (editando) {
@@ -94,8 +87,8 @@ export const AdicionalForm: React.FC = () => {
 
   const camposAdicional: Campo[] = [
     { tipo: 'text', nombre: 'Nombre del Adicional', clave: 'nombreAdicional' },
-    { tipo: 'costoBase', nombre: 'Costo del Adicional', clave: 'costoAdicional' },
     { tipo: 'text', nombre: 'Descripción', clave: 'descripcionAdicional' },
+    { tipo: 'costoBase', nombre: 'Costo del Adicional', clave: 'costoAdicional' },
   ];
 
   return (

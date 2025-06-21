@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import { HeaderConMenu } from './components/Header';
-import { AdicionalForm } from './components/formulario/AdicionalForm'; 
+import { AdicionalForm } from './components/formulario/adicionales/AdicionalForm'; 
 import './css/App.css';
 import './css/CrearTarifa.css'; 
 

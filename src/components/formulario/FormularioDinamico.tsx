@@ -14,12 +14,14 @@ import {
   IconButton
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { AdicionalSelector } from './adicionales/AdicionalSelector';
+import { ModalCrearAdicional, NuevoAdicional } from './adicionales/ModalCrearAdicional';
 
 export type Campo = {
-  tipo: 'text' | 'input' | 'email' | 'tel' | 'select' | 'resultado' | 'costoBase';
+  tipo: 'text' | 'input' | 'email' | 'tel' | 'select' | 'adicionales' | 'resultado' | 'costoBase';
   nombre: string;
   clave: string;
-  opciones?: { id: number | string; nombre: string }[]; // solo para selects
+  opciones?: any[];
 };
 
 type Props = {
@@ -47,10 +49,15 @@ const FormularioDinamico: React.FC<Props> = ({
 }) => {
   const [mostrarMensaje, setMostrarMensaje] = useState(false);
   const [valores, setValores] = useState<Record<string, any>>({});
+  const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
+  const [listaAdicionales, setListaAdicionales] = useState<Record<string, any[]>>({});
   const navigate = useNavigate();
 
   const handleChange = (clave: string, valor: any) => {
     setValores((prev) => ({ ...prev, [clave]: valor }));
+    if (clave === 'adicionales') {
+      setListaAdicionales((prev) => ({ ...prev, [clave]: valor }));
+    }
   };
 
   const handleInternalSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -70,56 +77,81 @@ const FormularioDinamico: React.FC<Props> = ({
   };
 
   const contenidoFormulario = (
-    <form className="formulario-tarifa" onSubmit={handleInternalSubmit} ref={formRef}>
-      {campos.map((campo) => {
-        switch (campo.tipo) {
-          case 'text':
-            return (
-              <BasicTextFields
-                key={campo.clave}
-                label={campo.nombre}
-                value={valores[campo.clave] || ''}
-                onChange={(val: string) => handleChange(campo.clave, val)}
-              />
-            );
+    <>
+      <form className="formulario-tarifa" onSubmit={handleInternalSubmit} ref={formRef}>
+        {campos.map((campo) => {
+          switch (campo.tipo) {
+            case 'text':
+              return (
+                <BasicTextFields
+                  key={campo.clave}
+                  label={campo.nombre}
+                  value={valores[campo.clave] || ''}
+                  onChange={(val: string) => handleChange(campo.clave, val)}
+                />
+              );
 
-          case 'select':
-            return (
-              <BasicAutocomplete
-                key={campo.clave}
-                label={campo.nombre}
-                opciones={campo.opciones || []}
-                value={valores[campo.clave] || ''}
-                onChange={(val: string) => handleChange(campo.clave, val)}
-              />
-            );
+            case 'select':
+              return (
+                <BasicAutocomplete
+                  key={campo.clave}
+                  label={campo.nombre}
+                  opciones={campo.opciones || []}
+                  value={valores[campo.clave] || ''}
+                  onChange={(val: string) => handleChange(campo.clave, val)}
+                />
+              );
 
-          case 'resultado':
-            return (
-              <Resultado
-                key={campo.clave}
-                nombre={campo.nombre}
-                value={valores[campo.clave] || ''}
-              />
-            );
+            case 'adicionales':
+              return (
+                <AdicionalSelector
+                  key={campo.clave}
+                  adicionales={campo.opciones || []}
+                  seleccionados={valores[campo.clave] || []}
+                  onChange={(val) => handleChange(campo.clave, val)}
+                  onCrearNuevo={() => setModalNuevoAdicional(true)}
+                />
+              );
 
-          case 'costoBase':
-            return (
-              <NumberField
-                key={campo.clave}
-                label="COSTO BASE"
-                value={valores[campo.clave] || ''}
-                onChange={(val) => setValores(prev => ({ ...prev, [campo.clave]: val }))}
-              />
-            );
+            case 'resultado':
+              return (
+                <Resultado
+                  key={campo.clave}
+                  nombre={campo.nombre}
+                  value={valores[campo.clave] || ''}
+                />
+              );
 
-          default:
-            return null;
-        }
-      })}
+            case 'costoBase':
+              return (
+                <NumberField
+                  key={campo.clave}
+                  label="COSTO BASE"
+                  value={valores[campo.clave] || ''}
+                  onChange={(val) => setValores(prev => ({ ...prev, [campo.clave]: val }))}
+                />
+              );
 
-      <BotonGuardar />
-    </form>
+            default:
+              return null;
+          }
+        })}
+
+        <BotonGuardar />
+      </form>
+      <ModalCrearAdicional
+        open={modalNuevoAdicional}
+        onClose={() => setModalNuevoAdicional(false)}
+        onCrear={(nuevo) => {
+          const nuevoAdicional = {
+            id: Date.now(),
+            ...nuevo
+          };
+          const actuales = valores['adicionales'] || [];
+          handleChange('adicionales', [...actuales, nuevoAdicional]);
+        }}
+      />
+    </>
   );
 
   if (modal) {
