@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BasicTextFields,
-  BasicSelect,
+  BasicAutocomplete,
   Resultado,
   NumberField
 } from './Campos';
@@ -85,7 +85,7 @@ const FormularioDinamico: React.FC<Props> = ({
 
           case 'select':
             return (
-              <BasicSelect
+              <BasicAutocomplete
                 key={campo.clave}
                 label={campo.nombre}
                 opciones={campo.opciones || []}

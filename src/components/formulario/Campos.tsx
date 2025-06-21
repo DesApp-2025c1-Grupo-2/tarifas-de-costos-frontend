@@ -4,7 +4,8 @@ import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
+import Autocomplete from '@mui/material/Autocomplete';
 import { Input, InputAdornment } from '@mui/material';
 
 type TextProps = {
@@ -26,37 +27,36 @@ export const BasicTextFields: React.FC<TextProps> = ({ label, value, onChange })
   );
 
 export type Opcion = {
-    id: string | number;
-    nombre: string;
-  };
+  id: string | number;
+  nombre: string;
+};
   
-type SelectProps = {
-    label: string;
-    opciones: Opcion[];
-    value: string;
-    onChange: (val: string) => void;
-  };
+type AutocompleteFieldProps = {
+  label: string;
+  opciones: Opcion[];
+  value: string;
+  onChange: (val: string) => void;
+};
+
   
-  export const BasicSelect: React.FC<SelectProps> = ({ label, opciones, value, onChange }) => {
-    return (
-      <Box sx={{ mb: 1 }}>
-        <FormControl fullWidth margin="normal">
-          <InputLabel>{label}</InputLabel>
-          <Select
-            value={value}
-            label={label}
-            onChange={(e) => onChange(e.target.value)}
-          >
-            {opciones.map((op) => (
-              <MenuItem key={op.id} value={String(op.id)}>
-                {op.nombre}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-    );
-  };
+export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({ label, opciones, value, onChange }) => {
+  const selectedOption = opciones.find((op) => String(op.id) === value) || null;
+
+  return (
+    <Box sx={{ mb: 1 }}>
+      <Autocomplete
+        options={opciones}
+        getOptionLabel={(option: Opcion) => option.nombre}
+        value={selectedOption}
+        onChange={(_, newValue) => {
+          onChange(newValue ? String(newValue.id) : '');
+        }}
+        isOptionEqualToValue={(option, val) => String(option.id) === String(val.id)}
+        renderInput={(params) => <TextField {...params} label={label} fullWidth />}
+      />
+    </Box>
+  );
+};
 
 interface NumberFieldProps {
   label: string;
