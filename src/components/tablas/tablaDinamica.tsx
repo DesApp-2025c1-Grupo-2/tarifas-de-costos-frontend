@@ -5,9 +5,9 @@ import { BotonEditar, BotonEliminar } from '../Botones';
 import { useState, useMemo } from 'react';
 import {
   Box,
-  MenuItem,
+  Autocomplete,
   FormControl,
-  Select,
+  TextField,
   InputLabel,
   Button,
   Typography,
@@ -92,20 +92,27 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
         <Grid component="div" sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
           {columnasBase.map((col) => (
             <Grid key={col.field} component="div" sx={{ flex: '1 1 25%' }}>
-              <FormControl fullWidth variant="outlined" size="small" className="filtro-grande">
-                <InputLabel>{col.headerName}</InputLabel>
-                <Select
-                  label={col.headerName}
+              <FormControl
+                fullWidth
+                variant="outlined"
+                size="small"
+                sx={{ minWidth: 120 }}
+              >
+                <Autocomplete
+                  options={valoresUnicosPorColumna[col.field] || []}
                   value={filtros[col.field] || ''}
-                  onChange={(e) => handleFiltroChange(col.field, e.target.value)}
-                >
-                  <MenuItem value="">Todos</MenuItem>
-                  {valoresUnicosPorColumna[col.field]?.map((val) => (
-                    <MenuItem key={val} value={val}>
-                      {val}
-                    </MenuItem>
-                  ))}
-                </Select>
+                  onChange={(_, newValue) => handleFiltroChange(col.field, newValue || '')}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={col.headerName}
+                      variant="outlined"
+                      size="small"
+                    />
+                  )}
+                  fullWidth
+                  disableClearable
+                />
               </FormControl>
             </Grid>
           ))}
