@@ -47,7 +47,8 @@ export const FormCrearTarifa: React.FC = () => {
   const cargarTransportistas = async () => {
     try {
       const data = await obtenerTransportistas();
-      setTransportistas(data);
+      const activos = data.filter((t: Transportista) => t.activo);
+      setTransportistas(activos);
     } catch (error) {
       console.error('Error al cargar transportistas:', error);
     }
@@ -56,7 +57,8 @@ export const FormCrearTarifa: React.FC = () => {
   const cargarTipoVehiculo = async () => {
     try {
       const data = await obtenerTiposVehiculo();
-      setTipoVehiculos(data);
+      const activos = data.filter((t: TipoVehiculo) => t.activo);
+      setTipoVehiculos(activos);
     } catch (error) {
       console.error('Error al cargar tipo de vehiculo:', error);
     }
@@ -65,7 +67,8 @@ export const FormCrearTarifa: React.FC = () => {
   const cargarZona = async () => {
     try {
       const data = await obtenerZonas();
-      setZonas(data);
+      const activos = data.filter((z: ZonaViaje) => z.activo);
+      setZonas(activos);
     } catch (error) {
       console.error('Error al cargar zonas:', error);
     }
@@ -74,7 +77,8 @@ export const FormCrearTarifa: React.FC = () => {
   const cargarCarga = async () => {
     try {
       const data = await obtenerCargas();
-      setCarga(data);
+      const activos = data.filter((c: Carga) => c.activo);
+      setCarga(activos);
     } catch (error) {
       console.error('Error al cargar las cargas:', error);
     }

@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '../config/api';
 
 export type Carga = {
+  activo: boolean;
   id: number;
   nombre: string;
   descripcion: string;

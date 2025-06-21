@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '../config/api';
 
 export type TipoVehiculo = {
+  activo: boolean;
   id: number;
   nombre: string;
   capacidadPesoKG: number;
