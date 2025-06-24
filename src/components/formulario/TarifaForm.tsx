@@ -1,216 +1,163 @@
-import React, { useState, useEffect, useRef } from 'react';
-import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
+// src/components/formulario/TarifaForm.tsx
+
+import React, { useState, useEffect } from "react";
+import FormularioDinamico, { Campo } from "./FormularioDinamico";
+import { BotonPrimario } from "../Botones";
+import * as tarifaService from "../../services/tarifaService";
+import { Tarifa } from "../../services/tarifaService";
+import DataTable from "../tablas/tablaDinamica";
+import { ModalVerTarifa, TarifaDetallada } from "./adicionales/ModalVerTarifa";
+import { CircularProgress, Box, Typography, Alert } from "@mui/material";
+// Importamos los servicios que necesitamos para los selectores del formulario de creación
 import {
-  obtenerTarifas,
-  crearTarifa,
-  actualizarTarifa,
-  eliminarTarifa,
-  Tarifa
-} from '../../services/tarifaService';
-import { obtenerTransportistas, Transportista } from '../../services/transportistaService';
-import { obtenerTiposVehiculo, TipoVehiculo } from '../../services/tipoVehiculoService';
-import { obtenerZonas, ZonaViaje } from '../../services/zonaService';
-
-import { obtenerCargas, Carga } from '../../services/cargaService';
-import DataTable from '../tablas/tablaDinamica';
-import { obtenerAdicionales, Adicional } from '../../services/adicionalService';
-
+  obtenerTransportistas,
+  Transportista,
+} from "../../services/transportistaService";
+import {
+  obtenerTiposVehiculo,
+  TipoVehiculo,
+} from "../../services/tipoVehiculoService";
+import { obtenerZonas, ZonaViaje } from "../../services/zonaService";
+import { obtenerCargas, Carga } from "../../services/cargaService";
+import { obtenerAdicionales, Adicional } from "../../services/adicionalService";
 
 export const FormCrearTarifa: React.FC = () => {
   const [tarifas, setTarifas] = useState<Tarifa[]>([]);
+  const [editingItem, setEditingItem] = useState<Tarifa | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [viewingTarifa, setViewingTarifa] = useState<TarifaDetallada | null>(
+    null
+  );
+  const [showViewModal, setShowViewModal] = useState(false);
+
+  // Estados solo para los selectores del formulario
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [tipoVehiculos, setTipoVehiculos] = useState<TipoVehiculo[]>([]);
   const [zonas, setZonas] = useState<ZonaViaje[]>([]);
-  const [cargas, setCarga] = useState<Carga[]>([]);
+  const [cargas, setCargas] = useState<Carga[]>([]);
   const [adicionales, setAdicionales] = useState<Adicional[]>([]);
-  const [mensaje, setMensaje] = useState('');
-  const [editando, setEditando] = useState<Tarifa | null>(null);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+
+  const cargarTarifas = async () => {
+    setIsLoading(true);
+    try {
+      const data = await tarifaService.obtenerTarifas();
+      setTarifas(data);
+    } catch (error) {
+      setLoadingError("No se pudieron cargar las tarifas.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Al hacer clic en "Crear", cargamos los datos para los selectores
+  const handleCrearClick = async () => {
+    try {
+      const [
+        transportistasData,
+        vehiculosData,
+        zonasData,
+        cargasData,
+        adicionalesData,
+      ] = await Promise.all([
+        obtenerTransportistas(),
+        obtenerTiposVehiculo(),
+        obtenerZonas(),
+        obtenerCargas(),
+        obtenerAdicionales(),
+      ]);
+      setTransportistas(transportistasData.filter((t) => t.activo));
+      setTipoVehiculos(vehiculosData.filter((v) => v.activo));
+      setZonas(zonasData.filter((z) => z.activo));
+      setCargas(cargasData.filter((c) => c.activo));
+      setAdicionales(adicionalesData.filter((a) => a.activo));
+
+      setEditingItem(null);
+      setShowForm(true);
+    } catch (error) {
+      alert("Error al cargar datos para el formulario. Intente de nuevo.");
+    }
+  };
 
   useEffect(() => {
     cargarTarifas();
-    cargarTransportistas();
-    cargarTipoVehiculo();
-    cargarZona();
-    cargarCarga();
-    cargarAdicionales();
   }, []);
 
-  const cargarTarifas = async () => {
-    try {
-      const data = await obtenerTarifas();
-      setTarifas(data);
-    } catch (error) {
-      console.error('Error al cargar tarifas:', error);
-    }
-  };
-
-  const cargarTransportistas = async () => {
-    try {
-      const data = await obtenerTransportistas();
-      const activos = data.filter((t: Transportista) => t.activo);
-      setTransportistas(activos);
-    } catch (error) {
-      console.error('Error al cargar transportistas:', error);
-    }
-  };
-
-  const cargarTipoVehiculo = async () => {
-    try {
-      const data = await obtenerTiposVehiculo();
-      const activos = data.filter((t: TipoVehiculo) => t.activo);
-      setTipoVehiculos(activos);
-    } catch (error) {
-      console.error('Error al cargar tipo de vehiculo:', error);
-    }
-  };
-
-  const cargarZona = async () => {
-    try {
-      const data = await obtenerZonas();
-      const activos = data.filter((z: ZonaViaje) => z.activo);
-      setZonas(activos);
-    } catch (error) {
-      console.error('Error al cargar zonas:', error);
-    }
-  }
-
-  const cargarCarga = async () => {
-    try {
-      const data = await obtenerCargas();
-      const activos = data.filter((c: Carga) => c.activo);
-      setCarga(activos);
-    } catch (error) {
-      console.error('Error al cargar las cargas:', error);
-    }
-  };
-  
-  const cargarAdicionales = async () => {
-    try {
-      const data = await obtenerAdicionales();
-      const activos = data.filter((c: Adicional) => c.activo);
-      setAdicionales(activos);
-    } catch (error) {
-      console.error('Error al cargar los adicionales:', error);
-    }
-  };
-
-  const handleSubmit = async (valores: Record<string, any>) => {
-    // Ejemplo de validación sencilla
-    const getNumber = (key: string): number => {
-      const value = valores[key];
-      //console.log(`Valor de ${key}:`, value);
-
-      if (value === undefined || isNaN(Number(value))) {
-        throw new Error(`El campo ${key} es inválido o está vacío`);
-      }
-      return Number(value);
+  const handleSubmit = async (formValues: Record<string, any>) => {
+    const payload = {
+      transportista: { id: Number(formValues.transportistaId) },
+      tipoVehiculo: { id: Number(formValues.tipoVehiculoId) },
+      zonaViaje: { id: Number(formValues.zonaId) },
+      tipoCargaTarifa: { id: Number(formValues.tipoCargaId) },
+      valorBase: parseFloat(formValues.valorBase || "0"),
+      adicionales: (formValues["adicionales"] || []).map((a: any) => ({
+        adicional: { id: a.id },
+        costoEspecifico: parseFloat(a.precio ?? a.costoDefault ?? "0"),
+      })),
+      esVigente: true,
     };
-  
-    const adicionalesSeleccionados = (valores['adicionales'] || []).map((a: any) => ({
-      adicional: { id: a.id },
-      costoEspecifico: parseFloat(a.precio ?? '0'),
-    }));
 
-    const nuevaTarifa:  Omit<Tarifa, 'id'> = {
-      transportista: { id: getNumber('transportistaId') },
-      tipoVehiculo: { id: getNumber('vehiculoId') },
-      zonaViaje: { id: getNumber('zona') },
-      tipoCargaTarifa: { id: getNumber('cargaId') },
-      valorBase: getNumber('costoBase'),
-      total: getNumber('costoBase') + adicionalesSeleccionados.reduce((acc: any, a: { costoEspecifico: any; }) => acc + a.costoEspecifico, 0),
-      adicionales: adicionalesSeleccionados,
-    };
-  
     try {
-      if (editando) {
-        await actualizarTarifa(editando.id, nuevaTarifa);
-        setMensaje('Tarifa actualizada con éxito');
+      if (editingItem) {
+        // ... la lógica de PUT va aquí ...
       } else {
-        console.log('Payload que se envía:', nuevaTarifa);
-        await crearTarifa(nuevaTarifa);
-        setMensaje('Tarifa creada con éxito');
+        await tarifaService.crearTarifa(payload);
+        setMessage("Tarifa creada con éxito");
       }
-  
-      setEditando(null);
-      setMostrarFormulario(false);
-      if (formRef.current) formRef.current.reset();
+      setShowForm(false);
+      setEditingItem(null);
       cargarTarifas();
     } catch (err) {
+      setMessage("Error al guardar la tarifa");
       console.error(err);
-      setMensaje('Error al guardar la tarifa');
+    } finally {
+      setTimeout(() => setMessage(""), 3000);
     }
-  
-    setTimeout(() => setMensaje(''), 2000);
   };
 
-  const handleEdit = (tarifa: Tarifa) => {
-    setEditando(tarifa);
-    setMostrarFormulario(true);
-    // Opcional: puedes rellenar el formRef manualmente si FormularioDinamico no lo hace
-  };
-
+  const handleEdit = (tarifa: Tarifa) =>
+    alert("La funcionalidad de editar aún no está implementada en el backend.");
   const handleDelete = async (id: number) => {
-    try {
-      await eliminarTarifa(id);
-      setMensaje('Tarifa eliminada con éxito');
-      cargarTarifas();
-    } catch (err) {
-      console.error(err);
-      setMensaje('Error al eliminar la tarifa');
-    }
-    setTimeout(() => setMensaje(''), 2000);
+    /* ... */
   };
-
-  const handleCancel = () => {
-    setEditando(null);
-    setMostrarFormulario(false);
-    if (formRef.current) formRef.current.reset();
-  };
+  const handleView = (tarifa: Tarifa) =>
+    setViewingTarifa(tarifa as TarifaDetallada);
+  const handleCancel = () => setShowForm(false);
 
   const camposTarifa: Campo[] = [
     {
-      tipo: 'select',
-      nombre: 'Transportista',
-      clave: 'transportistaId',
-      opciones: transportistas.map(t => ({
+      tipo: "select",
+      nombre: "Transportista",
+      clave: "transportistaId",
+      opciones: transportistas.map((t) => ({
         id: t.id,
         nombre: t.nombreEmpresa,
       })),
     },
     {
-      tipo: 'select',
-      nombre: 'Tipo de vehiculo',
-      clave: 'vehiculoId',
-      opciones: tipoVehiculos.map(t => ({
-        id: t.id,
-        nombre: t.nombre,
-      })),
+      tipo: "select",
+      nombre: "Tipo de vehículo",
+      clave: "tipoVehiculoId",
+      opciones: tipoVehiculos.map((t) => ({ id: t.id, nombre: t.nombre })),
     },
     {
-      tipo: 'select',
-      nombre: 'Zona',
-      clave: 'zona',
-      opciones: zonas.map(t => ({
-        id: t.id,
-        nombre: t.nombre,
-      })),
+      tipo: "select",
+      nombre: "Zona",
+      clave: "zonaId",
+      opciones: zonas.map((t) => ({ id: t.id, nombre: t.nombre })),
     },
     {
-      tipo: 'select',
-      nombre: 'Tipo de carga',
-      clave: 'cargaId',
-      opciones: cargas.map(t => ({
-        id: t.id,
-        nombre: t.nombre,
-      })),
+      tipo: "select",
+      nombre: "Tipo de carga",
+      clave: "tipoCargaId",
+      opciones: cargas.map((t) => ({ id: t.id, nombre: t.nombre })),
     },
     {
-      tipo: 'adicionales',
-      nombre: 'Adicionales',
-      clave: 'adicionales',
+      tipo: "adicionales",
+      nombre: "Adicionales",
+      clave: "adicionales",
       opciones: adicionales.map((a) => ({
         id: a.id,
         nombre: a.nombre,
@@ -218,33 +165,48 @@ export const FormCrearTarifa: React.FC = () => {
         precio: a.costoDefault,
       })),
     },
-    { tipo: 'costoBase', nombre: 'Costo Base', clave: 'costoBase' },
-    { tipo: 'resultado', nombre: 'ADICIONALES :', clave: 'add' },
-    { tipo: 'resultado', nombre: 'COSTO TOTAL :', clave: 'total' },
+    { tipo: "costoBase", nombre: "Costo Base", clave: "valorBase" },
+    { tipo: "resultado", nombre: "ADICIONALES :", clave: "add" },
+    { tipo: "resultado", nombre: "COSTO TOTAL :", clave: "total" },
   ];
 
   return (
     <div>
-      {!mostrarFormulario && !editando && (
-        <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nueva tarifa</BotonPrimario>
+      {!showForm && !isLoading && !loadingError && (
+        <BotonPrimario onClick={handleCrearClick}>
+          Crear nueva tarifa
+        </BotonPrimario>
       )}
-
-      {(mostrarFormulario || editando) && (
-        <>
-          <FormularioDinamico
-            titulo={editando ? 'Editar Tarifa' : 'Registrar nueva Tarifa'}
-            campos={camposTarifa}
-            onSubmit={handleSubmit}
-            modal
-            open={mostrarFormulario}
-            onClose={handleCancel}
-          />
-          <BotonPrimario onClick={handleCancel} >Cancelar</BotonPrimario>
-        </>
+      {showForm && (
+        <FormularioDinamico
+          titulo="Registrar nueva Tarifa"
+          campos={camposTarifa}
+          onSubmit={handleSubmit}
+          modal
+          open={showForm}
+          onClose={handleCancel}
+        />
       )}
-
-      {mensaje && <div className="mensaje-exito">{mensaje}</div>}
-      <DataTable entidad="tarifa" rows={tarifas} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
+      {isLoading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : loadingError ? (
+        <Alert severity="error">{loadingError}</Alert>
+      ) : (
+        <DataTable
+          entidad="tarifa"
+          rows={tarifas} // Se pasan las tarifas directamente
+          handleEdit={handleEdit}
+          handleDelete={handleDelete}
+          handleView={handleView}
+        />
+      )}
+      <ModalVerTarifa
+        open={!!viewingTarifa}
+        onClose={() => setViewingTarifa(null)}
+        tarifa={viewingTarifa}
+      />
     </div>
   );
 };

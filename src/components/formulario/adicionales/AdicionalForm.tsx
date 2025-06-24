@@ -1,124 +1,72 @@
+import React from "react";
+import FormularioDinamico, { Campo } from "../FormularioDinamico";
+import { BotonPrimario } from "../../Botones";
+import * as adicionalService from "../../../services/adicionalService";
+import DataTable from "../../tablas/tablaDinamica";
+import { Adicional } from "../../../services/adicionalService";
+import { useCrud } from "../../hook/useCrud";
+import { CrudService } from "../../../services/crudService";
 
-import React, { useState, useEffect, useRef } from 'react';
-import FormularioDinamico, { Campo } from '../FormularioDinamico';
-import { BotonPrimario, BotonEditar, BotonEliminar } from '../../Botones';
-import {
-  obtenerAdicionales,
-  crearAdicional,
-  actualizarAdicional,
-  eliminarAdicional,
-  Adicional
-} from '../../../services/adicionalService';
+// Se definen los campos del formulario.
+const camposAdicional: Campo[] = [
+  { tipo: "text", nombre: "Nombre del Adicional", clave: "nombre" },
+  { tipo: "text", nombre: "Descripción", clave: "descripcion" },
+  { tipo: "costoBase", nombre: "Costo del Adicional", clave: "costoDefault" },
+];
 
-import DataTable from '../../tablas/tablaDinamica'; 
+// Se adapta el servicio a la interfaz genérica CrudService.
+const servicioAdaptado: CrudService<Adicional> = {
+  getAll: adicionalService.obtenerAdicionales,
+  create: adicionalService.crearAdicional,
+  update: (id, data) => adicionalService.actualizarAdicional(id, data),
+  remove: (id) => adicionalService.eliminarAdicional(id),
+};
 
 export const AdicionalForm: React.FC = () => {
-  const [adicionales, setAdicionales] = useState<Adicional[]>([]);
-  const [mensaje, setMensaje] = useState('');
-  const [editando, setEditando] = useState<Adicional | null>(null);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+  // Se reemplaza toda la lógica de estado por el hook useCrud.
+  const { items, editingItem, showForm, message, actions } =
+    useCrud<Adicional>(servicioAdaptado);
 
-  useEffect(() => {
-    cargarAdicionales();
-  }, []);
-
-  const cargarAdicionales = async () => {
-    try {
-      const data = await obtenerAdicionales();
-      setAdicionales(data);
-    } catch (error) {
-      console.error('Error al cargar adicionales:', error);
-      setMensaje('Error al cargar los adicionales. Inténtalo de nuevo más tarde.');
-    }
-  };
-
-  const handleSubmit = async (valores: Record<string, string>) => {
-    const nuevoAdicional = {
-      nombre: valores.nombreAdicional,
-      descripcion: valores.descripcionAdicional,
-      costoDefault: Number(valores.costoAdicional),
+  // El submit ahora solo se encarga de mapear los datos del formulario.
+  const handleFormSubmit = (formValues: Record<string, any>) => {
+    const data: Omit<Adicional, "id"> = {
+      ...(editingItem ? editingItem : { activo: true }),
+      nombre: formValues.nombre,
+      descripcion: formValues.descripcion,
+      costoDefault: Number(formValues.costoDefault),
     };
-    
-
-    try {
-      if (editando) {
-        await actualizarAdicional(String(editando.id), nuevoAdicional);
-        setMensaje('Adicional actualizado con éxito.');
-      } else {
-        await crearAdicional(nuevoAdicional);
-        setMensaje('Adicional creado con éxito.');
-      }
-
-      setEditando(null);
-      setMostrarFormulario(false);
-      if (formRef.current) formRef.current.reset();
-      cargarAdicionales();
-    } catch (err) {
-      console.error('Error al guardar el adicional:', err);
-      setMensaje(`Error al guardar el adicional: ${(err as Error).message || 'Hubo un problema.'}`);
-    }
-
-    setTimeout(() => setMensaje(''), 3000);
+    actions.handleSubmit(data);
   };
-
-  const handleEdit = (adicional: Adicional) => {
-    setEditando(adicional);
-    setMostrarFormulario(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
-      await eliminarAdicional(String(id));
-      setMensaje('Adicional eliminado con éxito.');
-      cargarAdicionales();
-    } catch (err) {
-      console.error('Error al eliminar el adicional:', err);
-      setMensaje(`Error al eliminar el adicional: ${(err as Error).message || 'Hubo un problema.'}`);
-    }
-    setTimeout(() => setMensaje(''), 3000);
-  };
-
-   const handleCancel = () => {
-    setEditando(null);
-    setMostrarFormulario(false);
-    if (formRef.current) formRef.current.reset();
-  };
-
-  const camposAdicional: Campo[] = [
-    { tipo: 'text', nombre: 'Nombre del Adicional', clave: 'nombreAdicional' },
-    { tipo: 'text', nombre: 'Descripción', clave: 'descripcionAdicional' },
-    { tipo: 'costoBase', nombre: 'Costo del Adicional', clave: 'costoAdicional' },
-  ];
 
   return (
     <div>
-      {!mostrarFormulario && !editando && (
-        <BotonPrimario onClick={() => setMostrarFormulario(true)}>Crear nuevo adicional</BotonPrimario>
+      {!showForm && (
+        <BotonPrimario onClick={actions.handleCreateNew}>
+          Crear nuevo adicional
+        </BotonPrimario>
       )}
 
-      {(mostrarFormulario || editando) && (
-        <>
-          <FormularioDinamico
-            titulo={editando ? 'Editar Adicional' : 'Registrar Nuevo Adicional'}
-            campos={camposAdicional}
-            onSubmit={handleSubmit}
-            modal={true}
-            open={mostrarFormulario || !!editando}
-            onClose={handleCancel}
-            formRef={formRef}
-          />
-        </>
+      {showForm && (
+        <FormularioDinamico
+          titulo={
+            editingItem ? "Editar Adicional" : "Registrar Nuevo Adicional"
+          }
+          campos={camposAdicional}
+          onSubmit={handleFormSubmit}
+          initialValues={editingItem}
+          modal
+          open={showForm}
+          onClose={actions.handleCancel}
+        />
       )}
 
-      {mensaje && <div className="mensaje-exito">{mensaje}</div>}
+      {message && <div className="mensaje-exito">{message}</div>}
 
-      
       <DataTable
         entidad="adicional"
-        rows={adicionales}
-        handleEdit={handleEdit} 
-        handleDelete={handleDelete} 
+        rows={items}
+        handleEdit={actions.handleEdit}
+        handleDelete={actions.handleDelete}
       />
     </div>
   );

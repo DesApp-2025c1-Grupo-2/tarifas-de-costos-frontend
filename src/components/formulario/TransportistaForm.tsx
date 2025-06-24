@@ -1,127 +1,77 @@
-import React, { useState, useEffect, useRef } from 'react';
-import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
-import {
-  obtenerTransportistas,
-  crearTransportista,
-  actualizarTransportista,
-  eliminarTransportista,
-  Transportista,
-} from '../../services/transportistaService';
-import DataTable from '../tablas/tablaDinamica';
+import React from "react";
+import FormularioDinamico, { Campo } from "./FormularioDinamico";
+import { BotonPrimario } from "../Botones";
+import * as transportistaService from "../../services/transportistaService";
+import DataTable from "../tablas/tablaDinamica";
+import { Transportista } from "../../services/transportistaService";
+import { useCrud } from "../hook/useCrud";
+import { CrudService } from "../../services/crudService";
 
+// Campos del formulario.
 const camposTransportista: Campo[] = [
-  { tipo: 'text', nombre: 'Nombre', clave: "nombre" },
-  { tipo: 'text', nombre: 'Empresa', clave: "empresa" },
-  { tipo: 'text', nombre: 'Correo', clave: "correo" },
-  { tipo: 'text', nombre: 'Telefono', clave: "telefono" }
+  { tipo: "text", nombre: "Nombre de Contacto", clave: "contactoNombre" },
+  { tipo: "text", nombre: "Empresa", clave: "nombreEmpresa" },
+  { tipo: "text", nombre: "Correo", clave: "contactoEmail" },
+  { tipo: "text", nombre: "Teléfono", clave: "contactoTelefono" },
 ];
 
+// Adaptador del servicio.
+const servicioAdaptado: CrudService<Transportista> = {
+  getAll: transportistaService.obtenerTransportistas,
+  create: transportistaService.crearTransportista,
+  update: transportistaService.actualizarTransportista,
+  remove: transportistaService.eliminarTransportista,
+};
+
 export const FormCrearTransportista: React.FC = () => {
-  const [transportistasList, setTransportistasList] = useState<Transportista[]>([]);
-  const [mensaje, setMensaje] = useState('');
-  const [editingTransportista, setEditingTransportista] = useState<Transportista | null>(null);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+  // Lógica en el hook.
+  const { items, editingItem, showForm, message, actions } =
+    useCrud<Transportista>(servicioAdaptado);
 
-  useEffect(() => {
-    cargarTransportistas();
-  }, []);
-
-  const cargarTransportistas = async () => {
-    try {
-      const data = await obtenerTransportistas();
-      setTransportistasList(data);
-    } catch (error) {
-      console.error('Error al cargar transportistas:', error);
-    }
-  };
-
-  const handleSubmit = async (valores: Record<string, string>) => {
-    const nuevoTransportista = {
-      contactoNombre: valores['nombre'],
-      nombreEmpresa: valores['empresa'],
-      contactoEmail: valores['correo'],
-      contactoTelefono: valores['telefono']
+  // Mapeo de datos.
+  const handleFormSubmit = (formValues: Record<string, any>) => {
+    const data: Omit<Transportista, "id"> = {
+      ...(editingItem ? editingItem : { activo: true }),
+      contactoNombre: formValues.contactoNombre,
+      nombreEmpresa: formValues.nombreEmpresa,
+      contactoEmail: formValues.contactoEmail,
+      contactoTelefono: formValues.contactoTelefono,
     };
-
-    try {
-      if (editingTransportista) {
-        await actualizarTransportista(editingTransportista.id, nuevoTransportista);
-        setMensaje('Transportista actualizado con éxito!');
-      } else {
-        await crearTransportista(nuevoTransportista);
-        setMensaje('Transportista creado con éxito!');
-      }
-      setEditingTransportista(null);
-      setMostrarFormulario(false);
-      if (formRef.current) formRef.current.reset();
-      cargarTransportistas();
-    } catch (error) {
-      console.error(error);
-      setMensaje('Hubo un error al guardar el transportista.');
-    }
-
-    setTimeout(() => setMensaje(''), 2000);
-  };
-
-  const handleEdit = (transportista: Transportista) => {
-    setEditingTransportista(transportista);
-    setMostrarFormulario(true);
-    if (formRef.current) {
-      (formRef.current.querySelector('input[name="Nombre"]') as HTMLInputElement)!.value = transportista.contactoNombre;
-      (formRef.current.querySelector('input[name="Empresa"]') as HTMLInputElement)!.value = transportista.nombreEmpresa;
-      (formRef.current.querySelector('input[name="Correo electrónico"]') as HTMLInputElement)!.value = transportista.contactoEmail;
-      (formRef.current.querySelector('input[name="Teléfono de contacto"]') as HTMLInputElement)!.value = transportista.contactoTelefono;
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
-      await eliminarTransportista(id);
-      setMensaje('Transportista eliminado con éxito!');
-      cargarTransportistas();
-    } catch (error) {
-      console.error(error);
-      setMensaje('Error al eliminar el transportista.');
-    }
-    setTimeout(() => setMensaje(''), 2000);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingTransportista(null);
-    setMostrarFormulario(false);
-    if (formRef.current) {
-      formRef.current.reset();
-    }
+    actions.handleSubmit(data);
   };
 
   return (
     <div>
-      {!mostrarFormulario && !editingTransportista && (
-        // <Button variant="contained" onClick={() => setMostrarFormulario(true)}>
-        //   Crear nuevo transportista
-        // </Button>
-        <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nuevo transportista</BotonPrimario>
+      {!showForm && (
+        <BotonPrimario onClick={actions.handleCreateNew}>
+          Crear nuevo transportista
+        </BotonPrimario>
       )}
 
-      {(mostrarFormulario || editingTransportista) && (
-        <>
-          <FormularioDinamico
-            titulo={editingTransportista ? 'Editar Transportista' : 'Registrar nuevo transportista'}
-            campos={camposTransportista}
-            onSubmit={handleSubmit}
-            modal
-            open={mostrarFormulario}
-            onClose={handleCancelEdit}
-          />
-          <BotonPrimario onClick={handleCancelEdit} >Cancelar</BotonPrimario>
-        </>
+      {showForm && (
+        <FormularioDinamico
+          titulo={
+            editingItem
+              ? "Editar Transportista"
+              : "Registrar nuevo transportista"
+          }
+          campos={camposTransportista}
+          onSubmit={handleFormSubmit}
+          initialValues={editingItem}
+          modal
+          open={showForm}
+          onClose={actions.handleCancel}
+        />
       )}
 
-      {mensaje && <div className="mensaje-exito">{mensaje}</div>}
+      {message && <div className="mensaje-exito">{message}</div>}
 
-      <DataTable entidad="transportista" rows={transportistasList} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
+      <DataTable
+        entidad="transportista"
+        rows={items}
+        handleEdit={actions.handleEdit}
+        handleDelete={actions.handleDelete}
+      />
     </div>
   );
-}
+};

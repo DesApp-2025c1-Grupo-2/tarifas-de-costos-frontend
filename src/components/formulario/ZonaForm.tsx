@@ -1,126 +1,71 @@
-import React, { useState, useEffect, useRef } from 'react';
-import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
-import {
-  obtenerZonas,
-  crearZona,
-  actualizarZona,
-  eliminarZona,
-  ZonaViaje,
-} from '../../services/zonaService';
-import DataTable from '../tablas/tablaDinamica';
+import React from "react";
+import FormularioDinamico, { Campo } from "./FormularioDinamico";
+import { BotonPrimario } from "../Botones";
+import * as zonaService from "../../services/zonaService";
+import DataTable from "../tablas/tablaDinamica";
+import { ZonaViaje } from "../../services/zonaService";
+import { useCrud } from "../hook/useCrud";
+import { CrudService } from "../../services/crudService";
 
+// Campos del formulario.
 const camposZona: Campo[] = [
-  { tipo: 'text', nombre: 'Nombre', clave: "nombre" },
-  { tipo: 'text', nombre: 'Descripcion', clave: "descripcion" },
-  { tipo: 'text', nombre: 'Region', clave: "region" }
+  { tipo: "text", nombre: "Nombre", clave: "nombre" },
+  { tipo: "text", nombre: "Descripcion", clave: "descripcion" },
+  { tipo: "text", nombre: "Region", clave: "regionMapa" },
 ];
 
+// Adaptador del servicio.
+const servicioAdaptado: CrudService<ZonaViaje> = {
+  getAll: zonaService.obtenerZonas,
+  create: zonaService.crearZona,
+  update: zonaService.actualizarZona,
+  remove: zonaService.eliminarZona,
+};
+
 export const FormCrearZona: React.FC = () => {
-  const [zonasList, setZonasList] = useState<ZonaViaje[]>([]);
-  const [mensaje, setMensaje] = useState('');
-  const [editingZona, setEditingZona] = useState<ZonaViaje | null>(null);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+  // Lógica en el hook.
+  const { items, editingItem, showForm, message, actions } =
+    useCrud<ZonaViaje>(servicioAdaptado);
 
-  useEffect(() => {
-    cargarZonas();
-  }, []);
-
-  const cargarZonas = async () => {
-    try {
-      const data = await obtenerZonas();
-      setZonasList(data);
-    } catch (error) {
-      console.error('Error al cargar zonas:', error);
-    }
-  };
-
-  const handleSubmit = async (valores: Record<string, string>) => {
-    const nuevaZona = {
-      nombre: valores['nombre'],
-      descripcion: valores['descripcion'],
-      regionMapa: valores['region'],
+  // Mapeo de datos.
+  const handleFormSubmit = (formValues: Record<string, any>) => {
+    const data: Omit<ZonaViaje, "id"> = {
+      ...(editingItem ? editingItem : { activo: true }),
+      nombre: formValues.nombre,
+      descripcion: formValues.descripcion,
+      regionMapa: formValues.regionMapa,
     };
-  
-    try {
-      if (editingZona) {
-        await actualizarZona(editingZona.id, nuevaZona);
-        setMensaje('Zona actualizada con éxito!');
-      } else {
-        await crearZona(nuevaZona);
-        setMensaje('Zona creada con éxito!');
-      }
-  
-      setEditingZona(null);
-      setMostrarFormulario(false);
-      if (formRef.current) formRef.current.reset();
-      cargarZonas();
-    } catch (error) {
-      console.error(error);
-      setMensaje('Hubo un error al guardar la zona.');
-    }
-  
-    setTimeout(() => setMensaje(''), 2000);
+    actions.handleSubmit(data);
   };
 
-  const handleEdit = (zona: ZonaViaje) => {
-    setEditingZona(zona);
-    setMostrarFormulario(true);
-    if (formRef.current) {
-      (formRef.current.querySelector('input[name="nombre"]') as HTMLInputElement)!.value = zona.nombre;
-      (formRef.current.querySelector('input[name="descripcion"]') as HTMLInputElement)!.value = zona.descripcion;
-      (formRef.current.querySelector('input[name="region"]') as HTMLInputElement)!.value = zona.regionMapa;
-    }
-  };
+  return (
+    <div>
+      {!showForm && (
+        <BotonPrimario onClick={actions.handleCreateNew}>
+          Crear nueva zona
+        </BotonPrimario>
+      )}
 
-  const handleDelete = async (id: number) => {
-    try {
-      await eliminarZona(id);
-      setMensaje('Zona eliminada con éxito!');
-      cargarZonas();
-    } catch (error) {
-      console.error(error);
-      setMensaje('Error al eliminar la zona.');
-    }
-    setTimeout(() => setMensaje(''), 2000);
-  };
+      {showForm && (
+        <FormularioDinamico
+          titulo={editingItem ? "Editar Zona" : "Registrar nueva zona"}
+          campos={camposZona}
+          onSubmit={handleFormSubmit}
+          initialValues={editingItem}
+          modal
+          open={showForm}
+          onClose={actions.handleCancel}
+        />
+      )}
 
-  const handleCancelEdit = () => {
-    setEditingZona(null);
-    setMostrarFormulario(false);
-    if (formRef.current) formRef.current.reset();
-  };
-  
-    return (
-      <div>
-        {!mostrarFormulario && !editingZona && (
-          <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nueva zona</BotonPrimario>
+      {message && <div className="mensaje-exito">{message}</div>}
 
-        )}
-  
-        {(mostrarFormulario || editingZona) && (
-          <>
-            <FormularioDinamico
-              titulo={editingZona ? "Editar Zona" : "Registrar nueva zona"}
-              campos={camposZona}
-              onSubmit={handleSubmit}
-              modal
-              open={mostrarFormulario}
-              onClose={handleCancelEdit}
-            />
-            <BotonPrimario onClick={handleCancelEdit} >Cancelar</BotonPrimario>
-          </>
-        )}
-  
-        {mensaje && <div className="mensaje-exito">{mensaje}</div>}
-  
-        <DataTable 
-          entidad="zona" 
-          rows={zonasList} 
-          handleEdit={handleEdit} 
-          handleDelete={(id: number) => handleDelete(Number(id))}>
-        </DataTable>
-      </div>
-    );
-  };
+      <DataTable
+        entidad="zona"
+        rows={items}
+        handleEdit={actions.handleEdit}
+        handleDelete={actions.handleDelete}
+      ></DataTable>
+    </div>
+  );
+};

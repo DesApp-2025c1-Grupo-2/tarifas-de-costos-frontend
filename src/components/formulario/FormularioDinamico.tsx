@@ -1,24 +1,30 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BasicTextFields,
   BasicAutocomplete,
   Resultado,
-  NumberField
-} from './Campos';
-import { BotonGuardar } from '../Botones';
+  NumberField,
+} from "./Campos";
+import { BotonGuardar } from "../Botones";
+import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import { AdicionalSelector } from "./adicionales/AdicionalSelector";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import { AdicionalSelector } from './adicionales/AdicionalSelector';
-import { ModalCrearAdicional, NuevoAdicional } from './adicionales/ModalCrearAdicional';
+  ModalCrearAdicional,
+  NuevoAdicional,
+} from "./adicionales/ModalCrearAdicional";
 
 export type Campo = {
-  tipo: 'text' | 'input' | 'email' | 'tel' | 'select' | 'adicionales' | 'resultado' | 'costoBase';
+  tipo:
+    | "text"
+    | "input"
+    | "email"
+    | "tel"
+    | "select"
+    | "adicionales"
+    | "resultado"
+    | "costoBase";
   nombre: string;
   clave: string;
   opciones?: any[];
@@ -27,11 +33,10 @@ export type Campo = {
 type Props = {
   titulo: string;
   campos: Campo[];
-  redireccion?: string;
-  onSubmit?: (valores: Record<string, any>) => void;
-  formRef?: React.RefObject<HTMLFormElement | null>;
+  onSubmit: (valores: Record<string, any>) => void;
+  initialValues?: Record<string, any> | null; // Para pre-cargar datos al editar
 
-  // props opcionales para el modo modal
+  // props para el modo modal
   modal?: boolean;
   open?: boolean;
   onClose?: () => void;
@@ -40,69 +45,66 @@ type Props = {
 const FormularioDinamico: React.FC<Props> = ({
   titulo,
   campos,
-  redireccion,
   onSubmit,
-  formRef,
+  initialValues,
   modal = false,
   open = false,
-  onClose
+  onClose,
 }) => {
-  const [mostrarMensaje, setMostrarMensaje] = useState(false);
   const [valores, setValores] = useState<Record<string, any>>({});
   const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
-  const [listaAdicionales, setListaAdicionales] = useState<Record<string, any[]>>({});
-  const navigate = useNavigate();
+
+  // Efecto para sincronizar el estado del formulario con los valores iniciales
+  // Se ejecuta cuando el formulario se abre o cuando cambian los datos a editar.
+  useEffect(() => {
+    if (open) {
+      if (initialValues) {
+        setValores(initialValues);
+      } else {
+        setValores({}); // Limpia el formulario para una nueva entrada
+      }
+    }
+  }, [initialValues, open]);
 
   const handleChange = (clave: string, valor: any) => {
     setValores((prev) => ({ ...prev, [clave]: valor }));
-    if (clave === 'adicionales') {
-      setListaAdicionales((prev) => ({ ...prev, [clave]: valor }));
-    }
   };
 
   const handleInternalSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit?.(valores);
-    setMostrarMensaje(true);
-
-    if (!modal && redireccion) {
-      setTimeout(() => {
-        navigate(redireccion);
-      }, 1500);
-    }
-
-    if (modal && onClose) {
-      onClose(); // cerrar modal tras submit si aplica
+    onSubmit(valores); // Envía los valores actuales al padre
+    if (onClose) {
+      onClose(); // Cierra el modal si aplica
     }
   };
 
   const contenidoFormulario = (
     <>
-      <form className="formulario-tarifa" onSubmit={handleInternalSubmit} ref={formRef}>
+      <form className="formulario-tarifa" onSubmit={handleInternalSubmit}>
         {campos.map((campo) => {
           switch (campo.tipo) {
-            case 'text':
+            case "text":
               return (
                 <BasicTextFields
                   key={campo.clave}
                   label={campo.nombre}
-                  value={valores[campo.clave] || ''}
+                  value={valores[campo.clave] || ""}
                   onChange={(val: string) => handleChange(campo.clave, val)}
                 />
               );
 
-            case 'select':
+            case "select":
               return (
                 <BasicAutocomplete
                   key={campo.clave}
                   label={campo.nombre}
                   opciones={campo.opciones || []}
-                  value={valores[campo.clave] || ''}
+                  value={valores[campo.clave] || ""}
                   onChange={(val: string) => handleChange(campo.clave, val)}
                 />
               );
 
-            case 'adicionales':
+            case "adicionales":
               return (
                 <AdicionalSelector
                   key={campo.clave}
@@ -113,22 +115,35 @@ const FormularioDinamico: React.FC<Props> = ({
                 />
               );
 
-            case 'resultado':
+            case "resultado":
+              const totalAdicionales = (valores["adicionales"] || []).reduce(
+                (acc: number, ad: { precio: number }) => acc + ad.precio,
+                0
+              );
+              const costoBase = Number(valores["costoBase"] || 0);
+              let displayValue = "";
+
+              if (campo.clave === "add") {
+                displayValue = totalAdicionales.toFixed(2);
+              } else if (campo.clave === "total") {
+                displayValue = (costoBase + totalAdicionales).toFixed(2);
+              }
+
               return (
                 <Resultado
                   key={campo.clave}
                   nombre={campo.nombre}
-                  value={valores[campo.clave] || ''}
+                  value={displayValue}
                 />
               );
 
-            case 'costoBase':
+            case "costoBase":
               return (
                 <NumberField
                   key={campo.clave}
                   label="COSTO BASE"
-                  value={valores[campo.clave] || ''}
-                  onChange={(val) => setValores(prev => ({ ...prev, [campo.clave]: val }))}
+                  value={valores[campo.clave] || ""}
+                  onChange={(val) => handleChange(campo.clave, val)}
                 />
               );
 
@@ -144,11 +159,11 @@ const FormularioDinamico: React.FC<Props> = ({
         onClose={() => setModalNuevoAdicional(false)}
         onCrear={(nuevo) => {
           const nuevoAdicional = {
-            id: Date.now(),
-            ...nuevo
+            id: Date.now(), // ID temporal para el cliente
+            ...nuevo,
           };
-          const actuales = valores['adicionales'] || [];
-          handleChange('adicionales', [...actuales, nuevoAdicional]);
+          const actuales = valores["adicionales"] || [];
+          handleChange("adicionales", [...actuales, nuevoAdicional]);
         }}
       />
     </>
@@ -156,20 +171,18 @@ const FormularioDinamico: React.FC<Props> = ({
 
   if (modal) {
     return (
-      <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <Dialog open={open!} onClose={onClose} fullWidth maxWidth="sm">
         <DialogTitle>
           {titulo}
           <IconButton
             aria-label="close"
             onClick={onClose}
-            sx={{ position: 'absolute', right: 8, top: 8 }}
+            sx={{ position: "absolute", right: 8, top: 8 }}
           >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers>
-          {contenidoFormulario}
-        </DialogContent>
+        <DialogContent dividers>{contenidoFormulario}</DialogContent>
       </Dialog>
     );
   }
@@ -178,10 +191,6 @@ const FormularioDinamico: React.FC<Props> = ({
     <div className="crear-tarifa">
       <h2>{titulo}</h2>
       {contenidoFormulario}
-
-      {mostrarMensaje && (
-        <div className="mensaje-exito">¡Guardado con éxito!</div>
-      )}
     </div>
   );
 };

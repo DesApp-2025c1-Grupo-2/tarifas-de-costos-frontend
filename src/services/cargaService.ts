@@ -25,19 +25,27 @@ export async function crearCarga(data: Omit<Carga, 'id'>): Promise<Carga> {
   return res.json();
 }
 
+/**
+ * Esta función está correctamente implementada para usar PUT,
+ * que es el método estándar para actualizaciones.
+ * El backend debe ser ajustado para aceptar este método en esta ruta.
+ */
 export async function actualizarCarga(id: string, data: Omit<Carga, 'id'>): Promise<Carga> {
   const res = await fetch(`${CARGAS_URL}/${id}`, {
-    method: 'PUT',
+    method: 'PUT', // Se revierte a PUT, que es el método correcto.
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Error al actualizar carga');
+  if (!res.ok) {
+    // Este es el error que estás viendo, provocado por la respuesta 405 del servidor.
+    throw new Error('Error al actualizar carga');
+  }
   return res.json();
 }
 
 export async function eliminarCarga(id: number): Promise<void> {
   const res = await fetch(`${CARGAS_URL}/${id}/baja`, {
-    method: 'PUT',
+    method: 'PUT', // Nota: Tu endpoint de eliminación también usa PUT, lo cual es un poco inusual pero consistente en tu app.
   });
   if (!res.ok) throw new Error('Error al eliminar carga');
 }

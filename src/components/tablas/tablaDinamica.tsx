@@ -1,53 +1,50 @@
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import Paper from '@mui/material/Paper';
-import { columnas, Entidad } from './columnas';
-import { BotonEditar, BotonEliminar } from '../Botones';
-import { useState, useMemo } from 'react';
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import Paper from "@mui/material/Paper";
+import { columnas, Entidad } from "./columnas";
+import { BotonEditar, BotonEliminar } from "../Botones";
+import { useState, useMemo } from "react";
 import {
   Box,
   Autocomplete,
   FormControl,
   TextField,
-  InputLabel,
   Button,
   Typography,
-} from '@mui/material';
-import Grid from '@mui/material/Grid';
-
+} from "@mui/material";
+import Grid from "@mui/material/Grid";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 interface DataTableProps {
   rows: any[];
   entidad: Entidad;
-  handleEdit: (row: any) => void;
-  handleDelete: (id: number) => void;
+  handleEdit?: (row: any) => void;
+  handleDelete?: (id: number) => void;
+  handleView?: (row: any) => void; // Nueva prop para manejar la vista
 }
 
-export default function DataTable({ rows, entidad, handleEdit, handleDelete }: DataTableProps) {
+export default function DataTable({
+  rows,
+  entidad,
+  handleEdit,
+  handleDelete,
+  handleView,
+}: DataTableProps) {
   const columnasBase = columnas[entidad];
   const [filtros, setFiltros] = useState<{ [key: string]: string }>({});
 
-  // ⚠️ Solo considerar los activos
   const rowsActivos = useMemo(() => {
-    return rows.filter((row) => {
-      if ('activo' in row) {
-        return row.activo === true;
-      } else if ('esVigente' in row) {
-        return row.esVigente === true;
-      }
-      return true; // Si no tiene ninguno de los dos campos, se incluye
-    });
+    return rows.filter((row) => row.activo !== false);
   }, [rows]);
 
-  // Valores únicos para filtros, basados en los activos
   const valoresUnicosPorColumna = useMemo(() => {
     const valores: { [key: string]: string[] } = {};
-
     columnasBase.forEach((col) => {
       const field = col.field;
-      const unicos = Array.from(new Set(rowsActivos.map((r) => r[field]).filter(Boolean)));
+      const unicos = Array.from(
+        new Set(rowsActivos.map((r) => r[field]).filter(Boolean))
+      );
       valores[field] = unicos;
     });
-
     return valores;
   }, [rowsActivos, columnasBase]);
 
@@ -57,13 +54,15 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
 
   const limpiarFiltros = () => setFiltros({});
 
-  // Aplicar filtros sobre los datos activos
   const rowsFiltrados = useMemo(() => {
     return rowsActivos.filter((row) =>
       columnasBase.every((col) => {
         const valFiltro = filtros[col.field];
         if (!valFiltro) return true;
-        return row[col.field]?.toString() === valFiltro;
+        return row[col.field]
+          ?.toString()
+          .toLowerCase()
+          .includes(valFiltro.toLowerCase());
       })
     );
   }, [rowsActivos, filtros, columnasBase]);
@@ -71,27 +70,52 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
   const columnasConAcciones: GridColDef[] = [
     ...columnasBase,
     {
-      field: 'acciones',
-      headerName: 'Acciones',
+      field: "acciones",
+      headerName: "Acciones",
       width: 250,
+      sortable: false,
       renderCell: (params) => (
-        <>
-          <BotonEditar onClick={() => handleEdit(params.row)}>Editar</BotonEditar>
-          <BotonEliminar onClick={() => handleDelete(params.row.id)}>Eliminar</BotonEliminar>
-        </>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          {/* Botón Ver (opcional) */}
+          {handleView && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => handleView(params.row)}
+              startIcon={<VisibilityIcon />}
+            >
+              Ver
+            </Button>
+          )}
+          {/* Botón Editar (opcional) */}
+          {handleEdit && (
+            <BotonEditar onClick={() => handleEdit(params.row)}>
+              Editar
+            </BotonEditar>
+          )}
+          {/* Botón Eliminar (opcional) */}
+          {handleDelete && (
+            <BotonEliminar onClick={() => handleDelete(params.row.id)}>
+              Eliminar
+            </BotonEliminar>
+          )}
+        </Box>
       ),
     },
   ];
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: "100%" }}>
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
           Filtros
         </Typography>
-        <Grid component="div" sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+        <Grid
+          component="div"
+          sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}
+        >
           {columnasBase.map((col) => (
-            <Grid key={col.field} component="div" sx={{ flex: '1 1 25%' }}>
+            <Grid key={col.field} component="div" sx={{ flex: "1 1 25%" }}>
               <FormControl
                 fullWidth
                 variant="outlined"
@@ -100,8 +124,9 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
               >
                 <Autocomplete
                   options={valoresUnicosPorColumna[col.field] || []}
-                  value={filtros[col.field] || ''}
-                  onChange={(_, newValue) => handleFiltroChange(col.field, newValue || '')}
+                  onInputChange={(_, newValue) =>
+                    handleFiltroChange(col.field, newValue || "")
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -111,17 +136,16 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
                     />
                   )}
                   fullWidth
-                  disableClearable
                 />
               </FormControl>
             </Grid>
           ))}
-          <Grid component="div" sx={{ flex: '1 1 25%' }}>
+          <Grid component="div" sx={{ flex: "1 1 25%" }}>
             <Button
               variant="outlined"
               fullWidth
               onClick={limpiarFiltros}
-              sx={{ height: '100%' }}
+              sx={{ height: "100%" }}
             >
               Limpiar Filtros
             </Button>
@@ -135,14 +159,10 @@ export default function DataTable({ rows, entidad, handleEdit, handleDelete }: D
           columns={columnasConAcciones}
           disableColumnMenu
           initialState={{
-            sorting: {
-              sortModel: [{ field: 'id', sort: 'desc' }], // o 'id'
-            },
-            pagination: { 
-              paginationModel: { page: 0, pageSize: 5 } 
-            }
+            sorting: { sortModel: [{ field: "id", sort: "desc" }] },
+            pagination: { paginationModel: { page: 0, pageSize: 5 } },
           }}
-          pageSizeOptions={[5, 10]} 
+          pageSizeOptions={[5, 10]}
           sx={{ border: 0 }}
         />
       </Paper>

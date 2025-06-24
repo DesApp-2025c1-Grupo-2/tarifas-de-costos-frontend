@@ -1,127 +1,82 @@
-import React, { useState, useEffect, useRef } from 'react';
-import FormularioDinamico, { Campo } from './FormularioDinamico';
-import { BotonPrimario, BotonEditar, BotonEliminar } from '../Botones';
-import {
-  obtenerTiposVehiculo,
-  crearTipoVehiculo,
-  actualizarTipoVehiculo,
-  eliminarTipoVehiculo,
-  TipoVehiculo,
-} from '../../services/tipoVehiculoService';
-import TablaDinamica from '../tablas/tablaDinamica';
-import DataTable from '../tablas/tablaDinamica';
+import React from "react";
+import FormularioDinamico, { Campo } from "./FormularioDinamico";
+import { BotonPrimario } from "../Botones";
+import * as tipoVehiculoService from "../../services/tipoVehiculoService";
+import DataTable from "../tablas/tablaDinamica";
+import { TipoVehiculo } from "../../services/tipoVehiculoService";
+import { useCrud } from "../hook/useCrud";
+import { CrudService } from "../../services/crudService";
 
+// Definición de campos del formulario.
 const camposTipoVehiculo: Campo[] = [
-  { tipo: 'text', nombre: 'Nombre', clave: "nombre" },
-  { tipo: 'text', nombre: 'Capacidad de peso (KG)', clave: "peso" },
-  { tipo: 'text', nombre: 'Capacidad de volumen (m³)', clave: "volumen" },
-  { tipo: 'text', nombre: 'Descripción', clave: "descripcion" }
+  { tipo: "text", nombre: "Nombre", clave: "nombre" },
+  { tipo: "text", nombre: "Capacidad de peso (KG)", clave: "capacidadPesoKG" },
+  {
+    tipo: "text",
+    nombre: "Capacidad de volumen (m³)",
+    clave: "capacidadVolumenM3",
+  },
+  { tipo: "text", nombre: "Descripción", clave: "descripcion" },
 ];
 
+// Adaptador del servicio a la interfaz CrudService.
+const servicioAdaptado: CrudService<TipoVehiculo> = {
+  getAll: tipoVehiculoService.obtenerTiposVehiculo,
+  create: tipoVehiculoService.crearTipoVehiculo,
+  update: (id, data) =>
+    tipoVehiculoService.actualizarTipoVehiculo(id.toString(), data),
+  remove: (id) => tipoVehiculoService.eliminarTipoVehiculo(id.toString()),
+};
+
 export const FormCrearTipoVehiculo: React.FC = () => {
-  const [tiposVehiculoList, setTiposVehiculoList] = useState<TipoVehiculo[]>([]);
-  const [mensaje, setMensaje] = useState('');
-  const [editingTipo, setEditingTipo] = useState<TipoVehiculo | null>(null);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+  // Lógica centralizada en el hook.
+  const { items, editingItem, showForm, message, actions } =
+    useCrud<TipoVehiculo>(servicioAdaptado);
 
-  useEffect(() => {
-    cargarTiposVehiculo();
-  }, []);
-
-  const cargarTiposVehiculo = async () => {
-    try {
-      const data = await obtenerTiposVehiculo();
-      setTiposVehiculoList(data);
-    } catch (error) {
-      console.error('Error al cargar tipos de vehículo:', error);
-    }
-  };
-
-    const handleSubmit = async (valores: Record<string, string>) => {
-      const nuevoTipo = {
-        nombre: valores['nombre'],
-        capacidadPesoKG: parseFloat(valores['peso']),
-        capacidadVolumenM3: parseFloat(valores['volumen']),
-        descripcion: valores['descripcion']
-      };
-
-    try {
-      if (editingTipo) {
-        await actualizarTipoVehiculo(editingTipo.id.toString(), nuevoTipo);
-        setMensaje('Tipo de vehículo actualizado con éxito!');
-      } else {
-        await crearTipoVehiculo(nuevoTipo);
-        setMensaje('Tipo de vehículo creado con éxito!');
-      }
-
-      setEditingTipo(null);
-      setMostrarFormulario(false);
-      if (formRef.current) formRef.current.reset();
-      cargarTiposVehiculo();
-    } catch (error) {
-      console.error(error);
-      setMensaje('Hubo un error al guardar el tipo de vehículo.');
-    }
-
-    setTimeout(() => setMensaje(''), 2000);
-  };
-
-  const handleEdit = (tipo: TipoVehiculo) => {
-    setEditingTipo(tipo);
-    setMostrarFormulario(true);
-    if (formRef.current) {
-      (formRef.current.querySelector('input[name="Nombre"]') as HTMLInputElement)!.value = tipo.nombre;
-      (formRef.current.querySelector('input[name="Capacidad de peso (KG)"]') as HTMLInputElement)!.value = tipo.capacidadPesoKG.toString();
-      (formRef.current.querySelector('input[name="Capacidad de volumen (m³)"]') as HTMLInputElement)!.value = tipo.capacidadVolumenM3.toString();
-      (formRef.current.querySelector('input[name="Descripción"]') as HTMLInputElement)!.value = tipo.descripcion;
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
-      await eliminarTipoVehiculo(id.toString());
-      setMensaje('Tipo de vehículo eliminado con éxito!');
-      cargarTiposVehiculo();
-    } catch (error) {
-      console.error(error);
-      setMensaje('Error al eliminar el tipo de vehículo.');
-    }
-    setTimeout(() => setMensaje(''), 2000);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingTipo(null);
-    setMostrarFormulario(false);
-    if (formRef.current) {
-      formRef.current.reset();
-    }
+  // Mapeo de datos del formulario.
+  const handleFormSubmit = (formValues: Record<string, any>) => {
+    const data: Omit<TipoVehiculo, "id"> = {
+      ...(editingItem ? editingItem : { activo: true }),
+      nombre: formValues.nombre,
+      capacidadPesoKG: parseFloat(formValues.capacidadPesoKG),
+      capacidadVolumenM3: parseFloat(formValues.capacidadVolumenM3),
+      descripcion: formValues.descripcion,
+    };
+    actions.handleSubmit(data);
   };
 
   return (
     <div>
-      {!mostrarFormulario && !editingTipo && (
-        <BotonPrimario onClick={() => setMostrarFormulario(true)} >Crear nuevo tipo de vehiculo</BotonPrimario>
-        
+      {!showForm && (
+        <BotonPrimario onClick={actions.handleCreateNew}>
+          Crear nuevo tipo de vehiculo
+        </BotonPrimario>
       )}
 
-      {(mostrarFormulario || editingTipo) && (
-        <>
-          <FormularioDinamico
-            titulo={editingTipo ? 'Editar Tipo de Vehículo' : 'Registrar nuevo Tipo de Vehículo'}
-            campos={camposTipoVehiculo}
-            onSubmit={handleSubmit}
-            modal
-            open={mostrarFormulario}
-            onClose={handleCancelEdit}
-          />
-          <BotonPrimario onClick={handleCancelEdit} >Cancelar</BotonPrimario>
-        </>
+      {showForm && (
+        <FormularioDinamico
+          titulo={
+            editingItem
+              ? "Editar Tipo de Vehículo"
+              : "Registrar nuevo Tipo de Vehículo"
+          }
+          campos={camposTipoVehiculo}
+          onSubmit={handleFormSubmit}
+          initialValues={editingItem}
+          modal
+          open={showForm}
+          onClose={actions.handleCancel}
+        />
       )}
 
-      {mensaje && <div className="mensaje-exito">{mensaje}</div>}
+      {message && <div className="mensaje-exito">{message}</div>}
 
-      <DataTable entidad="tipoDeVehiculo" rows={tiposVehiculoList} handleEdit={handleEdit} handleDelete={handleDelete}></DataTable>
+      <DataTable
+        entidad="tipoDeVehiculo"
+        rows={items}
+        handleEdit={actions.handleEdit}
+        handleDelete={actions.handleDelete}
+      />
     </div>
   );
 };
