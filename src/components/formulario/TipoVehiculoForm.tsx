@@ -7,25 +7,35 @@ import { TipoVehiculo } from "../../services/tipoVehiculoService";
 import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
 
-// Definición de campos del formulario.
+// --- INICIO DE LA CORRECCIÓN ---
+// Se ajustan las claves para que coincidan con el tipo de dato 'TipoVehiculo'.
 const camposTipoVehiculo: Campo[] = [
-  { tipo: "text", nombre: "Nombre", clave: "nombre" },
-  { tipo: "text", nombre: "Capacidad de peso (KG)", clave: "capacidadPesoKG" },
   {
-    tipo: "text",
-    nombre: "Capacidad de volumen (m³)",
-    clave: "capacidadVolumenM3",
+    tipo: "text", // Cambiado a 'text' para el nombre del vehículo.
+    nombre: "Nombre del Vehículo",
+    clave: "nombre", // Clave corregida.
+  },
+  {
+    tipo: "number",
+    nombre: "Peso Máximo (KG)",
+    clave: "capacidadPesoKG", // Clave corregida.
+  },
+  {
+    tipo: "number",
+    nombre: "Volumen Máximo (M³)",
+    clave: "capacidadVolumenM3", // Clave corregida.
   },
   { tipo: "text", nombre: "Descripción", clave: "descripcion" },
 ];
+// --- FIN DE LA CORRECCIÓN ---
 
 // Adaptador del servicio a la interfaz CrudService.
 const servicioAdaptado: CrudService<TipoVehiculo> = {
   getAll: tipoVehiculoService.obtenerTiposVehiculo,
   create: tipoVehiculoService.crearTipoVehiculo,
   update: (id, data) =>
-    tipoVehiculoService.actualizarTipoVehiculo(id.toString(), data),
-  remove: (id) => tipoVehiculoService.eliminarTipoVehiculo(id.toString()),
+    tipoVehiculoService.actualizarTipoVehiculo(id.toString(), data), // Convertir id a string
+  remove: (id) => tipoVehiculoService.eliminarTipoVehiculo(id.toString()), // Convertir id a string
 };
 
 export const FormCrearTipoVehiculo: React.FC = () => {
@@ -35,6 +45,8 @@ export const FormCrearTipoVehiculo: React.FC = () => {
 
   // Mapeo de datos del formulario.
   const handleFormSubmit = (formValues: Record<string, any>) => {
+    // Esta función ahora funcionará correctamente sin cambios,
+    // porque las claves de formValues coincidirán.
     const data: Omit<TipoVehiculo, "id"> = {
       ...(editingItem ? editingItem : { activo: true }),
       nombre: formValues.nombre,

@@ -4,8 +4,8 @@ body, html {
   padding: 0;
   font-family: 'Segoe UI', sans-serif;
   background-color: #f5f7fa; 
-  overflow-x: hidden; 
-  padding-top: 28px;
+  /* La siguiente línea debe ser eliminada */
+  /* overflow-x: hidden; */
 }
 
 /* --- ESTRUCTURA GENERAL DE LA APP --- */
@@ -20,6 +20,7 @@ body, html {
   padding: 2rem;
   margin-left: 0;
   transition: margin-left 0.3s ease-in-out; 
+  overflow-y: auto;
 }
 
 .app.sidebar-open .content-area {
@@ -38,9 +39,6 @@ body, html {
   padding: 0 20px; 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
-  position: fixed; 
-  top: 0;
-  z-index: 1001;
 }
 
 .headerConMenu {
@@ -137,13 +135,12 @@ body, html {
 
 /* --- LOGO (IMAGEN) --- */
 .logo-acme {
-  max-width: 800px;
-  width: 100%;
-  max-height: 500px; /* Limita la altura para que no crezca demasiado */
-  height: auto;
+  max-width: 100%; /* Asegura que no sea más ancho que su contenedor */
+  width: 500px; /* Un ancho base más razonable, puedes ajustarlo */
+  height: auto; 
   display: block;
-  margin: 20px auto; /* menos margen para dar más espacio */
-  object-fit: contain;
+  margin: 40px auto;     
+  object-fit: contain;   
 }
 /* --- BOTONES --- */
 .boton-contenedor {
@@ -209,6 +206,8 @@ body, html {
   }
 }
 
-main {
-  padding-bottom: 80px; 
+.main {
+  padding: 2rem;
+  padding-bottom: 100px; /* <--- Agregá esta línea */
+  flex: 1;
 }

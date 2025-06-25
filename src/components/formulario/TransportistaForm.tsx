@@ -7,15 +7,16 @@ import { Transportista } from "../../services/transportistaService";
 import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
 
-// Campos del formulario.
+// --- INICIO DE LA MODIFICACIÓN ---
+// Se actualiza el tipo de los campos de correo y teléfono.
 const camposTransportista: Campo[] = [
   { tipo: "text", nombre: "Nombre de Contacto", clave: "contactoNombre" },
   { tipo: "text", nombre: "Empresa", clave: "nombreEmpresa" },
-  { tipo: "text", nombre: "Correo", clave: "contactoEmail" },
-  { tipo: "text", nombre: "Teléfono", clave: "contactoTelefono" },
+  { tipo: "email", nombre: "Correo", clave: "contactoEmail" },
+  { tipo: "tel", nombre: "Teléfono", clave: "contactoTelefono" },
 ];
+// --- FIN DE LA MODIFICACIÓN ---
 
-// Adaptador del servicio.
 const servicioAdaptado: CrudService<Transportista> = {
   getAll: transportistaService.obtenerTransportistas,
   create: transportistaService.crearTransportista,
@@ -24,11 +25,9 @@ const servicioAdaptado: CrudService<Transportista> = {
 };
 
 export const FormCrearTransportista: React.FC = () => {
-  // Lógica en el hook.
   const { items, editingItem, showForm, message, actions } =
     useCrud<Transportista>(servicioAdaptado);
 
-  // Mapeo de datos.
   const handleFormSubmit = (formValues: Record<string, any>) => {
     const data: Omit<Transportista, "id"> = {
       ...(editingItem ? editingItem : { activo: true }),

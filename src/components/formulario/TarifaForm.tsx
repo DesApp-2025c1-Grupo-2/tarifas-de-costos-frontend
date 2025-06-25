@@ -1,6 +1,6 @@
 // src/components/formulario/TarifaForm.tsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react"; // <-- 1. IMPORTA useMemo
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
 import * as tarifaService from "../../services/tarifaService";
@@ -8,7 +8,6 @@ import { Tarifa } from "../../services/tarifaService";
 import DataTable from "../tablas/tablaDinamica";
 import { ModalVerTarifa, TarifaDetallada } from "./adicionales/ModalVerTarifa";
 import { CircularProgress, Box, Typography, Alert } from "@mui/material";
-// Importamos los servicios que necesitamos para los selectores del formulario de creación
 import {
   obtenerTransportistas,
   Transportista,
@@ -31,9 +30,7 @@ export const FormCrearTarifa: React.FC = () => {
   const [viewingTarifa, setViewingTarifa] = useState<TarifaDetallada | null>(
     null
   );
-  const [showViewModal, setShowViewModal] = useState(false);
 
-  // Estados solo para los selectores del formulario
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [tipoVehiculos, setTipoVehiculos] = useState<TipoVehiculo[]>([]);
   const [zonas, setZonas] = useState<ZonaViaje[]>([]);
@@ -52,7 +49,6 @@ export const FormCrearTarifa: React.FC = () => {
     }
   };
 
-  // Al hacer clic en "Crear", cargamos los datos para los selectores
   const handleCrearClick = async () => {
     try {
       const [
@@ -68,11 +64,11 @@ export const FormCrearTarifa: React.FC = () => {
         obtenerCargas(),
         obtenerAdicionales(),
       ]);
-      setTransportistas(transportistasData.filter((t) => t.activo));
-      setTipoVehiculos(vehiculosData.filter((v) => v.activo));
-      setZonas(zonasData.filter((z) => z.activo));
-      setCargas(cargasData.filter((c) => c.activo));
-      setAdicionales(adicionalesData.filter((a) => a.activo));
+      setTransportistas(transportistasData);
+      setTipoVehiculos(vehiculosData);
+      setZonas(zonasData);
+      setCargas(cargasData);
+      setAdicionales(adicionalesData);
 
       setEditingItem(null);
       setShowForm(true);
@@ -87,6 +83,7 @@ export const FormCrearTarifa: React.FC = () => {
 
   const handleSubmit = async (formValues: Record<string, any>) => {
     const payload = {
+      nombreTarifa: formValues.nombreTarifa,
       transportista: { id: Number(formValues.transportistaId) },
       tipoVehiculo: { id: Number(formValues.tipoVehiculoId) },
       zonaViaje: { id: Number(formValues.zonaId) },
@@ -101,14 +98,14 @@ export const FormCrearTarifa: React.FC = () => {
 
     try {
       if (editingItem) {
-        // ... la lógica de PUT va aquí ...
+        // ...
       } else {
         await tarifaService.crearTarifa(payload);
         setMessage("Tarifa creada con éxito");
       }
       setShowForm(false);
       setEditingItem(null);
-      cargarTarifas();
+      await cargarTarifas();
     } catch (err) {
       setMessage("Error al guardar la tarifa");
       console.error(err);
@@ -126,49 +123,56 @@ export const FormCrearTarifa: React.FC = () => {
     setViewingTarifa(tarifa as TarifaDetallada);
   const handleCancel = () => setShowForm(false);
 
-  const camposTarifa: Campo[] = [
-    {
-      tipo: "select",
-      nombre: "Transportista",
-      clave: "transportistaId",
-      opciones: transportistas.map((t) => ({
-        id: t.id,
-        nombre: t.nombreEmpresa,
-      })),
-    },
-    {
-      tipo: "select",
-      nombre: "Tipo de vehículo",
-      clave: "tipoVehiculoId",
-      opciones: tipoVehiculos.map((t) => ({ id: t.id, nombre: t.nombre })),
-    },
-    {
-      tipo: "select",
-      nombre: "Zona",
-      clave: "zonaId",
-      opciones: zonas.map((t) => ({ id: t.id, nombre: t.nombre })),
-    },
-    {
-      tipo: "select",
-      nombre: "Tipo de carga",
-      clave: "tipoCargaId",
-      opciones: cargas.map((t) => ({ id: t.id, nombre: t.nombre })),
-    },
-    {
-      tipo: "adicionales",
-      nombre: "Adicionales",
-      clave: "adicionales",
-      opciones: adicionales.map((a) => ({
-        id: a.id,
-        nombre: a.nombre,
-        descripcion: a.descripcion,
-        precio: a.costoDefault,
-      })),
-    },
-    { tipo: "costoBase", nombre: "Costo Base", clave: "valorBase" },
-    { tipo: "resultado", nombre: "ADICIONALES :", clave: "add" },
-    { tipo: "resultado", nombre: "COSTO TOTAL :", clave: "total" },
-  ];
+  // --- INICIO DE LA SOLUCIÓN ---
+  // Se envuelve la definición de campos en un 'useMemo'
+  const camposTarifa: Campo[] = useMemo(
+    () => [
+      { tipo: "text", nombre: "Nombre de la Tarifa", clave: "nombreTarifa" },
+      {
+        tipo: "select",
+        nombre: "Transportista",
+        clave: "transportistaId",
+        opciones: transportistas.map((t) => ({
+          id: t.id,
+          nombre: t.nombreEmpresa,
+        })),
+      },
+      {
+        tipo: "select",
+        nombre: "Tipo de vehículo",
+        clave: "tipoVehiculoId",
+        opciones: tipoVehiculos.map((t) => ({ id: t.id, nombre: t.nombre })),
+      },
+      {
+        tipo: "select",
+        nombre: "Zona",
+        clave: "zonaId",
+        opciones: zonas.map((t) => ({ id: t.id, nombre: t.nombre })),
+      },
+      {
+        tipo: "select",
+        nombre: "Tipo de carga",
+        clave: "tipoCargaId",
+        opciones: cargas.map((t) => ({ id: t.id, nombre: t.nombre })),
+      },
+      {
+        tipo: "adicionales",
+        nombre: "Adicionales",
+        clave: "adicionales",
+        opciones: adicionales.map((a) => ({
+          id: a.id,
+          nombre: a.nombre,
+          descripcion: a.descripcion,
+          precio: a.costoDefault,
+        })),
+      },
+      { tipo: "costoBase", nombre: "Costo Base", clave: "valorBase" },
+      { tipo: "resultado", nombre: "ADICIONALES :", clave: "add" },
+      { tipo: "resultado", nombre: "COSTO TOTAL :", clave: "total" },
+    ],
+    [transportistas, tipoVehiculos, zonas, cargas, adicionales]
+  ); // <-- 2. AÑADE LAS DEPENDENCIAS
+  // --- FIN DE LA SOLUCIÓN ---
 
   return (
     <div>
@@ -185,6 +189,7 @@ export const FormCrearTarifa: React.FC = () => {
           modal
           open={showForm}
           onClose={handleCancel}
+          initialValues={editingItem} // Pasamos initialValues para la edición
         />
       )}
       {isLoading ? (
@@ -196,7 +201,7 @@ export const FormCrearTarifa: React.FC = () => {
       ) : (
         <DataTable
           entidad="tarifa"
-          rows={tarifas} // Se pasan las tarifas directamente
+          rows={tarifas}
           handleEdit={handleEdit}
           handleDelete={handleDelete}
           handleView={handleView}

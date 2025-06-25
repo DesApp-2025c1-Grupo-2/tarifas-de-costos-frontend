@@ -75,8 +75,16 @@ export default function DataTable({
       width: 250,
       sortable: false,
       renderCell: (params) => (
-        <Box sx={{ display: "flex", gap: 1 }}>
-          {/* Botón Ver (opcional) */}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%", // <-- ESTA ES LA PROPIEDAD QUE FALTABA
+          }}
+        >
           {handleView && (
             <Button
               variant="outlined"
@@ -87,13 +95,11 @@ export default function DataTable({
               Ver
             </Button>
           )}
-          {/* Botón Editar (opcional) */}
           {handleEdit && (
             <BotonEditar onClick={() => handleEdit(params.row)}>
               Editar
             </BotonEditar>
           )}
-          {/* Botón Eliminar (opcional) */}
           {handleDelete && (
             <BotonEliminar onClick={() => handleDelete(params.row.id)}>
               Eliminar

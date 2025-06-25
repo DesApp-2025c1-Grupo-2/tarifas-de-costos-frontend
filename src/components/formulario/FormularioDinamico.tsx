@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   BasicTextFields,
   BasicAutocomplete,
@@ -10,18 +9,17 @@ import { BotonGuardar } from "../Botones";
 import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AdicionalSelector } from "./adicionales/AdicionalSelector";
-import {
-  ModalCrearAdicional,
-  NuevoAdicional,
-} from "./adicionales/ModalCrearAdicional";
+import { ModalCrearAdicional } from "./adicionales/ModalCrearAdicional";
 
+// --- INICIO DE LA MODIFICACIÓN 1 ---
 export type Campo = {
   tipo:
     | "text"
     | "input"
-    | "email"
-    | "tel"
+    | "email" // <-- Nuevo
+    | "tel" // <-- Nuevo
     | "select"
+    | "number"
     | "adicionales"
     | "resultado"
     | "costoBase";
@@ -29,14 +27,13 @@ export type Campo = {
   clave: string;
   opciones?: any[];
 };
+// --- FIN DE LA MODIFICACIÓN 1 ---
 
 type Props = {
   titulo: string;
   campos: Campo[];
   onSubmit: (valores: Record<string, any>) => void;
-  initialValues?: Record<string, any> | null; // Para pre-cargar datos al editar
-
-  // props para el modo modal
+  initialValues?: Record<string, any> | null;
   modal?: boolean;
   open?: boolean;
   onClose?: () => void;
@@ -54,15 +51,9 @@ const FormularioDinamico: React.FC<Props> = ({
   const [valores, setValores] = useState<Record<string, any>>({});
   const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
 
-  // Efecto para sincronizar el estado del formulario con los valores iniciales
-  // Se ejecuta cuando el formulario se abre o cuando cambian los datos a editar.
   useEffect(() => {
     if (open) {
-      if (initialValues) {
-        setValores(initialValues);
-      } else {
-        setValores({}); // Limpia el formulario para una nueva entrada
-      }
+      setValores(initialValues || {});
     }
   }, [initialValues, open]);
 
@@ -72,9 +63,52 @@ const FormularioDinamico: React.FC<Props> = ({
 
   const handleInternalSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit(valores); // Envía los valores actuales al padre
+
+    // --- INICIO DE LA MODIFICACIÓN 2 ---
+    // Se añade la lógica de validación para email y teléfono
+    for (const campo of campos) {
+      const valor = valores[campo.clave];
+
+      if (campo.tipo === "number" || campo.tipo === "costoBase") {
+        if (
+          valor === undefined ||
+          valor === null ||
+          valor === "" ||
+          isNaN(Number(valor)) ||
+          Number(valor) < 0
+        ) {
+          alert(
+            `El campo "${campo.nombre}" debe ser un número válido y positivo.`
+          );
+          return;
+        }
+      }
+
+      if (campo.tipo === "email") {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!valor || !emailRegex.test(valor)) {
+          alert(
+            `El campo "${campo.nombre}" no es un correo electrónico válido.`
+          );
+          return;
+        }
+      }
+
+      if (campo.tipo === "tel") {
+        const phoneRegex = /^[0-9+\-() ]{7,}$/; // Exige al menos 7 dígitos y caracteres comunes
+        if (!valor || !phoneRegex.test(valor)) {
+          alert(
+            `El campo "${campo.nombre}" no es un número de teléfono válido.`
+          );
+          return;
+        }
+      }
+    }
+    // --- FIN DE LA MODIFICACIÓN 2 ---
+
+    onSubmit(valores);
     if (onClose) {
-      onClose(); // Cierra el modal si aplica
+      onClose();
     }
   };
 
@@ -84,12 +118,25 @@ const FormularioDinamico: React.FC<Props> = ({
         {campos.map((campo) => {
           switch (campo.tipo) {
             case "text":
+            case "email":
+            case "tel":
               return (
                 <BasicTextFields
                   key={campo.clave}
                   label={campo.nombre}
                   value={valores[campo.clave] || ""}
                   onChange={(val: string) => handleChange(campo.clave, val)}
+                  type={campo.tipo}
+                />
+              );
+
+            case "number":
+              return (
+                <NumberField
+                  key={campo.clave}
+                  label={campo.nombre}
+                  value={valores[campo.clave] || ""}
+                  onChange={(val) => handleChange(campo.clave, val)}
                 />
               );
 
@@ -159,7 +206,7 @@ const FormularioDinamico: React.FC<Props> = ({
         onClose={() => setModalNuevoAdicional(false)}
         onCrear={(nuevo) => {
           const nuevoAdicional = {
-            id: Date.now(), // ID temporal para el cliente
+            id: Date.now(),
             ...nuevo,
           };
           const actuales = valores["adicionales"] || [];
