@@ -50,3 +50,11 @@ export function BotonEliminar({ onClick, ...props }: AccionBotonProps) {
         </Button>
     );
 }
+
+export function BotonVer({ onClick, ...props }: AccionBotonProps) {
+    return (
+        <Button variant="contained" color="primary" onClick={onClick} {...props} >
+            Ver
+        </Button>
+    );
+}

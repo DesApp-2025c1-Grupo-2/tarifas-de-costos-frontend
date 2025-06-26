@@ -1,8 +1,10 @@
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+// ruta: src/components/tablas/tablaDinamica.tsx
+
+import React, { useState, useMemo } from "react";
+import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import { columnas, Entidad } from "./columnas";
-import { BotonEditar, BotonEliminar } from "../Botones";
-import { useState, useMemo } from "react";
+import { BotonEditar, BotonEliminar, BotonVer } from "../Botones";
 import {
   Box,
   Autocomplete,
@@ -12,14 +14,14 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 
 interface DataTableProps {
   rows: any[];
   entidad: Entidad;
   handleEdit?: (row: any) => void;
   handleDelete?: (id: number) => void;
-  handleView?: (row: any) => void; // Nueva prop para manejar la vista
+  handleView?: (row: any) => void;
+  handleMostrarAdicionales?: (adicionales: any[]) => void;
 }
 
 export default function DataTable({
@@ -28,34 +30,18 @@ export default function DataTable({
   handleEdit,
   handleDelete,
   handleView,
+  handleMostrarAdicionales,
 }: DataTableProps) {
   const columnasBase = columnas[entidad];
   const [filtros, setFiltros] = useState<{ [key: string]: string }>({});
 
-  const rowsActivos = useMemo(() => {
-    return rows.filter((row) => row.activo !== false);
-  }, [rows]);
-
-  const valoresUnicosPorColumna = useMemo(() => {
-    const valores: { [key: string]: string[] } = {};
-    columnasBase.forEach((col) => {
-      const field = col.field;
-      const unicos = Array.from(
-        new Set(rowsActivos.map((r) => r[field]).filter(Boolean))
-      );
-      valores[field] = unicos;
-    });
-    return valores;
-  }, [rowsActivos, columnasBase]);
-
-  const handleFiltroChange = (campo: string, valor: string) => {
-    setFiltros((prev) => ({ ...prev, [campo]: valor }));
-  };
-
-  const limpiarFiltros = () => setFiltros({});
-
   const rowsFiltrados = useMemo(() => {
-    return rowsActivos.filter((row) =>
+    const filteredRows =
+      entidad === "tarifa"
+        ? rows.filter((row) => row.esVigente !== false)
+        : rows.filter((row) => row.activo !== false);
+
+    return filteredRows.filter((row) =>
       columnasBase.every((col) => {
         const valFiltro = filtros[col.field];
         if (!valFiltro) return true;
@@ -65,14 +51,67 @@ export default function DataTable({
           .includes(valFiltro.toLowerCase());
       })
     );
-  }, [rowsActivos, filtros, columnasBase]);
+  }, [rows, entidad, filtros, columnasBase]);
 
-  const columnasConAcciones: GridColDef[] = [
-    ...columnasBase,
-    {
+  const valoresUnicosPorColumna = useMemo(() => {
+    const valores: { [key: string]: string[] } = {};
+    columnasBase.forEach((col) => {
+      const field = col.field;
+      const unicos = Array.from(
+        new Set(rowsFiltrados.map((r) => r[field]).filter(Boolean))
+      );
+      valores[field] = unicos as string[];
+    });
+    return valores;
+  }, [rowsFiltrados, columnasBase]);
+
+  const handleFiltroChange = (campo: string, valor: string) => {
+    setFiltros((prev) => ({ ...prev, [campo]: valor }));
+  };
+
+  const limpiarFiltros = () => setFiltros({});
+
+  const columnasConAcciones: GridColDef[] = useMemo(() => {
+    const cols = [...columnasBase];
+
+    if (entidad === "tarifa") {
+      cols.push({
+        field: "adicionales",
+        headerName: "Adicionales",
+        width: 150,
+        sortable: false,
+        renderCell: (params: GridRenderCellParams) => {
+          // --- LÍNEA DE DIAGNÓSTICO ---
+          // Esta línea imprimirá los datos de cada fila en la consola del navegador.
+          // Busca el campo 'adicionales' en el objeto que se imprime.
+          console.log("Datos de la fila:", params.row);
+
+          const tieneAdicionales =
+            params.value &&
+            Array.isArray(params.value) &&
+            params.value.length > 0;
+
+          if (tieneAdicionales && handleMostrarAdicionales) {
+            return (
+              <Button
+                variant="text"
+                size="small"
+                onClick={() => handleMostrarAdicionales(params.value)}
+              >
+                Mostrar ({params.value.length})
+              </Button>
+            );
+          }
+          // Si no hay adicionales, no se muestra nada en la celda.
+          return null;
+        },
+      });
+    }
+
+    cols.push({
       field: "acciones",
       headerName: "Acciones",
-      width: 250,
+      width: 280,
       sortable: false,
       renderCell: (params) => (
         <Box
@@ -82,33 +121,27 @@ export default function DataTable({
             alignItems: "center",
             justifyContent: "center",
             width: "100%",
-            height: "100%", // <-- ESTA ES LA PROPIEDAD QUE FALTABA
+            height: "100%",
           }}
         >
-          {handleView && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => handleView(params.row)}
-              startIcon={<VisibilityIcon />}
-            >
-              Ver
-            </Button>
-          )}
-          {handleEdit && (
-            <BotonEditar onClick={() => handleEdit(params.row)}>
-              Editar
-            </BotonEditar>
-          )}
+          {handleView && <BotonVer onClick={() => handleView(params.row)} />}
+          {handleEdit && <BotonEditar onClick={() => handleEdit(params.row)} />}
           {handleDelete && (
-            <BotonEliminar onClick={() => handleDelete(params.row.id)}>
-              Eliminar
-            </BotonEliminar>
+            <BotonEliminar onClick={() => handleDelete(params.row.id)} />
           )}
         </Box>
       ),
-    },
-  ];
+    });
+
+    return cols;
+  }, [
+    columnasBase,
+    entidad,
+    handleMostrarAdicionales,
+    handleView,
+    handleEdit,
+    handleDelete,
+  ]);
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -158,12 +191,12 @@ export default function DataTable({
           </Grid>
         </Grid>
       </Paper>
-
       <Paper sx={{ p: 2 }}>
         <DataGrid
           rows={rowsFiltrados}
           columns={columnasConAcciones}
           disableColumnMenu
+          getRowId={(row) => row.id}
           initialState={{
             sorting: { sortModel: [{ field: "id", sort: "desc" }] },
             pagination: { paginationModel: { page: 0, pageSize: 5 } },

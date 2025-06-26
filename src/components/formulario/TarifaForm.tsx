@@ -1,12 +1,13 @@
-// src/components/formulario/TarifaForm.tsx
+// ruta: src/components/formulario/TarifaForm.tsx
 
-import React, { useState, useEffect, useMemo } from "react"; // <-- 1. IMPORTA useMemo
+import React, { useState, useEffect, useMemo } from "react";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
 import * as tarifaService from "../../services/tarifaService";
 import { Tarifa } from "../../services/tarifaService";
 import DataTable from "../tablas/tablaDinamica";
 import { ModalVerTarifa, TarifaDetallada } from "./adicionales/ModalVerTarifa";
+import { ModalVerAdicionales } from "./adicionales/ModalVerAdicionales";
 import { CircularProgress, Box, Typography, Alert } from "@mui/material";
 import {
   obtenerTransportistas,
@@ -30,7 +31,9 @@ export const FormCrearTarifa: React.FC = () => {
   const [viewingTarifa, setViewingTarifa] = useState<TarifaDetallada | null>(
     null
   );
-
+  const [adicionalesParaVer, setAdicionalesParaVer] = useState<any[] | null>(
+    null
+  );
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [tipoVehiculos, setTipoVehiculos] = useState<TipoVehiculo[]>([]);
   const [zonas, setZonas] = useState<ZonaViaje[]>([]);
@@ -41,7 +44,7 @@ export const FormCrearTarifa: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await tarifaService.obtenerTarifas();
-      setTarifas(data);
+      setTarifas(data.filter((tarifa) => tarifa.esVigente !== false));
     } catch (error) {
       setLoadingError("No se pudieron cargar las tarifas.");
     } finally {
@@ -69,7 +72,6 @@ export const FormCrearTarifa: React.FC = () => {
       setZonas(zonasData);
       setCargas(cargasData);
       setAdicionales(adicionalesData);
-
       setEditingItem(null);
       setShowForm(true);
     } catch (error) {
@@ -98,7 +100,7 @@ export const FormCrearTarifa: React.FC = () => {
 
     try {
       if (editingItem) {
-        // ...
+        // Lógica de actualización (si se implementa)
       } else {
         await tarifaService.crearTarifa(payload);
         setMessage("Tarifa creada con éxito");
@@ -116,15 +118,33 @@ export const FormCrearTarifa: React.FC = () => {
 
   const handleEdit = (tarifa: Tarifa) =>
     alert("La funcionalidad de editar aún no está implementada en el backend.");
+
   const handleDelete = async (id: number) => {
-    /* ... */
+    if (
+      window.confirm("¿Estás seguro de que deseas dar de baja esta tarifa?")
+    ) {
+      try {
+        await tarifaService.eliminarTarifa(id);
+        setMessage("Tarifa dada de baja con éxito");
+        cargarTarifas();
+      } catch (err) {
+        setMessage("Error al dar de baja la tarifa");
+        console.error(err);
+      } finally {
+        setTimeout(() => setMessage(""), 3000);
+      }
+    }
   };
+
   const handleView = (tarifa: Tarifa) =>
     setViewingTarifa(tarifa as TarifaDetallada);
+
+  const handleMostrarAdicionales = (adicionales: any[]) => {
+    setAdicionalesParaVer(adicionales);
+  };
+
   const handleCancel = () => setShowForm(false);
 
-  // --- INICIO DE LA SOLUCIÓN ---
-  // Se envuelve la definición de campos en un 'useMemo'
   const camposTarifa: Campo[] = useMemo(
     () => [
       { tipo: "text", nombre: "Nombre de la Tarifa", clave: "nombreTarifa" },
@@ -163,16 +183,15 @@ export const FormCrearTarifa: React.FC = () => {
           id: a.id,
           nombre: a.nombre,
           descripcion: a.descripcion,
-          precio: a.costoDefault,
+          precio: Number(a.costoDefault) || 0,
         })),
       },
       { tipo: "costoBase", nombre: "Costo Base", clave: "valorBase" },
-      { tipo: "resultado", nombre: "ADICIONALES :", clave: "add" },
-      { tipo: "resultado", nombre: "COSTO TOTAL :", clave: "total" },
+      { tipo: "resultado", nombre: "Subtotal Adicionales:", clave: "add" },
+      { tipo: "resultado", nombre: "COSTO TOTAL:", clave: "total" },
     ],
     [transportistas, tipoVehiculos, zonas, cargas, adicionales]
-  ); // <-- 2. AÑADE LAS DEPENDENCIAS
-  // --- FIN DE LA SOLUCIÓN ---
+  );
 
   return (
     <div>
@@ -189,7 +208,7 @@ export const FormCrearTarifa: React.FC = () => {
           modal
           open={showForm}
           onClose={handleCancel}
-          initialValues={editingItem} // Pasamos initialValues para la edición
+          initialValues={editingItem}
         />
       )}
       {isLoading ? (
@@ -205,12 +224,18 @@ export const FormCrearTarifa: React.FC = () => {
           handleEdit={handleEdit}
           handleDelete={handleDelete}
           handleView={handleView}
+          handleMostrarAdicionales={handleMostrarAdicionales}
         />
       )}
       <ModalVerTarifa
         open={!!viewingTarifa}
         onClose={() => setViewingTarifa(null)}
         tarifa={viewingTarifa}
+      />
+      <ModalVerAdicionales
+        open={!!adicionalesParaVer}
+        onClose={() => setAdicionalesParaVer(null)}
+        adicionales={adicionalesParaVer || []}
       />
     </div>
   );

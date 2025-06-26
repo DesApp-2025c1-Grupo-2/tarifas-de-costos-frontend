@@ -1,4 +1,6 @@
-import React from 'react';
+// src/components/formulario/adicionales/AdicionalSelector.tsx
+
+import React from "react";
 import {
   Autocomplete,
   TextField,
@@ -6,9 +8,9 @@ import {
   Box,
   Typography,
   IconButton,
-  Stack
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+  Stack,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 
 export type Adicional = {
   id: number;
@@ -28,7 +30,7 @@ export const AdicionalSelector: React.FC<Props> = ({
   adicionales,
   seleccionados,
   onChange,
-  onCrearNuevo
+  onCrearNuevo,
 }) => {
   return (
     <Box sx={{ mt: 2 }}>
@@ -36,7 +38,11 @@ export const AdicionalSelector: React.FC<Props> = ({
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
           Adicionales
         </Typography>
-        <IconButton size="small" onClick={onCrearNuevo} title="Agregar nuevo adicional">
+        <IconButton
+          size="small"
+          onClick={onCrearNuevo}
+          title="Agregar nuevo adicional"
+        >
           <AddIcon />
         </IconButton>
       </Stack>
@@ -45,14 +51,16 @@ export const AdicionalSelector: React.FC<Props> = ({
         multiple
         options={adicionales}
         getOptionLabel={(option) =>
-          `${option.nombre} - $${option.precio.toFixed(2)}`
+          `${option.nombre} - $${(Number(option.precio) || 0).toFixed(2)}`
         }
         value={seleccionados}
         onChange={(_, newValue) => onChange(newValue)}
         renderTags={(value: Adicional[], getTagProps) =>
           value.map((option: Adicional, index: number) => (
             <Chip
-              label={`${option.nombre} ($${option.precio})`}
+              label={`${option.nombre} ($${(Number(option.precio) || 0).toFixed(
+                2
+              )})`}
               {...getTagProps({ index })}
               key={option.id}
             />
@@ -63,7 +71,8 @@ export const AdicionalSelector: React.FC<Props> = ({
             <Box>
               <Typography variant="body1">{option.nombre}</Typography>
               <Typography variant="body2" color="text.secondary">
-                {option.descripcion} — ${option.precio}
+                {option.descripcion} — $
+                {(Number(option.precio) || 0).toFixed(2)}
               </Typography>
             </Box>
           </li>
