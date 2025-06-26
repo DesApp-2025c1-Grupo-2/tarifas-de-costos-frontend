@@ -9,15 +9,18 @@ import { BotonGuardar } from "../Botones";
 import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AdicionalSelector } from "./adicionales/AdicionalSelector";
-import { ModalCrearAdicional } from "./adicionales/ModalCrearAdicional";
+import {
+  ModalCrearAdicional,
+  NuevoAdicional,
+} from "./adicionales/ModalCrearAdicional";
+import * as adicionalService from "../../services/adicionalService";
 
-// --- INICIO DE LA MODIFICACIÓN 1 ---
 export type Campo = {
   tipo:
     | "text"
     | "input"
-    | "email" // <-- Nuevo
-    | "tel" // <-- Nuevo
+    | "email"
+    | "tel"
     | "select"
     | "number"
     | "adicionales"
@@ -27,7 +30,6 @@ export type Campo = {
   clave: string;
   opciones?: any[];
 };
-// --- FIN DE LA MODIFICACIÓN 1 ---
 
 type Props = {
   titulo: string;
@@ -63,54 +65,44 @@ const FormularioDinamico: React.FC<Props> = ({
 
   const handleInternalSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    // --- INICIO DE LA MODIFICACIÓN 2 ---
-    // Se añade la lógica de validación para email y teléfono
-    for (const campo of campos) {
-      const valor = valores[campo.clave];
-
-      if (campo.tipo === "number" || campo.tipo === "costoBase") {
-        if (
-          valor === undefined ||
-          valor === null ||
-          valor === "" ||
-          isNaN(Number(valor)) ||
-          Number(valor) < 0
-        ) {
-          alert(
-            `El campo "${campo.nombre}" debe ser un número válido y positivo.`
-          );
-          return;
-        }
-      }
-
-      if (campo.tipo === "email") {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!valor || !emailRegex.test(valor)) {
-          alert(
-            `El campo "${campo.nombre}" no es un correo electrónico válido.`
-          );
-          return;
-        }
-      }
-
-      if (campo.tipo === "tel") {
-        const phoneRegex = /^[0-9+\-() ]{7,}$/; // Exige al menos 7 dígitos y caracteres comunes
-        if (!valor || !phoneRegex.test(valor)) {
-          alert(
-            `El campo "${campo.nombre}" no es un número de teléfono válido.`
-          );
-          return;
-        }
-      }
-    }
-    // --- FIN DE LA MODIFICACIÓN 2 ---
-
     onSubmit(valores);
     if (onClose) {
       onClose();
     }
   };
+
+  // --- INICIO DE LA MODIFICACIÓN ---
+  // Ahora la creación del adicional es asíncrona y guarda en la BD primero
+  const handleCrearAdicional = async (nuevo: NuevoAdicional) => {
+    try {
+      // Llama al servicio para guardar el nuevo adicional en la base de datos
+      const adicionalGuardado = await adicionalService.crearAdicional({
+        nombre: nuevo.nombre,
+        descripcion: nuevo.descripcion,
+        costoDefault: nuevo.precio,
+        activo: true,
+      });
+
+      // Prepara el objeto para el estado local del formulario
+      const adicionalParaFormulario = {
+        id: adicionalGuardado.id,
+        nombre: adicionalGuardado.nombre,
+        descripcion: adicionalGuardado.descripcion,
+        precio: adicionalGuardado.costoDefault,
+        costoEspecifico: adicionalGuardado.costoDefault,
+      };
+
+      // Añade el adicional recién guardado a la lista de seleccionados
+      const actuales = valores["adicionales"] || [];
+      handleChange("adicionales", [...actuales, adicionalParaFormulario]);
+
+      setModalNuevoAdicional(false); // Cierra el modal
+    } catch (error) {
+      console.error("Error al crear el nuevo adicional:", error);
+      alert("No se pudo crear el nuevo adicional.");
+    }
+  };
+  // --- FIN DE LA MODIFICACIÓN ---
 
   const contenidoFormulario = (
     <>
@@ -127,16 +119,6 @@ const FormularioDinamico: React.FC<Props> = ({
                   value={valores[campo.clave] || ""}
                   onChange={(val: string) => handleChange(campo.clave, val)}
                   type={campo.tipo}
-                />
-              );
-
-            case "number":
-              return (
-                <NumberField
-                  key={campo.clave}
-                  label={campo.nombre}
-                  value={valores[campo.clave] || ""}
-                  onChange={(val) => handleChange(campo.clave, val)}
                 />
               );
 
@@ -164,15 +146,16 @@ const FormularioDinamico: React.FC<Props> = ({
 
             case "resultado":
               const totalAdicionales = (valores["adicionales"] || []).reduce(
-                (acc: number, ad: { precio: number }) => acc + ad.precio,
+                (
+                  acc: number,
+                  ad: { costoEspecifico?: number; precio: number }
+                ) => acc + (ad.costoEspecifico ?? ad.precio),
                 0
               );
-              const costoBase = Number(valores["costoBase"] || 0);
+              const costoBase = Number(valores["valorBase"] || 0);
               let displayValue = "";
 
-              if (campo.clave === "add") {
-                displayValue = totalAdicionales.toFixed(2);
-              } else if (campo.clave === "total") {
+              if (campo.clave === "total") {
                 displayValue = (costoBase + totalAdicionales).toFixed(2);
               }
 
@@ -198,20 +181,12 @@ const FormularioDinamico: React.FC<Props> = ({
               return null;
           }
         })}
-
         <BotonGuardar />
       </form>
       <ModalCrearAdicional
         open={modalNuevoAdicional}
         onClose={() => setModalNuevoAdicional(false)}
-        onCrear={(nuevo) => {
-          const nuevoAdicional = {
-            id: Date.now(),
-            ...nuevo,
-          };
-          const actuales = valores["adicionales"] || [];
-          handleChange("adicionales", [...actuales, nuevoAdicional]);
-        }}
+        onCrear={handleCrearAdicional}
       />
     </>
   );

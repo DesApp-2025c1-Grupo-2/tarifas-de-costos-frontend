@@ -1,3 +1,5 @@
+// src/components/formulario/adicionales/ModalVerTarifa.tsx
+
 import React from "react";
 import {
   Dialog,
@@ -32,12 +34,10 @@ type Props = {
 };
 
 export const ModalVerTarifa: React.FC<Props> = ({ open, onClose, tarifa }) => {
-  // Si no hay tarifa para mostrar, no renderizamos nada.
   if (!tarifa) {
     return null;
   }
 
-  // Pequeña función para formatear los valores monetarios de forma consistente.
   const formatCurrency = (value: number | undefined) => {
     return `$${(value || 0).toFixed(2)}`;
   };
@@ -55,7 +55,6 @@ export const ModalVerTarifa: React.FC<Props> = ({ open, onClose, tarifa }) => {
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
-        {/* Sección de Información Principal */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="h6" gutterBottom>
             Información Principal
@@ -89,7 +88,6 @@ export const ModalVerTarifa: React.FC<Props> = ({ open, onClose, tarifa }) => {
         </Box>
         <Divider sx={{ my: 2 }} />
 
-        {/* Sección de Costos */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="h6" gutterBottom>
             Costos
@@ -97,13 +95,13 @@ export const ModalVerTarifa: React.FC<Props> = ({ open, onClose, tarifa }) => {
           <List dense>
             <ListItem>
               <ListItemText
-                primary="Valor Base"
+                primary="Costo Base"
                 secondary={formatCurrency(tarifa.valorBase)}
               />
             </ListItem>
             <ListItem>
               <ListItemText
-                primary="Total"
+                primary="Costo Total"
                 secondary={
                   <Typography color="primary" variant="h6">
                     {formatCurrency(tarifa.total)}
@@ -114,7 +112,6 @@ export const ModalVerTarifa: React.FC<Props> = ({ open, onClose, tarifa }) => {
           </List>
         </Box>
 
-        {/* Sección de Adicionales (solo si existen) */}
         {tarifa.adicionales && tarifa.adicionales.length > 0 && (
           <>
             <Divider sx={{ my: 2 }} />

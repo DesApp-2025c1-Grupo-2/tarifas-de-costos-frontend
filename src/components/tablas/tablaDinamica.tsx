@@ -1,7 +1,11 @@
 // ruta: src/components/tablas/tablaDinamica.tsx
 
 import React, { useState, useMemo } from "react";
-import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+} from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import { columnas, Entidad } from "./columnas";
 import { BotonEditar, BotonEliminar, BotonVer } from "../Botones";
@@ -14,6 +18,11 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
+
+// --- INICIO DE LA MODIFICACIÓN ---
+// Se importa el objeto de localización desde la ruta correcta.
+import { esES as esESGrid } from "@mui/x-data-grid/locales";
+// --- FIN DE LA MODIFICACIÓN ---
 
 interface DataTableProps {
   rows: any[];
@@ -81,11 +90,6 @@ export default function DataTable({
         width: 150,
         sortable: false,
         renderCell: (params: GridRenderCellParams) => {
-          // --- LÍNEA DE DIAGNÓSTICO ---
-          // Esta línea imprimirá los datos de cada fila en la consola del navegador.
-          // Busca el campo 'adicionales' en el objeto que se imprime.
-          console.log("Datos de la fila:", params.row);
-
           const tieneAdicionales =
             params.value &&
             Array.isArray(params.value) &&
@@ -102,7 +106,6 @@ export default function DataTable({
               </Button>
             );
           }
-          // Si no hay adicionales, no se muestra nada en la celda.
           return null;
         },
       });
@@ -203,6 +206,10 @@ export default function DataTable({
           }}
           pageSizeOptions={[5, 10]}
           sx={{ border: 0 }}
+          // --- INICIO DE LA MODIFICACIÓN ---
+          // Se usa el objeto de localización importado desde la ruta correcta.
+          localeText={esESGrid.components.MuiDataGrid.defaultProps.localeText}
+          // --- FIN DE LA MODIFICACIÓN ---
         />
       </Paper>
     </Box>

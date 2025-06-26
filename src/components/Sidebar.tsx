@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -8,9 +8,9 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   return (
-    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <h2 style={{paddingLeft: "0.8em"}}>Menú Principal</h2>
-      
+    <aside className={`sidebar ${isOpen ? "open" : ""}`}>
+      <h2 style={{ paddingLeft: "0.8em" }}>Menú Principal</h2>
+
       <Link to="/reportes">Reportes</Link>
       <Link to="/crear-tarifa">Tarifas</Link>
       <Link to="/crear-adicional">Adicionales</Link>
@@ -18,7 +18,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       <Link to="/crear-vehiculo">Vehiculos</Link>
       <Link to="/crear-zona">Zonas</Link>
       <Link to="/crear-carga">Carga</Link>
-      <Link to="/">Cerrar Sesión</Link>
     </aside>
   );
 };

@@ -8,7 +8,7 @@ import { Tarifa } from "../../services/tarifaService";
 import DataTable from "../tablas/tablaDinamica";
 import { ModalVerTarifa, TarifaDetallada } from "./adicionales/ModalVerTarifa";
 import { ModalVerAdicionales } from "./adicionales/ModalVerAdicionales";
-import { CircularProgress, Box, Typography, Alert } from "@mui/material";
+import { CircularProgress, Box, Alert } from "@mui/material";
 import {
   obtenerTransportistas,
   Transportista,
@@ -38,13 +38,24 @@ export const FormCrearTarifa: React.FC = () => {
   const [tipoVehiculos, setTipoVehiculos] = useState<TipoVehiculo[]>([]);
   const [zonas, setZonas] = useState<ZonaViaje[]>([]);
   const [cargas, setCargas] = useState<Carga[]>([]);
-  const [adicionales, setAdicionales] = useState<Adicional[]>([]);
+  const [adicionalesDb, setAdicionalesDb] = useState<Adicional[]>([]);
 
   const cargarTarifas = async () => {
     setIsLoading(true);
     try {
       const data = await tarifaService.obtenerTarifas();
-      setTarifas(data.filter((tarifa) => tarifa.esVigente !== false));
+      const tarifasConTotal = data.map((tarifa) => ({
+        ...tarifa,
+        total:
+          (tarifa.valorBase || 0) +
+          (tarifa.adicionales || []).reduce(
+            (acc: number, ad: any) => acc + (ad.costoEspecifico || 0),
+            0
+          ),
+      }));
+      setTarifas(
+        tarifasConTotal.filter((tarifa) => tarifa.esVigente !== false)
+      );
     } catch (error) {
       setLoadingError("No se pudieron cargar las tarifas.");
     } finally {
@@ -52,7 +63,7 @@ export const FormCrearTarifa: React.FC = () => {
     }
   };
 
-  const handleCrearClick = async () => {
+  const cargarDependencias = async () => {
     try {
       const [
         transportistasData,
@@ -71,11 +82,27 @@ export const FormCrearTarifa: React.FC = () => {
       setTipoVehiculos(vehiculosData);
       setZonas(zonasData);
       setCargas(cargasData);
-      setAdicionales(adicionalesData);
-      setEditingItem(null);
-      setShowForm(true);
+      setAdicionalesDb(adicionalesData);
+      return true;
     } catch (error) {
       alert("Error al cargar datos para el formulario. Intente de nuevo.");
+      return false;
+    }
+  };
+
+  const handleCrearClick = async () => {
+    const exito = await cargarDependencias();
+    if (exito) {
+      setEditingItem(null);
+      setShowForm(true);
+    }
+  };
+
+  const handleEdit = async (tarifa: Tarifa) => {
+    const exito = await cargarDependencias();
+    if (exito) {
+      setEditingItem(tarifa);
+      setShowForm(true);
     }
   };
 
@@ -83,6 +110,8 @@ export const FormCrearTarifa: React.FC = () => {
     cargarTarifas();
   }, []);
 
+  // --- INICIO DE LA MODIFICACIÓN ---
+  // Se ajusta el payload para que envíe el objeto 'adicional' completo
   const handleSubmit = async (formValues: Record<string, any>) => {
     const payload = {
       nombreTarifa: formValues.nombreTarifa,
@@ -91,33 +120,51 @@ export const FormCrearTarifa: React.FC = () => {
       zonaViaje: { id: Number(formValues.zonaId) },
       tipoCargaTarifa: { id: Number(formValues.tipoCargaId) },
       valorBase: parseFloat(formValues.valorBase || "0"),
+      // Ahora se envía el objeto completo del adicional
       adicionales: (formValues["adicionales"] || []).map((a: any) => ({
-        adicional: { id: a.id },
-        costoEspecifico: parseFloat(a.precio ?? a.costoDefault ?? "0"),
+        adicional: {
+          id: a.id,
+          nombre: a.nombre,
+          descripcion: a.descripcion,
+          costoDefault: a.precio,
+        },
+        costoEspecifico: parseFloat(a.costoEspecifico ?? a.precio ?? "0"),
       })),
-      esVigente: true,
     };
 
     try {
-      if (editingItem) {
-        // Lógica de actualización (si se implementa)
+      if (editingItem && editingItem.id) {
+        await tarifaService.actualizarTarifa(editingItem.id, payload);
+        setMessage("Tarifa actualizada con éxito");
       } else {
         await tarifaService.crearTarifa(payload);
         setMessage("Tarifa creada con éxito");
       }
       setShowForm(false);
       setEditingItem(null);
-      await cargarTarifas();
+      await cargarTarifas(); // Recarga las tarifas para mostrar los cambios
+      await cargarDependencias(); // Recarga los adicionales por si se creó uno nuevo
     } catch (err) {
-      setMessage("Error al guardar la tarifa");
+      const error = err as Error;
+      setMessage(`Error al guardar la tarifa: ${error.message}`);
       console.error(err);
     } finally {
-      setTimeout(() => setMessage(""), 3000);
+      setTimeout(() => setMessage(""), 5000);
     }
   };
+  // --- FIN DE LA MODIFICACIÓN ---
 
-  const handleEdit = (tarifa: Tarifa) =>
-    alert("La funcionalidad de editar aún no está implementada en el backend.");
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingItem(null);
+  };
+
+  const handleView = (tarifa: Tarifa) =>
+    setViewingTarifa(tarifa as TarifaDetallada);
+
+  const handleMostrarAdicionales = (adicionales: any[]) => {
+    setAdicionalesParaVer(adicionales);
+  };
 
   const handleDelete = async (id: number) => {
     if (
@@ -135,15 +182,6 @@ export const FormCrearTarifa: React.FC = () => {
       }
     }
   };
-
-  const handleView = (tarifa: Tarifa) =>
-    setViewingTarifa(tarifa as TarifaDetallada);
-
-  const handleMostrarAdicionales = (adicionales: any[]) => {
-    setAdicionalesParaVer(adicionales);
-  };
-
-  const handleCancel = () => setShowForm(false);
 
   const camposTarifa: Campo[] = useMemo(
     () => [
@@ -175,23 +213,42 @@ export const FormCrearTarifa: React.FC = () => {
         clave: "tipoCargaId",
         opciones: cargas.map((t) => ({ id: t.id, nombre: t.nombre })),
       },
+      { tipo: "costoBase", nombre: "Costo Base", clave: "valorBase" },
       {
         tipo: "adicionales",
         nombre: "Adicionales",
         clave: "adicionales",
-        opciones: adicionales.map((a) => ({
+        opciones: adicionalesDb.map((a) => ({
           id: a.id,
           nombre: a.nombre,
           descripcion: a.descripcion,
           precio: Number(a.costoDefault) || 0,
         })),
       },
-      { tipo: "costoBase", nombre: "Costo Base", clave: "valorBase" },
-      { tipo: "resultado", nombre: "Subtotal Adicionales:", clave: "add" },
       { tipo: "resultado", nombre: "COSTO TOTAL:", clave: "total" },
     ],
-    [transportistas, tipoVehiculos, zonas, cargas, adicionales]
+    [transportistas, tipoVehiculos, zonas, cargas, adicionalesDb]
   );
+
+  const initialFormValues = editingItem
+    ? {
+        id: editingItem.id,
+        nombreTarifa: editingItem.nombreTarifa,
+        transportistaId: editingItem.transportistaId?.toString(),
+        tipoVehiculoId: editingItem.tipoVehiculoId?.toString(),
+        zonaId: editingItem.zonaId?.toString(),
+        tipoCargaId: editingItem.tipoCargaId?.toString(),
+        valorBase: editingItem.valorBase,
+        adicionales:
+          editingItem.adicionales?.map((ad) => ({
+            id: ad.adicional.id,
+            nombre: ad.adicional.nombre,
+            descripcion: ad.adicional.descripcion,
+            precio: ad.adicional.costoDefault,
+            costoEspecifico: ad.costoEspecifico,
+          })) || [],
+      }
+    : null;
 
   return (
     <div>
@@ -202,13 +259,13 @@ export const FormCrearTarifa: React.FC = () => {
       )}
       {showForm && (
         <FormularioDinamico
-          titulo="Registrar nueva Tarifa"
+          titulo={editingItem ? "Editar Tarifa" : "Registrar nueva Tarifa"}
           campos={camposTarifa}
           onSubmit={handleSubmit}
           modal
           open={showForm}
           onClose={handleCancel}
-          initialValues={editingItem}
+          initialValues={initialFormValues}
         />
       )}
       {isLoading ? (
