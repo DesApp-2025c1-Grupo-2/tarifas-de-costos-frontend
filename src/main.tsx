@@ -8,7 +8,6 @@ import CrearZona from './CrearZona';
 import CrearCarga from './CrearCarga'
 import Tarifas from './Tarifas';
 import Reportes from './Reportes';
-//import './css/app.css';
 import Inicio from './Inicio';
 import CrearAdicional from './CrearAdicional';
 

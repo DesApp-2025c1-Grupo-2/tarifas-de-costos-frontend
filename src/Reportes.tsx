@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import { HeaderConMenu } from './components/Header';
 import CatalogoAdicionales from './components/reportes/CatalogoAdicionales'; 
+import ComparativaZonasCostos from './components/reportes/ComparativaZonasCostos';
 import './css/App.css';
 import './css/CrearTarifa.css'; 
 
@@ -21,6 +21,7 @@ const Reportes: React.FC = () => {
             
             <div className="content-area">
                 <h1>Reportes Generales</h1>
+                <ComparativaZonasCostos /> 
                 <CatalogoAdicionales /> 
             </div>
         </div>
