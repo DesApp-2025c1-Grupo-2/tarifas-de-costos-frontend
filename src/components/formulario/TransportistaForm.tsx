@@ -10,10 +10,10 @@ import { CrudService } from "../../services/crudService";
 // --- INICIO DE LA MODIFICACIÓN ---
 // Se actualiza el tipo de los campos de correo y teléfono.
 const camposTransportista: Campo[] = [
-  { tipo: "text", nombre: "Nombre de Contacto", clave: "contactoNombre" },
-  { tipo: "text", nombre: "Empresa", clave: "nombreEmpresa" },
-  { tipo: "email", nombre: "Correo", clave: "contactoEmail" },
-  { tipo: "tel", nombre: "Teléfono", clave: "contactoTelefono" },
+  { tipo: "text", nombre: "Nombre de Contacto", clave: "contactoNombre" , requerido: true},
+  { tipo: "text", nombre: "Empresa", clave: "nombreEmpresa" , requerido: true},
+  { tipo: "email", nombre: "Correo", clave: "contactoEmail", requerido: true },
+  { tipo: "tel", nombre: "Teléfono", clave: "contactoTelefono", requerido: true },
 ];
 // --- FIN DE LA MODIFICACIÓN ---
 

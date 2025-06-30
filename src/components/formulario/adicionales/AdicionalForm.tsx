@@ -7,14 +7,12 @@ import { Adicional } from "../../../services/adicionalService";
 import { useCrud } from "../../hook/useCrud";
 import { CrudService } from "../../../services/crudService";
 
-// Se definen los campos del formulario.
 const camposAdicional: Campo[] = [
-  { tipo: "text", nombre: "Nombre del Adicional", clave: "nombre" },
-  { tipo: "text", nombre: "Descripción", clave: "descripcion" },
-  { tipo: "costoBase", nombre: "Costo del Adicional", clave: "costoDefault" },
+  { tipo: "text", nombre: "Nombre del Adicional", clave: "nombre" , requerido: true},
+  { tipo: "text", nombre: "Descripción", clave: "descripcion", requerido: true },
+  { tipo: "costoBase", nombre: "Costo del Adicional", clave: "costoDefault", requerido: true },
 ];
 
-// Se adapta el servicio a la interfaz genérica CrudService.
 const servicioAdaptado: CrudService<Adicional> = {
   getAll: adicionalService.obtenerAdicionales,
   create: adicionalService.crearAdicional,
@@ -23,11 +21,9 @@ const servicioAdaptado: CrudService<Adicional> = {
 };
 
 export const AdicionalForm: React.FC = () => {
-  // Se reemplaza toda la lógica de estado por el hook useCrud.
   const { items, editingItem, showForm, message, actions } =
     useCrud<Adicional>(servicioAdaptado);
 
-  // El submit ahora solo se encarga de mapear los datos del formulario.
   const handleFormSubmit = (formValues: Record<string, any>) => {
     const data: Omit<Adicional, "id"> = {
       ...(editingItem ? editingItem : { activo: true }),

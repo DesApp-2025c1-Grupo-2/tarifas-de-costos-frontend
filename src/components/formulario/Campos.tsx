@@ -8,21 +8,23 @@ import Select from "@mui/material/Select";
 import Autocomplete from "@mui/material/Autocomplete";
 import { Input, InputAdornment } from "@mui/material";
 
-// --- INICIO DE LA MODIFICACIÓN ---
-// Se añade la propiedad opcional 'type'
+
 type TextProps = {
   label: string;
   value: string;
   onChange: (val: string) => void;
-  type?: "text" | "email" | "tel"; // Tipos permitidos
+  type?: "text" | "email" | "tel"; 
+  error?: boolean;
+  helperText?: string;
 };
 
-// Se pasa el 'type' al TextField de Material-UI
 export const BasicTextFields: React.FC<TextProps> = ({
   label,
   value,
   onChange,
   type = "text",
+  error = false,
+  helperText = "",
 }) => (
   <Box sx={{ mb: 1 }}>
     <TextField
@@ -31,11 +33,12 @@ export const BasicTextFields: React.FC<TextProps> = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       margin="normal"
-      type={type} // <-- Aquí se usa el tipo
+      type={type} 
+      error={error}
+      helperText={helperText}
     />
   </Box>
 );
-// --- FIN DE LA MODIFICACIÓN ---
 
 export type Opcion = {
   id: string | number;
@@ -47,6 +50,8 @@ type AutocompleteFieldProps = {
   opciones: Opcion[];
   value: string;
   onChange: (val: string) => void;
+  error?: boolean;
+  helperText?: string;
 };
 
 export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({
@@ -54,6 +59,8 @@ export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({
   opciones,
   value,
   onChange,
+  error = false,
+  helperText = "",
 }) => {
   const selectedOption = opciones.find((op) => String(op.id) === value) || null;
 
@@ -70,7 +77,13 @@ export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({
           String(option.id) === String(val.id)
         }
         renderInput={(params) => (
-          <TextField {...params} label={label} fullWidth />
+          <TextField
+            {...params}
+            label={label}
+            fullWidth
+            error={error}
+            helperText={helperText}
+          />
         )}
         renderOption={(props, option) => (
           <li {...props} key={option.id}>
@@ -121,8 +134,8 @@ export const Resultado: React.FC<Res> = ({ nombre, value }) => {
         </InputLabel>
         <Input
           id={`resultado-${nombre.toLowerCase()}`}
-          value={value} // <-- Aquí pasamos el valor al input
-          readOnly // <-- Se simplifica la propiedad de solo lectura
+          value={value}
+          readOnly
           startAdornment={<InputAdornment position="start">$</InputAdornment>}
         />
       </FormControl>

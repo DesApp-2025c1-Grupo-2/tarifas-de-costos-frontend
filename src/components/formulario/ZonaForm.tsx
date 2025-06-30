@@ -7,11 +7,10 @@ import { ZonaViaje } from "../../services/zonaService";
 import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
 
-// Campos del formulario.
 const camposZona: Campo[] = [
-  { tipo: "text", nombre: "Nombre", clave: "nombre" },
-  { tipo: "text", nombre: "Descripcion", clave: "descripcion" },
-  { tipo: "text", nombre: "Region", clave: "regionMapa" },
+  { tipo: "text", nombre: "Nombre", clave: "nombre" , requerido: true},
+  { tipo: "text", nombre: "Descripcion", clave: "descripcion", requerido: true },
+  { tipo: "text", nombre: "Region", clave: "regionMapa", requerido: true },
 ];
 
 // Adaptador del servicio.

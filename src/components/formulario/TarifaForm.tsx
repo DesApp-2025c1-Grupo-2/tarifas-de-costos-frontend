@@ -1,5 +1,3 @@
-// ruta: src/components/formulario/TarifaForm.tsx
-
 import React, { useState, useEffect, useMemo } from "react";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
@@ -110,17 +108,14 @@ export const FormCrearTarifa: React.FC = () => {
     cargarTarifas();
   }, []);
 
-  // --- INICIO DE LA MODIFICACIÓN ---
-  // Se ajusta el payload para que envíe el objeto 'adicional' completo
   const handleSubmit = async (formValues: Record<string, any>) => {
     const payload = {
       nombreTarifa: formValues.nombreTarifa,
-      transportista: { id: Number(formValues.transportistaId) },
-      tipoVehiculo: { id: Number(formValues.tipoVehiculoId) },
-      zonaViaje: { id: Number(formValues.zonaId) },
-      tipoCargaTarifa: { id: Number(formValues.tipoCargaId) },
-      valorBase: parseFloat(formValues.valorBase || "0"),
-      // Ahora se envía el objeto completo del adicional
+      transportista: { id: Number(formValues.transportistaId), requerido: true },
+      tipoVehiculo: { id: Number(formValues.tipoVehiculoId),requerido: true },
+      zonaViaje: { id: Number(formValues.zonaId),requerido: true },
+      tipoCargaTarifa: { id: Number(formValues.tipoCargaId),requerido: true },
+      valorBase: parseFloat(formValues.valorBase || "0"), requerido: true,
       adicionales: (formValues["adicionales"] || []).map((a: any) => ({
         adicional: {
           id: a.id,
@@ -142,8 +137,8 @@ export const FormCrearTarifa: React.FC = () => {
       }
       setShowForm(false);
       setEditingItem(null);
-      await cargarTarifas(); // Recarga las tarifas para mostrar los cambios
-      await cargarDependencias(); // Recarga los adicionales por si se creó uno nuevo
+      await cargarTarifas(); 
+      await cargarDependencias(); 
     } catch (err) {
       const error = err as Error;
       setMessage(`Error al guardar la tarifa: ${error.message}`);
@@ -152,7 +147,7 @@ export const FormCrearTarifa: React.FC = () => {
       setTimeout(() => setMessage(""), 5000);
     }
   };
-  // --- FIN DE LA MODIFICACIÓN ---
+
 
   const handleCancel = () => {
     setShowForm(false);

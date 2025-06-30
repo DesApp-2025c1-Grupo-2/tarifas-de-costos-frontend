@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   BasicTextFields,
@@ -29,6 +30,7 @@ export type Campo = {
   nombre: string;
   clave: string;
   opciones?: any[];
+  requerido?: boolean;
 };
 
 type Props = {
@@ -52,6 +54,8 @@ const FormularioDinamico: React.FC<Props> = ({
 }) => {
   const [valores, setValores] = useState<Record<string, any>>({});
   const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
+  const [errores, setErrores] = useState<Record<string, string>>({});
+
 
   useEffect(() => {
     if (open) {
@@ -63,19 +67,35 @@ const FormularioDinamico: React.FC<Props> = ({
     setValores((prev) => ({ ...prev, [clave]: valor }));
   };
 
+  const validarFormulario = () => {
+    const nuevosErrores: Record<string, string> = {};
+  
+    campos.forEach((campo) => {
+      const valor = valores[campo.clave];
+      const esRequerido = campo.hasOwnProperty("requerido") ? campo["requerido"] : false;
+  
+      if (
+        esRequerido &&
+        (!valor || (Array.isArray(valor) && valor.length === 0))
+      ) {
+        nuevosErrores[campo.clave] = "Este campo es obligatorio";
+      }
+    });
+  
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
+  };
+  
+
   const handleInternalSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!validarFormulario()) return; 
     onSubmit(valores);
-    if (onClose) {
-      onClose();
-    }
+    if (onClose) onClose();
   };
 
-  // --- INICIO DE LA MODIFICACIÓN ---
-  // Ahora la creación del adicional es asíncrona y guarda en la BD primero
   const handleCrearAdicional = async (nuevo: NuevoAdicional) => {
     try {
-      // Llama al servicio para guardar el nuevo adicional en la base de datos
       const adicionalGuardado = await adicionalService.crearAdicional({
         nombre: nuevo.nombre,
         descripcion: nuevo.descripcion,
@@ -83,7 +103,6 @@ const FormularioDinamico: React.FC<Props> = ({
         activo: true,
       });
 
-      // Prepara el objeto para el estado local del formulario
       const adicionalParaFormulario = {
         id: adicionalGuardado.id,
         nombre: adicionalGuardado.nombre,
@@ -92,17 +111,15 @@ const FormularioDinamico: React.FC<Props> = ({
         costoEspecifico: adicionalGuardado.costoDefault,
       };
 
-      // Añade el adicional recién guardado a la lista de seleccionados
       const actuales = valores["adicionales"] || [];
       handleChange("adicionales", [...actuales, adicionalParaFormulario]);
 
-      setModalNuevoAdicional(false); // Cierra el modal
+      setModalNuevoAdicional(false); 
     } catch (error) {
       console.error("Error al crear el nuevo adicional:", error);
       alert("No se pudo crear el nuevo adicional.");
     }
   };
-  // --- FIN DE LA MODIFICACIÓN ---
 
   const contenidoFormulario = (
     <>
@@ -119,6 +136,8 @@ const FormularioDinamico: React.FC<Props> = ({
                   value={valores[campo.clave] || ""}
                   onChange={(val: string) => handleChange(campo.clave, val)}
                   type={campo.tipo}
+                  error={Boolean(errores[campo.clave])}
+                  helperText={errores[campo.clave]}
                 />
               );
 
@@ -130,6 +149,8 @@ const FormularioDinamico: React.FC<Props> = ({
                   opciones={campo.opciones || []}
                   value={valores[campo.clave] || ""}
                   onChange={(val: string) => handleChange(campo.clave, val)}
+                  error={Boolean(errores[campo.clave])}
+                  helperText={errores[campo.clave]}
                 />
               );
 
