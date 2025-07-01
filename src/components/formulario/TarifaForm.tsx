@@ -180,7 +180,7 @@ export const FormCrearTarifa: React.FC = () => {
 
   const camposTarifa: Campo[] = useMemo(
     () => [
-      { tipo: "text", nombre: "Nombre de la Tarifa", clave: "nombreTarifa" },
+      { tipo: "text", nombre: "Nombre de la Tarifa", clave: "nombreTarifa", requerido:true },
       {
         tipo: "select",
         nombre: "Transportista",
@@ -188,27 +188,31 @@ export const FormCrearTarifa: React.FC = () => {
         opciones: transportistas.map((t) => ({
           id: t.id,
           nombre: t.nombreEmpresa,
-        })),
+        }
+      )),requerido:true
       },
       {
         tipo: "select",
         nombre: "Tipo de vehículo",
         clave: "tipoVehiculoId",
         opciones: tipoVehiculos.map((t) => ({ id: t.id, nombre: t.nombre })),
+        requerido:true
       },
       {
         tipo: "select",
         nombre: "Zona",
         clave: "zonaId",
         opciones: zonas.map((t) => ({ id: t.id, nombre: t.nombre })),
+        requerido:true
       },
       {
         tipo: "select",
         nombre: "Tipo de carga",
         clave: "tipoCargaId",
         opciones: cargas.map((t) => ({ id: t.id, nombre: t.nombre })),
+        requerido:true
       },
-      { tipo: "costoBase", nombre: "Costo Base", clave: "valorBase" },
+      { tipo: "costoBase", nombre: "Costo Base", clave: "valorBase" , requerido:true},
       {
         tipo: "adicionales",
         nombre: "Adicionales",
