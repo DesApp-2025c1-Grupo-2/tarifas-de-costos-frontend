@@ -1,12 +1,9 @@
-// components/reportes/FrecuenciaAdicionalesReporte.tsx
-
 import React, { useEffect, useState } from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Paper, Typography, Box, CircularProgress, Alert } from '@mui/material';
-import { getFrecuenciaAdicionales, FrecuenciaAdicional } from '../../services/reporteService'; // Ajusta la ruta si es necesario
+import { getFrecuenciaAdicionales, FrecuenciaAdicional } from '../../services/reporteService';
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
 
-// Columnas para la tabla de frecuencias
 const columns: GridColDef[] = [
   { field: 'nombreAdicional', headerName: 'Nombre Adicional', flex: 1 },
   { field: 'cantidad', headerName: 'Veces Utilizado', type: 'number', width: 180 },
@@ -52,7 +49,7 @@ export const FrecuenciaAdicionalesReporte: React.FC = () => {
       </Typography>
       <Box sx={{ height: 400, width: '100%' }}>
         <DataGrid
-          // DataGrid necesita un 'id' único por fila. Usamos el nombre del adicional.
+        
           getRowId={(row) => row.nombreAdicional}
           rows={frecuencia}
           columns={columns}

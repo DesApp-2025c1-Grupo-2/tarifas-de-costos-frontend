@@ -16,13 +16,13 @@ const camposTipoVehiculo: Campo[] = [
     requerido: true
   },
   {
-    tipo: "number",
+    tipo: "text",
     nombre: "Peso Máximo (KG)",
     clave: "capacidadPesoKG", 
     requerido: true
   },
   {
-    tipo: "number",
+    tipo: "text",
     nombre: "Volumen Máximo (M³)",
     clave: "capacidadVolumenM3", 
     requerido: true
