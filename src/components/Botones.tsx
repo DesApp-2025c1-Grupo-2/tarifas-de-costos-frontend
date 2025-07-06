@@ -17,7 +17,22 @@ interface BotonPrimarioProps extends ButtonProps {
 export function BotonPrimario({ children, onClick, ...props }: BotonPrimarioProps) {
     return (
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-            <Button variant="contained" color="primary" onClick={onClick} {...props}>
+            <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={onClick} 
+                sx={{
+                    backgroundColor: "#7CB342",
+                    "&:hover": {
+                      backgroundColor: "#689F38",
+                    },
+                    color: "#fff",
+                    borderRadius: "8px",
+                    px: 2,
+                    py: 1,
+                  }}
+                {...props}
+            >
                 {children}
             </Button>
         </Box>
@@ -37,7 +52,19 @@ interface AccionBotonProps extends ButtonProps {
 
 export function BotonEditar({ onClick, ...props }: AccionBotonProps) {
     return (
-        <Button variant="contained" color="secondary" onClick={onClick} {...props} >
+        <Button 
+            variant="contained" 
+            sx={{
+                backgroundColor: "#FF9800",
+                "&:hover": {
+                backgroundColor: "#FB8C00",
+                },
+                color: "#fff",
+                borderRadius: "4px",
+            }} 
+            onClick={onClick} 
+            {...props} 
+        >
             Editar
         </Button>
     );
@@ -45,7 +72,19 @@ export function BotonEditar({ onClick, ...props }: AccionBotonProps) {
 
 export function BotonEliminar({ onClick, ...props }: AccionBotonProps) { 
     return (
-        <Button variant="contained" color="error" onClick={onClick} {...props} >
+        <Button 
+            variant="contained" 
+            sx={{
+                backgroundColor: "#FF3D00",
+                "&:hover": {
+                backgroundColor: "#DD2C00",
+                },
+                color: "#fff",
+                borderRadius: "4px",
+            }} 
+            onClick={onClick} 
+            {...props} 
+        >
             Eliminar
         </Button>
     );

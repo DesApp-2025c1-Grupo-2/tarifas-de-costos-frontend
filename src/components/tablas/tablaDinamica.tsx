@@ -199,6 +199,8 @@ export default function DataTable({
           rows={rowsFiltrados}
           columns={columnasConAcciones}
           disableColumnMenu
+          checkboxSelection={false}
+          disableRowSelectionOnClick
           getRowId={(row) => row.id}
           initialState={{
             sorting: { sortModel: [{ field: "id", sort: "desc" }] },

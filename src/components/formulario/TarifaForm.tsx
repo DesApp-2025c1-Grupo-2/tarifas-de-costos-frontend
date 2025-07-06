@@ -4,6 +4,7 @@ import { BotonPrimario } from "../Botones";
 import * as tarifaService from "../../services/tarifaService";
 import { Tarifa } from "../../services/tarifaService";
 import DataTable from "../tablas/tablaDinamica";
+import DialogoConfirmacion from "../DialogoConfirmacion";
 import { ModalVerTarifa, TarifaDetallada } from "./adicionales/ModalVerTarifa";
 import { ModalVerAdicionales } from "./adicionales/ModalVerAdicionales";
 import { CircularProgress, Box, Alert } from "@mui/material";
@@ -37,6 +38,8 @@ export const FormCrearTarifa: React.FC = () => {
   const [zonas, setZonas] = useState<ZonaViaje[]>([]);
   const [cargas, setCargas] = useState<Carga[]>([]);
   const [adicionalesDb, setAdicionalesDb] = useState<Adicional[]>([]);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [tarifaAEliminar, setTarifaAEliminar] = useState<number | null>(null);
 
   const cargarTarifas = async () => {
     setIsLoading(true);
@@ -160,23 +163,29 @@ export const FormCrearTarifa: React.FC = () => {
   const handleMostrarAdicionales = (adicionales: any[]) => {
     setAdicionalesParaVer(adicionales);
   };
+ 
+  const handleDelete = (id: number) => {
+    setTarifaAEliminar(id);
+    setConfirmDialogOpen(true);
+  };
 
-  const handleDelete = async (id: number) => {
-    if (
-      window.confirm("¿Estás seguro de que deseas dar de baja esta tarifa?")
-    ) {
+  const confirmarEliminacion = async () => {
+    if (tarifaAEliminar !== null) {
       try {
-        await tarifaService.eliminarTarifa(id);
+        await tarifaService.eliminarTarifa(tarifaAEliminar);
         setMessage("Tarifa dada de baja con éxito");
-        cargarTarifas();
+        await cargarTarifas();
       } catch (err) {
         setMessage("Error al dar de baja la tarifa");
         console.error(err);
       } finally {
+        setConfirmDialogOpen(false);
+        setTarifaAEliminar(null);
         setTimeout(() => setMessage(""), 3000);
       }
     }
   };
+  
 
   const camposTarifa: Campo[] = useMemo(
     () => [
@@ -185,31 +194,36 @@ export const FormCrearTarifa: React.FC = () => {
         tipo: "select",
         nombre: "Transportista",
         clave: "transportistaId",
-        opciones: transportistas.map((t) => ({
-          id: t.id,
-          nombre: t.nombreEmpresa,
-        }
-      )),requerido:true
+        opciones: transportistas
+        .filter((t) => t.activo)
+        .map((t) => ({ id: t.id, nombre: t.nombreEmpresa })),
+        requerido:true
       },
       {
         tipo: "select",
         nombre: "Tipo de vehículo",
         clave: "tipoVehiculoId",
-        opciones: tipoVehiculos.map((t) => ({ id: t.id, nombre: t.nombre })),
+        opciones: tipoVehiculos
+        .filter((t) => t.activo)
+        .map((t) => ({ id: t.id, nombre: t.nombre })),
         requerido:true
       },
       {
         tipo: "select",
         nombre: "Zona",
         clave: "zonaId",
-        opciones: zonas.map((t) => ({ id: t.id, nombre: t.nombre })),
+        opciones: zonas
+        .filter((t) => t.activo)
+        .map((t) => ({ id: t.id, nombre: t.nombre })),
         requerido:true
       },
       {
         tipo: "select",
         nombre: "Tipo de carga",
         clave: "tipoCargaId",
-        opciones: cargas.map((t) => ({ id: t.id, nombre: t.nombre })),
+        opciones: cargas
+        .filter((t) => t.activo)
+        .map((t) => ({ id: t.id, nombre: t.nombre })),
         requerido:true
       },
       { tipo: "costoBase", nombre: "Costo Base", clave: "valorBase" , requerido:true},
@@ -217,12 +231,14 @@ export const FormCrearTarifa: React.FC = () => {
         tipo: "adicionales",
         nombre: "Adicionales",
         clave: "adicionales",
-        opciones: adicionalesDb.map((a) => ({
+        opciones: adicionalesDb
+        .filter((a) => a.activo)
+        .map((a) => ({
           id: a.id,
           nombre: a.nombre,
           descripcion: a.descripcion,
           precio: Number(a.costoDefault) || 0,
-        })),
+        })),  
       },
       { tipo: "resultado", nombre: "COSTO TOTAL:", clave: "total" },
     ],
@@ -293,6 +309,14 @@ export const FormCrearTarifa: React.FC = () => {
         onClose={() => setAdicionalesParaVer(null)}
         adicionales={adicionalesParaVer || []}
       />
-    </div>
+      <DialogoConfirmacion
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+        onConfirm={confirmarEliminacion}
+        titulo="Confirmar eliminación"
+        descripcion="¿Estás seguro de que deseas dar de baja esta tarifa? Esta acción no se puede deshacer."
+        textoConfirmar="Eliminar"
+      />
+    </div>  
   );
 };
