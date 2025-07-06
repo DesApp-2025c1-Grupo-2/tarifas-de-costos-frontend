@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Paper, Typography, Box, CircularProgress, Alert, List, ListItem, ListItemText } from '@mui/material';
-import { obtenerComparativaCostosPorZona, ZonaComparativa } from '../../services/zonaService'; 
+import { Paper, Typography, Box, CircularProgress, Alert, List, ListItem, ListItemText, TextField } from '@mui/material';
+import { obtenerComparativaCostosPorZona, ZonaComparativa } from '../../services/zonaService';
+ 
 
 interface MinMaxZonaData {
   nombre: string;
@@ -15,6 +16,7 @@ const ComparativaZonasCostos: React.FC = () => {
   const [comparativaData, setComparativaData] = useState<Record<string, ZonaComparativa>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [busquedaZona, setBusquedaZona] = useState<string>('');
 
   useEffect(() => {
     const fetchComparativa = async () => {
@@ -44,6 +46,10 @@ const ComparativaZonasCostos: React.FC = () => {
     return <Alert severity="error">{error}</Alert>;
   }
 
+  const datosFiltrados = Object.entries(comparativaData).filter(([zona]) =>
+    zona.toLowerCase().includes(busquedaZona.toLowerCase())
+  );
+
   const zonasConPromedioValido: MinMaxZonaData[] = Object.entries(comparativaData)
     .filter(([, stats]) => stats.average !== undefined && stats.average !== null && stats.average > 0) 
     .map(([nombreZona, stats]) => ({
@@ -68,8 +74,17 @@ const ComparativaZonasCostos: React.FC = () => {
       <Typography variant="h6" gutterBottom>
         Comparativa de Costos por Zona Geográfica
       </Typography>
+      <TextField
+        label="Buscar Zona"
+        variant="outlined"
+        size="small"
+        fullWidth
+        sx={{ my: 2 }}
+        value={busquedaZona}
+        onChange={(e) => setBusquedaZona(e.target.value)}
+      />
       <List>
-        {Object.entries(comparativaData).map(([nombreZona, stats]) => (
+        {datosFiltrados.map(([nombreZona, stats]) => (
           <ListItem key={nombreZona} divider>
             <ListItemText
               primary={<Typography variant="subtitle1">{nombreZona}</Typography>}

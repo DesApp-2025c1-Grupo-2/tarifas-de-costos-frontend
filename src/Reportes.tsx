@@ -30,7 +30,13 @@ const Reportes: React.FC = () => {
         <h1>Reportes Generales</h1>
 
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={tabIndex} onChange={handleTabChange} aria-label="tabs reportes">
+          <Tabs value={tabIndex}
+            onChange={handleTabChange}
+            aria-label="tabs reportes"
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+          >
             <Tab label="Comparativa Zonas y Costos" />
             <Tab label="Catálogo de Adicionales" />
             <Tab label="Frecuencia de Adicionales" />
