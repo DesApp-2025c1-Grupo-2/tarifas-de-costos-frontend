@@ -29,6 +29,7 @@ body, html {
 
 /* --- CABECERA --- */
 .header {
+  /* position: fixed; */
   background-color: #1B2A41; 
   color: white;
   width: 100%;
@@ -39,6 +40,7 @@ body, html {
   padding: 0 20px; 
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
+  z-index: 9999;
 }
 
 .headerConMenu {
@@ -68,13 +70,13 @@ body, html {
 /* --- BARRA LATERAL (SIDEBAR) --- */
 .sidebar {
   position: fixed;
-  top: 60px;
+  top: 0;
   left: -250px;
   width: 250px;
-  height: calc(100% - 60px); 
+  height: 100%; 
   background-color: #1B2A41; 
   color: white;
-  padding: 20px 0; 
+  padding: 4em 0;
   box-shadow: 2px 0 5px rgba(0,0,0,0.2);
   transition: left 0.3s ease-in-out; 
   z-index: 1000; 
