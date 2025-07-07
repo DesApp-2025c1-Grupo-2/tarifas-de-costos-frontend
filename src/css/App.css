@@ -134,20 +134,45 @@ body, html {
 }
 
 /* --- LOGO (IMAGEN) --- */
+
+/*
 .logo-acme {
-  max-width: 100%; /* Asegura que no sea más ancho que su contenedor */
-  width: 500px; /* Un ancho base más razonable, puedes ajustarlo */
+  max-width: 100%;
+  width: 500px; 
   height: auto; 
   display: block;
   margin: 40px auto;     
   object-fit: contain;   
+  }
+*/
+
+.logo-acme {
+  width: min(90%, 500px);
+  height: auto;
+  display: block;
+  margin: 40px auto;
+  object-fit: contain;
 }
+
+
+
 /* --- BOTONES --- */
+/* 
 .boton-contenedor {
   display: flex;
   justify-content: center;
   margin-top: 20px;
+  
 }
+*/
+
+.boton-contenedor {
+  position: absolute;
+  bottom: 80px; 
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 
 .boton-Inicio {
   background-color: #ff7300;
