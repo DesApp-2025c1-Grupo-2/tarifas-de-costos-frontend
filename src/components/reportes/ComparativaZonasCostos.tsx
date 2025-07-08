@@ -25,7 +25,7 @@ const ComparativaZonasCostos: React.FC = () => {
         setComparativaData(data);
       } catch (err) {
         console.error("Error al cargar la comparativa de zonas y costos:", err);
-        setError("No se pudo cargar la comparativa de zonas. Asegúrese de que el backend esté funcionando y tenga datos.");
+        setError("No se pudo cargar la comparativa de zonas.");
       } finally {
         setLoading(false);
       }
