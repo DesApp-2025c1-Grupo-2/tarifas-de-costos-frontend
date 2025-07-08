@@ -1,24 +1,35 @@
-import React from 'react';
-import Header from './components/Header';
-import TarifaTable from './components/TarifaTable';
-import Filtros from './components/Filtros';
-//import { BotonNuevaTarifa} from './components/Botones';
-import './css/App.css';
+import React from "react";
+import Header from "./components/Header";
+import Filtros from "./components/Filtros";
+import { Box } from "@mui/material";
 
 const Tarifas: React.FC = () => {
   return (
-    <div className="app">
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        backgroundColor: "#f5f7fa",
+      }}
+    >
       <Header />
-      <main className="main">
-        <div className="grid" >
-          <Filtros />     
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          padding: "2rem",
+          overflowY: "auto",
+          paddingBottom: "100px",
+        }}
+      >
+        <Box sx={{ display: "block", gap: "2rem" }}>
+          <Filtros />
           {/* <TarifaTable /> */}
-        </div>
-      </main>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
-
-//holaa
 
 export default Tarifas;

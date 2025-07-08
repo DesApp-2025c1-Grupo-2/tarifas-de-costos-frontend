@@ -1,20 +1,18 @@
-import React, { useState } from 'react';
-import { Tabs, Tab, Box } from '@mui/material';
-import Sidebar from './components/Sidebar';
-import { HeaderConMenu } from './components/Header';
-import CatalogoAdicionales from './components/reportes/CatalogoAdicionales';
-import ComparativaZonasCostos from './components/reportes/ComparativaZonasCostos';
-import { FrecuenciaAdicionalesReporte } from './components/reportes/FrecuenciaAdicionalesReporte';
-import { TransportistasMasUtilizadosReporte } from './components/reportes/TransportistasMasUtilizadosReporte';
-import './css/App.css';
-import './css/CrearTarifa.css';
+import React, { useState } from "react";
+import { Tabs, Tab, Box, Typography } from "@mui/material";
+import Sidebar from "./components/Sidebar";
+import { HeaderConMenu } from "./components/Header";
+import CatalogoAdicionales from "./components/reportes/CatalogoAdicionales";
+import ComparativaZonasCostos from "./components/reportes/ComparativaZonasCostos";
+import { FrecuenciaAdicionalesReporte } from "./components/reportes/FrecuenciaAdicionalesReporte";
+import { TransportistasMasUtilizadosReporte } from "./components/reportes/TransportistasMasUtilizadosReporte";
 
 const Reportes: React.FC = () => {
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
 
   const toggleSidebar = () => {
-    setSidebarAbierta(prev => !prev);
+    setSidebarAbierta((prev) => !prev);
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -22,15 +20,33 @@ const Reportes: React.FC = () => {
   };
 
   return (
-    <div className="app">
+    <Box sx={{ backgroundColor: "#f5f7fa", minHeight: "100vh" }}>
+      {sidebarAbierta && (
+        <Box
+          onClick={toggleSidebar}
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 1000,
+          }}
+        />
+      )}
+
       <HeaderConMenu onImagenClick={toggleSidebar} />
-      {sidebarAbierta && <Sidebar isOpen={sidebarAbierta} toggleSidebar={toggleSidebar} />}
+      <Sidebar isOpen={sidebarAbierta} toggleSidebar={toggleSidebar} />
 
-      <div className="content-area">
-        <h1>Reportes Generales</h1>
+      <Box component="main" sx={{ padding: "2rem" }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Reportes Generales
+        </Typography>
 
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={tabIndex}
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Tabs
+            value={tabIndex}
             onChange={handleTabChange}
             aria-label="tabs reportes"
             variant="scrollable"
@@ -50,8 +66,8 @@ const Reportes: React.FC = () => {
           {tabIndex === 2 && <FrecuenciaAdicionalesReporte />}
           {tabIndex === 3 && <TransportistasMasUtilizadosReporte />}
         </Box>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

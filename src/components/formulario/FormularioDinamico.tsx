@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   BasicTextFields,
@@ -7,7 +6,13 @@ import {
   NumberField,
 } from "./Campos";
 import { BotonGuardar } from "../Botones";
-import { Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  Box,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AdicionalSelector } from "./adicionales/AdicionalSelector";
 import {
@@ -56,7 +61,6 @@ const FormularioDinamico: React.FC<Props> = ({
   const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
   const [errores, setErrores] = useState<Record<string, string>>({});
 
-
   useEffect(() => {
     if (open) {
       setValores(initialValues || {});
@@ -69,11 +73,13 @@ const FormularioDinamico: React.FC<Props> = ({
 
   const validarFormulario = () => {
     const nuevosErrores: Record<string, string> = {};
-  
+
     campos.forEach((campo) => {
       const valor = valores[campo.clave];
-      const esRequerido = campo.hasOwnProperty("requerido") ? campo["requerido"] : false;
-  
+      const esRequerido = campo.hasOwnProperty("requerido")
+        ? campo["requerido"]
+        : false;
+
       if (
         esRequerido &&
         (!valor || (Array.isArray(valor) && valor.length === 0))
@@ -81,15 +87,14 @@ const FormularioDinamico: React.FC<Props> = ({
         nuevosErrores[campo.clave] = "Este campo es obligatorio";
       }
     });
-  
+
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
-  
 
   const handleInternalSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!validarFormulario()) return; 
+    if (!validarFormulario()) return;
     onSubmit(valores);
     if (onClose) onClose();
   };
@@ -114,7 +119,7 @@ const FormularioDinamico: React.FC<Props> = ({
       const actuales = valores["adicionales"] || [];
       handleChange("adicionales", [...actuales, adicionalParaFormulario]);
 
-      setModalNuevoAdicional(false); 
+      setModalNuevoAdicional(false);
     } catch (error) {
       console.error("Error al crear el nuevo adicional:", error);
       alert("No se pudo crear el nuevo adicional.");
@@ -123,7 +128,16 @@ const FormularioDinamico: React.FC<Props> = ({
 
   const contenidoFormulario = (
     <>
-      <form className="formulario-tarifa" onSubmit={handleInternalSubmit}>
+      <Box
+        component="form"
+        onSubmit={handleInternalSubmit}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          marginTop: "2em",
+          width: "100%",
+        }}
+      >
         {campos.map((campo) => {
           switch (campo.tipo) {
             case "text":
@@ -203,7 +217,7 @@ const FormularioDinamico: React.FC<Props> = ({
           }
         })}
         <BotonGuardar />
-      </form>
+      </Box>
       <ModalCrearAdicional
         open={modalNuevoAdicional}
         onClose={() => setModalNuevoAdicional(false)}
@@ -231,10 +245,23 @@ const FormularioDinamico: React.FC<Props> = ({
   }
 
   return (
-    <div className="crear-tarifa">
+    <Box
+      sx={{
+        margin: { xs: "0 auto", md: "0 auto" },
+        width: { xs: "95%", md: "80%" },
+        maxWidth: "800px",
+        border: "1px solid black",
+        borderRadius: "8px",
+        padding: { xs: "20px", md: "40px 60px" },
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
       <h2>{titulo}</h2>
       {contenidoFormulario}
-    </div>
+    </Box>
   );
 };
 

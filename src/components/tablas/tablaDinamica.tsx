@@ -1,14 +1,9 @@
-// ruta: src/components/tablas/tablaDinamica.tsx
+// src/components/tablas/tablaDinamica.tsx
 
 import React, { useState, useMemo } from "react";
-import {
-  DataGrid,
-  GridColDef,
-  GridRenderCellParams,
-} from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import { columnas, Entidad } from "./columnas";
-import { BotonEditar, BotonEliminar, BotonVer } from "../Botones";
 import {
   Box,
   Autocomplete,
@@ -16,13 +11,21 @@ import {
   TextField,
   Button,
   Typography,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  Tooltip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import EntityCard, { CardConfig } from "./EntityCard";
 
-// --- INICIO DE LA MODIFICACIÓN ---
-// Se importa el objeto de localización desde la ruta correcta.
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
-// --- FIN DE LA MODIFICACIÓN ---
 
 interface DataTableProps {
   rows: any[];
@@ -33,6 +36,64 @@ interface DataTableProps {
   handleMostrarAdicionales?: (adicionales: any[]) => void;
 }
 
+// --- CONFIGURACIÓN PARA LAS TARJETAS DE CADA ENTIDAD ---
+const cardConfigs: Record<Entidad, CardConfig> = {
+  tarifa: {
+    titleField: "transportistaNombre",
+    subtitleField: "total",
+    detailFields: ["tipoVehiculoNombre", "zonaNombre", "tipoCargaNombre"],
+    fieldLabels: {
+      total: "Costo Total",
+      tipoVehiculoNombre: "Vehículo",
+      zonaNombre: "Zona",
+      tipoCargaNombre: "Carga",
+    },
+  },
+  transportista: {
+    titleField: "nombreEmpresa",
+    subtitleField: "contactoNombre",
+    detailFields: ["contactoEmail", "contactoTelefono"],
+    fieldLabels: {
+      contactoNombre: "Contacto",
+      contactoEmail: "Email",
+      contactoTelefono: "Teléfono",
+    },
+  },
+  tipoDeVehiculo: {
+    titleField: "nombre",
+    detailFields: ["capacidadPesoKG", "capacidadVolumenM3", "descripcion"],
+    fieldLabels: {
+      capacidadPesoKG: "Peso (KG)",
+      capacidadVolumenM3: "Volumen (M³)",
+      descripcion: "Descripción",
+    },
+  },
+  tipoDeCarga: {
+    titleField: "nombre",
+    detailFields: ["descripcion"],
+    fieldLabels: {
+      descripcion: "Descripción",
+    },
+  },
+  zona: {
+    titleField: "nombre",
+    detailFields: ["descripcion", "regionMapa"],
+    fieldLabels: {
+      descripcion: "Descripción",
+      regionMapa: "Región",
+    },
+  },
+  adicional: {
+    titleField: "nombre",
+    subtitleField: "costoDefault",
+    detailFields: ["descripcion"],
+    fieldLabels: {
+      costoDefault: "Costo",
+      descripcion: "Descripción",
+    },
+  },
+};
+
 export default function DataTable({
   rows,
   entidad,
@@ -41,6 +102,8 @@ export default function DataTable({
   handleView,
   handleMostrarAdicionales,
 }: DataTableProps) {
+  const theme = useTheme();
+  const esMovil = useMediaQuery(theme.breakpoints.down("md"));
   const columnasBase = columnas[entidad];
   const [filtros, setFiltros] = useState<{ [key: string]: string }>({});
 
@@ -81,9 +144,9 @@ export default function DataTable({
   const limpiarFiltros = () => setFiltros({});
 
   const columnasConAcciones: GridColDef[] = useMemo(() => {
-    const cols = [...columnasBase];
+    let cols = [...columnasBase];
 
-    if (entidad === "tarifa") {
+    if (entidad === "tarifa" && handleMostrarAdicionales) {
       cols.push({
         field: "adicionales",
         headerName: "Adicionales",
@@ -94,15 +157,14 @@ export default function DataTable({
             params.value &&
             Array.isArray(params.value) &&
             params.value.length > 0;
-
-          if (tieneAdicionales && handleMostrarAdicionales) {
+          if (tieneAdicionales) {
             return (
               <Button
                 variant="text"
                 size="small"
                 onClick={() => handleMostrarAdicionales(params.value)}
               >
-                Mostrar ({params.value.length})
+                VER ({params.value.length})
               </Button>
             );
           }
@@ -117,103 +179,139 @@ export default function DataTable({
       width: 280,
       sortable: false,
       renderCell: (params) => (
+        // --- INICIO DE LA CORRECCIÓN ---
         <Box
           sx={{
-            display: "flex",
-            gap: 1,
-            alignItems: "center",
-            justifyContent: "center",
             width: "100%",
-            height: "100%",
+            height: "100%", // <-- ¡Esta es la clave!
+            display: "flex",
+            alignItems: "center", // Ahora esto funcionará
+            justifyContent: "flex-start",
+            gap: 1,
           }}
         >
-          {handleView && <BotonVer onClick={() => handleView(params.row)} />}
-          {handleEdit && <BotonEditar onClick={() => handleEdit(params.row)} />}
+          {handleView && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => handleView(params.row)}
+            >
+              Ver
+            </Button>
+          )}
+          {handleEdit && (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => handleEdit(params.row)}
+            >
+              Editar
+            </Button>
+          )}
           {handleDelete && (
-            <BotonEliminar onClick={() => handleDelete(params.row.id)} />
+            <Button
+              variant="contained"
+              size="small"
+              color="error"
+              onClick={() => handleDelete(params.row.id)}
+            >
+              Eliminar
+            </Button>
           )}
         </Box>
+        // --- FIN DE LA CORRECCIÓN ---
       ),
     });
-
     return cols;
   }, [
     columnasBase,
     entidad,
-    handleMostrarAdicionales,
-    handleView,
     handleEdit,
     handleDelete,
+    handleView,
+    handleMostrarAdicionales,
   ]);
 
   return (
     <Box sx={{ width: "100%" }}>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Filtros
-        </Typography>
-        <Grid
-          component="div"
-          sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}
+      <Accordion sx={{ mb: 3, boxShadow: "none", border: "1px solid #e0e0e0" }}>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="filtros-panel-content"
+          id="filtros-panel-header"
         >
-          {columnasBase.map((col) => (
-            <Grid key={col.field} component="div" sx={{ flex: "1 1 25%" }}>
-              <FormControl
-                fullWidth
+          <Typography variant="h6">Filtros</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+            {columnasBase.map((col) => (
+              <Box key={col.field} sx={{ flex: "1 1 200px" }}>
+                <FormControl fullWidth variant="outlined" size="small">
+                  <Autocomplete
+                    options={valoresUnicosPorColumna[col.field] || []}
+                    onInputChange={(_, newValue) =>
+                      handleFiltroChange(col.field, newValue || "")
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={col.headerName}
+                        variant="outlined"
+                        size="small"
+                      />
+                    )}
+                    fullWidth
+                  />
+                </FormControl>
+              </Box>
+            ))}
+            <Box sx={{ flex: "1 1 200px", alignSelf: "center" }}>
+              <Button
                 variant="outlined"
-                size="small"
-                sx={{ minWidth: 120 }}
+                fullWidth
+                onClick={limpiarFiltros}
+                sx={{ height: "40px" }}
               >
-                <Autocomplete
-                  options={valoresUnicosPorColumna[col.field] || []}
-                  onInputChange={(_, newValue) =>
-                    handleFiltroChange(col.field, newValue || "")
-                  }
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={col.headerName}
-                      variant="outlined"
-                      size="small"
-                    />
-                  )}
-                  fullWidth
-                />
-              </FormControl>
-            </Grid>
+                Limpiar Filtros
+              </Button>
+            </Box>
+          </Box>
+        </AccordionDetails>
+      </Accordion>
+
+      {esMovil ? (
+        <Box>
+          {rowsFiltrados.map((row) => (
+            <EntityCard
+              key={row.id}
+              item={row}
+              config={cardConfigs[entidad]}
+              onView={handleView!}
+              onEdit={handleEdit!}
+              onDelete={handleDelete!}
+            />
           ))}
-          <Grid component="div" sx={{ flex: "1 1 25%" }}>
-            <Button
-              variant="outlined"
-              fullWidth
-              onClick={limpiarFiltros}
-              sx={{ height: "100%" }}
-            >
-              Limpiar Filtros
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
-      <Paper sx={{ p: 2 }}>
-        <DataGrid
-          rows={rowsFiltrados}
-          columns={columnasConAcciones}
-          disableColumnMenu
-          checkboxSelection={false}
-          disableRowSelectionOnClick
-          getRowId={(row) => row.id}
-          initialState={{
-            sorting: { sortModel: [{ field: "id", sort: "desc" }] },
-            pagination: { paginationModel: { page: 0, pageSize: 5 } },
-          }}
-          pageSizeOptions={[5, 10]}
-          sx={{ border: 0 }}
-          // --- INICIO DE LA MODIFICACIÓN ---
-          // Se usa el objeto de localización importado desde la ruta correcta.
-          localeText={esESGrid.components.MuiDataGrid.defaultProps.localeText}
-          // --- FIN DE LA MODIFICACIÓN ---
-        />
-      </Paper>
+        </Box>
+      ) : (
+        <Paper sx={{ p: { xs: 1, md: 2 } }}>
+          <DataGrid
+            rows={rowsFiltrados}
+            columns={columnasConAcciones}
+            autoHeight
+            disableColumnMenu
+            checkboxSelection={false}
+            disableRowSelectionOnClick
+            getRowId={(row) => row.id}
+            initialState={{
+              sorting: { sortModel: [{ field: "id", sort: "desc" }] },
+              pagination: { paginationModel: { page: 0, pageSize: 5 } },
+            }}
+            pageSizeOptions={[5, 10]}
+            sx={{ border: 0 }}
+            localeText={esESGrid.components.MuiDataGrid.defaultProps.localeText}
+          />
+        </Paper>
+      )}
     </Box>
   );
 }
