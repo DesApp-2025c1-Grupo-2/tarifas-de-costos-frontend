@@ -8,8 +8,8 @@ import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
 
 const camposCarga: Campo[] = [
-  { tipo: "text", nombre: "Nombre", clave: "nombre" },
-  { tipo: "text", nombre: "Descripción", clave: "descripcion" },
+  { tipo: "text", nombre: "Nombre", clave: "nombre", requerido: true },
+  { tipo: "text", nombre: "Descripción", clave: "descripcion", requerido: true },
 ];
 
 const servicioAdaptado: CrudService<Carga> = {

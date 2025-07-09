@@ -43,7 +43,13 @@ const TARIFAS_URL = `${API_BASE_URL}/tarifas`;
 export async function obtenerTarifas(): Promise<Tarifa[]> {
   const res = await fetch(TARIFAS_URL);
   if (!res.ok) throw new Error('Error al obtener tarifas');
-  return res.json();
+
+  const data = await res.json();
+
+  return data.map((tarifa: any) => ({
+    ...tarifa,
+    nombreTarifa: tarifa.nombre
+  }));
 }
 
 export const crearTarifa = async (tarifa: any) => {
