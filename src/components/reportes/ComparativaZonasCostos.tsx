@@ -71,6 +71,38 @@ const ComparativaZonasCostos: React.FC = () => {
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
+      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+        Zonas Destacadas por Costo Promedio
+      </Typography>
+      <List sx={{mb:"1.2em"}}>
+        {zonaMayorCosto && (
+          <ListItem divider>
+            <ListItemText
+              primary="Zona con MAYOR Costo Promedio"
+              secondary={
+                <Typography color="error">
+                  {zonaMayorCosto.nombre}: {formatCurrency(zonaMayorCosto.average)}
+                </Typography>
+              }
+            />
+          </ListItem>
+        )}
+        {zonaMenorCosto && (
+          <ListItem>
+            <ListItemText
+              primary="Zona con MENOR Costo Promedio"
+              secondary={
+                <Typography color="success">
+                  {zonaMenorCosto.nombre}: {formatCurrency(zonaMenorCosto.average)}
+                </Typography>
+              }
+            />
+          </ListItem>
+        )}
+        {zonasConPromedioValido.length === 0 && (
+            <ListItem><ListItemText primary="No hay datos de tarifas válidos para comparar zonas." /></ListItem>
+        )}
+      </List>
       <Typography variant="h6" gutterBottom>
         Comparativa de Costos por Zona Geográfica
       </Typography>
@@ -106,39 +138,6 @@ const ComparativaZonasCostos: React.FC = () => {
             />
           </ListItem>
         ))}
-      </List>
-
-      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-        Zonas Destacadas por Costo Promedio
-      </Typography>
-      <List>
-        {zonaMayorCosto && (
-          <ListItem divider>
-            <ListItemText
-              primary="Zona con MAYOR Costo Promedio"
-              secondary={
-                <Typography color="error">
-                  {zonaMayorCosto.nombre}: {formatCurrency(zonaMayorCosto.average)}
-                </Typography>
-              }
-            />
-          </ListItem>
-        )}
-        {zonaMenorCosto && (
-          <ListItem>
-            <ListItemText
-              primary="Zona con MENOR Costo Promedio"
-              secondary={
-                <Typography color="success">
-                  {zonaMenorCosto.nombre}: {formatCurrency(zonaMenorCosto.average)}
-                </Typography>
-              }
-            />
-          </ListItem>
-        )}
-        {zonasConPromedioValido.length === 0 && (
-            <ListItem><ListItemText primary="No hay datos de tarifas válidos para comparar zonas." /></ListItem>
-        )}
       </List>
     </Paper>
   );

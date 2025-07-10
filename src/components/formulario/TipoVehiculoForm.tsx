@@ -11,7 +11,7 @@ import { CrudService } from "../../services/crudService";
 const camposTipoVehiculo: Campo[] = [
   {
     tipo: "text",
-    nombre: "Nombre del Vehículo",
+    nombre: "Tipo",
     clave: "nombre",
     requerido: true
   },
