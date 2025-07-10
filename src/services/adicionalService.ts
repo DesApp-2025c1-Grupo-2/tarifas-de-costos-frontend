@@ -7,6 +7,7 @@ export type Adicional = {
   nombre: string;
   costoDefault: number; 
   descripcion: string;
+  esGlobal?: boolean;
 };
 
 

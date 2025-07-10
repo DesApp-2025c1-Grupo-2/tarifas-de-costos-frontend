@@ -1,3 +1,4 @@
+// En: src/components/formulario/FormularioDinamico.tsx
 import React, { useState, useEffect } from "react";
 import {
   BasicTextFields,
@@ -99,32 +100,27 @@ const FormularioDinamico: React.FC<Props> = ({
     if (onClose) onClose();
   };
 
+  // --- INICIO DE LA MODIFICACIÓN ---
+  // Esta función ahora crea un adicional TEMPORAL en el estado del formulario.
   const handleCrearAdicional = async (nuevo: NuevoAdicional) => {
-    try {
-      const adicionalGuardado = await adicionalService.crearAdicional({
-        nombre: nuevo.nombre,
-        descripcion: nuevo.descripcion,
-        costoDefault: nuevo.precio,
-        activo: true,
-      });
+    const adicionalParaFormulario = {
+      // Usamos un ID temporal negativo para que React lo pueda usar como "key".
+      // El backend ignorará este ID.
+      id: -Math.floor(Math.random() * 100000),
+      nombre: nuevo.nombre,
+      descripcion: nuevo.descripcion,
+      precio: nuevo.precio,
+      costoEspecifico: nuevo.precio,
+      activo: true,
+      esGlobal: false, // ¡Clave! Este adicional no es global.
+    };
 
-      const adicionalParaFormulario = {
-        id: adicionalGuardado.id,
-        nombre: adicionalGuardado.nombre,
-        descripcion: adicionalGuardado.descripcion,
-        precio: adicionalGuardado.costoDefault,
-        costoEspecifico: adicionalGuardado.costoDefault,
-      };
+    const actuales = valores["adicionales"] || [];
+    handleChange("adicionales", [...actuales, adicionalParaFormulario]);
 
-      const actuales = valores["adicionales"] || [];
-      handleChange("adicionales", [...actuales, adicionalParaFormulario]);
-
-      setModalNuevoAdicional(false);
-    } catch (error) {
-      console.error("Error al crear el nuevo adicional:", error);
-      alert("No se pudo crear el nuevo adicional.");
-    }
+    setModalNuevoAdicional(false);
   };
+  // --- FIN DE LA MODIFICACIÓN ---
 
   const contenidoFormulario = (
     <>

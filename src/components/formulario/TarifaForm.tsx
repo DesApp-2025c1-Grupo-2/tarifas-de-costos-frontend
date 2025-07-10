@@ -112,22 +112,34 @@ export const FormCrearTarifa: React.FC = () => {
   }, []);
 
   const handleSubmit = async (formValues: Record<string, any>) => {
+    const adicionalesPayload = (formValues["adicionales"] || []).map(
+      (a: any) => {
+        const adicionalData: any = {
+          adicional: {
+            nombre: a.nombre,
+            descripcion: a.descripcion,
+            costoDefault: a.precio,
+            activo: true,
+            esGlobal: a.esGlobal !== undefined ? a.esGlobal : true, // Si es un adicional existente, es global
+          },
+          costoEspecifico: parseFloat(a.costoEspecifico ?? a.precio ?? "0"),
+        };
+        if (a.id > 0) {
+          adicionalData.adicional.id = a.id;
+        }
+
+        return adicionalData;
+      }
+    );
+
     const payload = {
       nombreTarifa: formValues.nombreTarifa,
-      transportista: { id: Number(formValues.transportistaId), requerido: true },
-      tipoVehiculo: { id: Number(formValues.tipoVehiculoId),requerido: true },
-      zonaViaje: { id: Number(formValues.zonaId),requerido: true },
-      tipoCargaTarifa: { id: Number(formValues.tipoCargaId),requerido: true },
-      valorBase: parseFloat(formValues.valorBase || "0"), requerido: true,
-      adicionales: (formValues["adicionales"] || []).map((a: any) => ({
-        adicional: {
-          id: a.id,
-          nombre: a.nombre,
-          descripcion: a.descripcion,
-          costoDefault: a.precio,
-        },
-        costoEspecifico: parseFloat(a.costoEspecifico ?? a.precio ?? "0"),
-      })),
+      transportista: { id: Number(formValues.transportistaId) },
+      tipoVehiculo: { id: Number(formValues.tipoVehiculoId) },
+      zonaViaje: { id: Number(formValues.zonaId) },
+      tipoCargaTarifa: { id: Number(formValues.tipoCargaId) },
+      valorBase: parseFloat(formValues.valorBase || "0"),
+      adicionales: adicionalesPayload,
     };
 
     try {
@@ -140,8 +152,8 @@ export const FormCrearTarifa: React.FC = () => {
       }
       setShowForm(false);
       setEditingItem(null);
-      await cargarTarifas(); 
-      await cargarDependencias(); 
+      await cargarTarifas();
+      await cargarDependencias();
     } catch (err) {
       const error = err as Error;
       setMessage(`Error al guardar la tarifa: ${error.message}`);
@@ -150,7 +162,6 @@ export const FormCrearTarifa: React.FC = () => {
       setTimeout(() => setMessage(""), 5000);
     }
   };
-
 
   const handleCancel = () => {
     setShowForm(false);
@@ -163,7 +174,7 @@ export const FormCrearTarifa: React.FC = () => {
   const handleMostrarAdicionales = (adicionales: any[]) => {
     setAdicionalesParaVer(adicionales);
   };
- 
+
   const handleDelete = (id: number) => {
     setTarifaAEliminar(id);
     setConfirmDialogOpen(true);
@@ -185,60 +196,69 @@ export const FormCrearTarifa: React.FC = () => {
       }
     }
   };
-  
 
   const camposTarifa: Campo[] = useMemo(
     () => [
-      { tipo: "text", nombre: "Nombre de la Tarifa", clave: "nombreTarifa", requerido:true },
+      {
+        tipo: "text",
+        nombre: "Nombre de la Tarifa",
+        clave: "nombreTarifa",
+        requerido: true,
+      },
       {
         tipo: "select",
         nombre: "Transportista",
         clave: "transportistaId",
         opciones: transportistas
-        .filter((t) => t.activo)
-        .map((t) => ({ id: t.id, nombre: t.nombreEmpresa })),
-        requerido:true
+          .filter((t) => t.activo)
+          .map((t) => ({ id: t.id, nombre: t.nombreEmpresa })),
+        requerido: true,
       },
       {
         tipo: "select",
         nombre: "Tipo de vehículo",
         clave: "tipoVehiculoId",
         opciones: tipoVehiculos
-        .filter((t) => t.activo)
-        .map((t) => ({ id: t.id, nombre: t.nombre })),
-        requerido:true
+          .filter((t) => t.activo)
+          .map((t) => ({ id: t.id, nombre: t.nombre })),
+        requerido: true,
       },
       {
         tipo: "select",
         nombre: "Zona",
         clave: "zonaId",
         opciones: zonas
-        .filter((t) => t.activo)
-        .map((t) => ({ id: t.id, nombre: t.nombre })),
-        requerido:true
+          .filter((t) => t.activo)
+          .map((t) => ({ id: t.id, nombre: t.nombre })),
+        requerido: true,
       },
       {
         tipo: "select",
         nombre: "Tipo de carga",
         clave: "tipoCargaId",
         opciones: cargas
-        .filter((t) => t.activo)
-        .map((t) => ({ id: t.id, nombre: t.nombre })),
-        requerido:true
+          .filter((t) => t.activo)
+          .map((t) => ({ id: t.id, nombre: t.nombre })),
+        requerido: true,
       },
-      { tipo: "costoBase", nombre: "Costo Base", clave: "valorBase" , requerido:true},
+      {
+        tipo: "costoBase",
+        nombre: "Costo Base",
+        clave: "valorBase",
+        requerido: true,
+      },
       {
         tipo: "adicionales",
         nombre: "Adicionales",
         clave: "adicionales",
         opciones: adicionalesDb
-        .filter((a) => a.activo)
-        .map((a) => ({
-          id: a.id,
-          nombre: a.nombre,
-          descripcion: a.descripcion,
-          precio: Number(a.costoDefault) || 0,
-        })),  
+          .filter((a) => a.activo)
+          .map((a) => ({
+            id: a.id,
+            nombre: a.nombre,
+            descripcion: a.descripcion,
+            precio: Number(a.costoDefault) || 0,
+          })),
       },
       { tipo: "resultado", nombre: "COSTO TOTAL:", clave: "total" },
     ],
@@ -317,6 +337,6 @@ export const FormCrearTarifa: React.FC = () => {
         descripcion="¿Estás seguro de que deseas dar de baja esta tarifa? Esta acción no se puede deshacer."
         textoConfirmar="Eliminar"
       />
-    </div>  
+    </div>
   );
 };

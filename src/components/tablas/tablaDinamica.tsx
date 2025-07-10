@@ -1,4 +1,4 @@
-// src/components/tablas/tablaDinamica.tsx
+// En: src/components/tablas/tablaDinamica.tsx
 
 import React, { useState, useMemo } from "react";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
@@ -36,7 +36,6 @@ interface DataTableProps {
   handleMostrarAdicionales?: (adicionales: any[]) => void;
 }
 
-// --- CONFIGURACIÓN PARA LAS TARJETAS DE CADA ENTIDAD ---
 const cardConfigs: Record<Entidad, CardConfig> = {
   tarifa: {
     titleField: "transportistaNombre",
@@ -126,13 +125,13 @@ export default function DataTable({
   }, [rows, entidad, filtros, columnasBase]);
 
   const valoresUnicosPorColumna = useMemo(() => {
-    const valores: { [key: string]: string[] } = {};
+    const valores: { [key: string]: (string | number)[] } = {};
     columnasBase.forEach((col) => {
       const field = col.field;
       const unicos = Array.from(
         new Set(rowsFiltrados.map((r) => r[field]).filter(Boolean))
       );
-      valores[field] = unicos as string[];
+      valores[field] = unicos;
     });
     return valores;
   }, [rowsFiltrados, columnasBase]);
@@ -179,13 +178,12 @@ export default function DataTable({
       width: 280,
       sortable: false,
       renderCell: (params) => (
-        // --- INICIO DE LA CORRECCIÓN ---
         <Box
           sx={{
             width: "100%",
-            height: "100%", // <-- ¡Esta es la clave!
+            height: "100%",
             display: "flex",
-            alignItems: "center", // Ahora esto funcionará
+            alignItems: "center",
             justifyContent: "flex-start",
             gap: 1,
           }}
@@ -219,7 +217,6 @@ export default function DataTable({
             </Button>
           )}
         </Box>
-        // --- FIN DE LA CORRECCIÓN ---
       ),
     });
     return cols;
@@ -249,6 +246,7 @@ export default function DataTable({
                 <FormControl fullWidth variant="outlined" size="small">
                   <Autocomplete
                     options={valoresUnicosPorColumna[col.field] || []}
+                    getOptionLabel={(option) => String(option)}
                     onInputChange={(_, newValue) =>
                       handleFiltroChange(col.field, newValue || "")
                     }
