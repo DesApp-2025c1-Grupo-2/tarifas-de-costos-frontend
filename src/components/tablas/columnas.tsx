@@ -13,7 +13,7 @@ export type Entidad =
 
 export const columnas: Record<Entidad, GridColDef[]> = {
   tarifa: [
-    { field: "id", headerName: "ID", flex: 1 },
+    { field: "id", headerName: "ID", flex: 0 },
     { field: "transportistaNombre", headerName: "Transportista", flex: 1 },
     { field: "tipoVehiculoNombre", headerName: "Tipo de vehículo", flex: 1 },
     { field: "zonaNombre", headerName: "Zona", flex: 1 },
@@ -33,7 +33,7 @@ export const columnas: Record<Entidad, GridColDef[]> = {
   ],
 
   transportista: [
-    { field: "id", headerName: "ID", flex: 1 },
+    { field: "id", headerName: "ID", flex: 0 },
     { field: "contactoNombre", headerName: "Nombre", flex: 1 },
     { field: "nombreEmpresa", headerName: "Empresa", flex: 1 },
     { field: "contactoEmail", headerName: "Correo", flex: 1 },
@@ -46,7 +46,7 @@ export const columnas: Record<Entidad, GridColDef[]> = {
   ],
 
   tipoDeVehiculo: [
-    { field: "id", headerName: "ID", flex: 1 },
+    { field: "id", headerName: "ID", flex: 0 },
     { field: "nombre", headerName: "Nombre", flex: 1 },
     {
       field: "capacidadPesoKG",
@@ -62,22 +62,22 @@ export const columnas: Record<Entidad, GridColDef[]> = {
   ],
 
   tipoDeCarga: [
-    { field: "id", headerName: "ID", flex: 1 },
+    { field: "id", headerName: "ID", flex: 0 },
     { field: "nombre", headerName: "Nombre", flex: 1 },
     { field: "descripcion", headerName: "Descripcion", flex: 1 },
   ],
 
   zona: [
-    { field: "id", headerName: "ID", flex: 1 },
+    { field: "id", headerName: "ID", flex: 0 },
     { field: "nombre", headerName: "Nombre", flex: 1 },
     { field: "descripcion", headerName: "Descripcion", flex: 1 },
     { field: "regionMapa", headerName: "Region", flex: 1 },
   ],
 
   adicional: [
-    { field: "id", headerName: "ID", flex: 1 },
+    { field: "id", headerName: "ID", flex: 0 },
     { field: "nombre", headerName: "Nombre", flex: 1 },
-    { field: "costoDefault", headerName: "Costo", type: "number", flex: 1 },
     { field: "descripcion", headerName: "Descripción", flex: 1 },
+    { field: "costoDefault", headerName: "Costo", type: "number", flex: 0 }
   ],
 };

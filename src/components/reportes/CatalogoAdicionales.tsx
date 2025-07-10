@@ -13,13 +13,13 @@ const columns: GridColDef[] = [
     field: 'cantidad',
     headerName: 'Veces Utilizado',
     type: 'number',
-    width: 180,
+    flex: 0,
   },
   {
     field: 'costoDefault',
     headerName: 'Costo Base',
     type: 'number',
-    width: 150,
+    flex: 0.5,
     valueFormatter: (value) => `$${((value as number) ?? 0).toFixed(2)}`
   },
 ];
