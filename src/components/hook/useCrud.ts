@@ -1,5 +1,3 @@
-// src/hooks/useCrud.ts
-
 import { useState, useEffect, useCallback } from 'react';
 import { CrudService } from '../../services/crudService';
 
@@ -23,11 +21,6 @@ export const useCrud = <T extends { id: number; activo?: boolean }>(service: Cru
     loadItems();
   }, [loadItems]);
 
-  /**
-   * El cambio principal está aquí.
-   * La función ahora acepta 'values' de tipo Omit<T, 'id'>, alineándose
-   * con la nueva interfaz CrudService.
-   */
   const handleSubmit = async (values: Omit<T, 'id'>) => {
     try {
       if (editingItem) {
@@ -81,6 +74,8 @@ export const useCrud = <T extends { id: number; activo?: boolean }>(service: Cru
     editingItem,
     showForm,
     message,
+    fetchItems: loadItems,
+    setMessage,
     actions: {
       handleEdit,
       handleDelete,

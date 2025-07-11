@@ -43,8 +43,15 @@ const servicioAdaptado: CrudService<Adicional> = {
 };
 
 export const AdicionalForm: React.FC = () => {
-  const { items, editingItem, showForm, message, actions } =
-    useCrud<Adicional>(servicioAdaptado);
+  const {
+    items,
+    editingItem,
+    showForm,
+    message,
+    fetchItems,
+    setMessage,
+    actions,
+  } = useCrud<Adicional>(servicioAdaptado);
 
   const [modalPromoverAbierto, setModalPromoverAbierto] = useState(false);
 
@@ -59,18 +66,28 @@ export const AdicionalForm: React.FC = () => {
     actions.handleSubmit(data);
   };
 
-  const handlePromoverSubmit = (adicional: Adicional) => {
-    const adicionalPromovido = { ...adicional, esGlobal: false };
-    actions.handleSubmit(adicionalPromovido);
+  const handlePromoverSubmit = async (adicional: Adicional) => {
+    try {
+      const adicionalPromovido = { ...adicional, esGlobal: false };
+      const { id, ...dataToUpdate } = adicionalPromovido;
+      await adicionalService.actualizarAdicional(id, dataToUpdate);
+      setMessage("Adicional promovido con éxito.");
+      fetchItems();
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.message || "Error al promover el adicional.";
+      setMessage(errorMsg);
+    } finally {
+      setTimeout(() => setMessage(""), 3000);
+    }
   };
 
   const adicionalesConstantes = items.filter((item) => !item.esGlobal);
 
   return (
     <div>
-      <Box
-        sx={{ display: "flex", gap: 2, mb: 2, justifyContent: "flex-start" }}
-      >
+      {/* Contenedor que centra los botones */}
+      <Box sx={{ display: "flex", gap: 2, mb: 2, justifyContent: "center" }}>
         <BotonPrimario onClick={actions.handleCreateNew}>
           Crear Adicional
         </BotonPrimario>
