@@ -21,28 +21,39 @@ import {
   ListItemText,
   OutlinedInput,
 } from "@mui/material";
-import {
-  getComparativaCostos,
-  ComparativaTransportistaDTO,
-} from "../../services/reporteService";
+import { getComparativaCostos } from "../../services/reporteService";
 import {
   obtenerTransportistas,
   Transportista,
 } from "../../services/transportistaService";
-import { obtenerTarifas, Tarifa } from "../../services/tarifaService"; // Se usa tu servicio existente
+import {
+  obtenerTiposVehiculo,
+  TipoVehiculo,
+} from "../../services/tipoVehiculoService";
+import { obtenerCargas, Carga } from "../../services/cargaService";
+import { obtenerZonas, ZonaViaje } from "../../services/zonaService";
+
+// --- MODIFICACIÓN 1: Se crea un tipo local para el reporte enriquecido ---
+interface ReporteEnriquecido {
+  id: number;
+  displayName: string;
+  costo: number;
+}
 
 const ComparativaCostosTransportistas: React.FC = () => {
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
-  const [tarifas, setTarifas] = useState<Tarifa[]>([]);
+  const [tiposVehiculo, setTiposVehiculo] = useState<TipoVehiculo[]>([]);
+  const [tiposCarga, setTiposCarga] = useState<Carga[]>([]);
+  const [zonas, setZonas] = useState<ZonaViaje[]>([]);
 
-  const [selectedTransportistas, setSelectedTransportistas] = useState<
-    string[]
+  const [selectedTransportistaIds, setSelectedTransportistaIds] = useState<
+    number[]
   >([]);
-  const [selectedTarifaId, setSelectedTarifaId] = useState<string>("");
+  const [selectedVehiculoId, setSelectedVehiculoId] = useState<string>("");
+  const [selectedCargaId, setSelectedCargaId] = useState<string>("");
+  const [selectedZonaId, setSelectedZonaId] = useState<string>("");
 
-  const [reporte, setReporte] = useState<ComparativaTransportistaDTO | null>(
-    null
-  );
+  const [reporte, setReporte] = useState<ReporteEnriquecido[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingFiltros, setLoadingFiltros] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,12 +61,17 @@ const ComparativaCostosTransportistas: React.FC = () => {
   useEffect(() => {
     const cargarDatosFiltros = async () => {
       try {
-        const [transportistasData, tarifasData] = await Promise.all([
-          obtenerTransportistas(),
-          obtenerTarifas(),
-        ]);
+        const [transportistasData, vehiculosData, cargasData, zonasData] =
+          await Promise.all([
+            obtenerTransportistas(),
+            obtenerTiposVehiculo(),
+            obtenerCargas(),
+            obtenerZonas(),
+          ]);
         setTransportistas(transportistasData.filter((t) => t.activo));
-        setTarifas(tarifasData.filter((t) => t.esVigente));
+        setTiposVehiculo(vehiculosData.filter((v) => v.activo));
+        setTiposCarga(cargasData.filter((c) => c.activo));
+        setZonas(zonasData.filter((z) => z.activo));
       } catch (err) {
         setError("Error al cargar los filtros. Intente recargar la página.");
       } finally {
@@ -65,22 +81,25 @@ const ComparativaCostosTransportistas: React.FC = () => {
     cargarDatosFiltros();
   }, []);
 
-  const handleTransportistaChange = (
-    event: SelectChangeEvent<typeof selectedTransportistas>
-  ) => {
+  const handleTransportistaChange = (event: SelectChangeEvent<number[]>) => {
     const {
       target: { value },
     } = event;
-    setSelectedTransportistas(
-      typeof value === "string" ? value.split(",") : value
+    setSelectedTransportistaIds(
+      typeof value === "string" ? value.split(",").map(Number) : value
     );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedTransportistas.length < 2 || !selectedTarifaId) {
+    if (
+      selectedTransportistaIds.length < 2 ||
+      !selectedVehiculoId ||
+      !selectedCargaId ||
+      !selectedZonaId
+    ) {
       setError(
-        "Debe seleccionar al menos dos transportistas y un servicio base para comparar."
+        "Debe seleccionar al menos dos transportistas, un tipo de vehículo, un tipo de carga y una zona para comparar."
       );
       return;
     }
@@ -88,40 +107,44 @@ const ComparativaCostosTransportistas: React.FC = () => {
     setError(null);
     setReporte(null);
 
-    const tarifaBase = tarifas.find((t) => t.id === Number(selectedTarifaId));
-    if (!tarifaBase) {
-      setError("No se encontró la tarifa base seleccionada.");
-      setLoading(false);
-      return;
-    }
-
     const params = {
-      zonaId: tarifaBase.zonaId,
-      tipoVehiculoId: tarifaBase.tipoVehiculoId,
-      tipoCargaId: tarifaBase.tipoCargaId,
+      tipoVehiculoId: Number(selectedVehiculoId),
+      tipoCargaId: Number(selectedCargaId),
+      zonaId: Number(selectedZonaId),
     };
 
     try {
       const data = await getComparativaCostos(params);
 
-      const resultadoFiltrado = {
-        ...data,
-        comparativas: data.comparativas.filter((c) =>
-          selectedTransportistas.includes(c.transportista)
-        ),
-      };
+      // --- MODIFICACIÓN 2: Se enriquece la data del reporte para el display ---
+      const transportistasSeleccionados = transportistas.filter((t) =>
+        selectedTransportistaIds.includes(t.id)
+      );
 
-      if (resultadoFiltrado.comparativas.length === 0) {
+      const reporteFinal = transportistasSeleccionados
+        .map((transportista) => {
+          const infoCosto = data.comparativas.find(
+            (comp) => comp.transportista === transportista.nombreEmpresa
+          );
+          return {
+            id: transportista.id,
+            displayName: `${transportista.nombreEmpresa} (${transportista.contactoNombre})`,
+            costo: infoCosto ? infoCosto.costo : null,
+          };
+        })
+        .filter((item) => item.costo !== null) as ReporteEnriquecido[];
+
+      if (reporteFinal.length === 0) {
         setError(
-          "Ninguno de los transportistas seleccionados ofrece un servicio con las características del servicio base elegido."
+          "Ninguno de los transportistas seleccionados ofrece un servicio con las características elegidas."
         );
       }
 
-      setReporte(resultadoFiltrado);
+      setReporte(reporteFinal);
     } catch (err: any) {
       setError(
         err.message.includes("204")
-          ? "No se encontraron tarifas para el servicio base."
+          ? "No se encontraron tarifas para los criterios seleccionados."
           : "Ocurrió un error al generar el reporte."
       );
     } finally {
@@ -136,8 +159,8 @@ const ComparativaCostosTransportistas: React.FC = () => {
           Comparativa de Costos entre Transportistas
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          Seleccione los transportistas que desea comparar y un servicio base
-          para ver sus costos.
+          Seleccione transportistas, tipo de vehículo, tipo de carga y zona para
+          ver sus costos.
         </Typography>
       </Box>
 
@@ -164,37 +187,73 @@ const ComparativaCostosTransportistas: React.FC = () => {
             <Select
               labelId="transportistas-select-label"
               multiple
-              value={selectedTransportistas}
+              value={selectedTransportistaIds}
               onChange={handleTransportistaChange}
               input={<OutlinedInput label="Transportistas a Comparar" />}
-              renderValue={(selected) => selected.join(", ")}
+              renderValue={(selectedIds) => {
+                return transportistas
+                  .filter((t) => selectedIds.includes(t.id))
+                  .map((t) => `${t.nombreEmpresa} (${t.contactoNombre})`)
+                  .join(", ");
+              }}
             >
               {transportistas.map((t) => (
-                <MenuItem key={t.id} value={t.nombreEmpresa}>
+                <MenuItem key={t.id} value={t.id}>
                   <Checkbox
-                    checked={
-                      selectedTransportistas.indexOf(t.nombreEmpresa) > -1
-                    }
-                  />{" "}
-                  <ListItemText primary={t.nombreEmpresa} />
+                    checked={selectedTransportistaIds.indexOf(t.id) > -1}
+                  />
+                  <ListItemText
+                    primary={`${t.nombreEmpresa} (${t.contactoNombre})`}
+                    secondary={`CUIT: ${t.cuit}`}
+                  />
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
           <FormControl fullWidth size="small">
-            <InputLabel id="servicio-base-label">
-              Servicio Base para Comparar
-            </InputLabel>
+            <InputLabel id="vehiculo-select-label">Tipo de Vehículo</InputLabel>
             <Select
-              labelId="servicio-base-label"
-              value={selectedTarifaId}
-              label="Servicio Base para Comparar"
-              onChange={(e) => setSelectedTarifaId(e.target.value)}
+              labelId="vehiculo-select-label"
+              value={selectedVehiculoId}
+              label="Tipo de Vehículo"
+              onChange={(e) => setSelectedVehiculoId(e.target.value)}
             >
-              {tarifas.map((t) => (
-                <MenuItem key={t.id} value={t.id}>
-                  {t.nombreTarifa}
+              {tiposVehiculo.map((v) => (
+                <MenuItem key={v.id} value={v.id}>
+                  {v.nombre}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth size="small">
+            <InputLabel id="carga-select-label">Tipo de Carga</InputLabel>
+            <Select
+              labelId="carga-select-label"
+              value={selectedCargaId}
+              label="Tipo de Carga"
+              onChange={(e) => setSelectedCargaId(e.target.value)}
+            >
+              {tiposCarga.map((c) => (
+                <MenuItem key={c.id} value={c.id}>
+                  {c.nombre}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth size="small">
+            <InputLabel id="zona-select-label">Zona</InputLabel>
+            <Select
+              labelId="zona-select-label"
+              value={selectedZonaId}
+              label="Zona"
+              onChange={(e) => setSelectedZonaId(e.target.value)}
+            >
+              {zonas.map((z) => (
+                <MenuItem key={z.id} value={z.id}>
+                  {z.nombre}
                 </MenuItem>
               ))}
             </Select>
@@ -217,7 +276,8 @@ const ComparativaCostosTransportistas: React.FC = () => {
         </Alert>
       )}
 
-      {reporte && reporte.comparativas.length > 0 && (
+      {/* --- MODIFICACIÓN 3: La tabla ahora consume el reporte enriquecido --- */}
+      {reporte && reporte.length > 0 && (
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -227,10 +287,10 @@ const ComparativaCostosTransportistas: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {reporte.comparativas.map((item, index) => (
-                <TableRow key={index}>
+              {reporte.map((item) => (
+                <TableRow key={item.id}>
                   <TableCell component="th" scope="row">
-                    {item.transportista}
+                    {item.displayName}
                   </TableCell>
                   <TableCell align="right">
                     $

@@ -2,7 +2,8 @@ import { API_BASE_URL } from '../config/api';
 
 export type Transportista = {
   activo: boolean;
-  id: number;  // Cambiado de string a number (si usas ID numérico en backend)
+  id: number;
+  cuit: string; 
   nombreEmpresa: string;       
   contactoNombre: string;      
   contactoEmail: string;      

@@ -229,7 +229,7 @@ export const FormCrearTarifa: React.FC = () => {
         clave: "transportistaId",
         opciones: transportistas.map((t) => ({
           id: t.id,
-          nombre: t.nombreEmpresa,
+          nombre: `${t.nombreEmpresa} - ${t.contactoNombre} (${t.cuit})`,
         })),
         requerido: true,
       },

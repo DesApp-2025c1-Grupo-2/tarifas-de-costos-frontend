@@ -44,9 +44,10 @@ const cardConfigs: Record<Entidad, CardConfig> = {
   },
   transportista: {
     titleField: "nombreEmpresa",
-    subtitleField: "contactoNombre",
-    detailFields: ["contactoEmail", "contactoTelefono"],
+    subtitleField: "cuit",
+    detailFields: ["contactoNombre", "contactoEmail", "contactoTelefono"],
     fieldLabels: {
+      cuit: "CUIT",
       contactoNombre: "Contacto",
       contactoEmail: "Email",
       contactoTelefono: "Teléfono",

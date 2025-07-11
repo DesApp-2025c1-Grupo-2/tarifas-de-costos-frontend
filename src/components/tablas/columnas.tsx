@@ -34,6 +34,7 @@ export const columnas: Record<Entidad, GridColDef[]> = {
 
   transportista: [
     { field: "id", headerName: "ID", flex: 0 },
+    { field: "cuit", headerName: "CUIT", flex: 1 },
     { field: "contactoNombre", headerName: "Nombre", flex: 1 },
     { field: "nombreEmpresa", headerName: "Empresa", flex: 1 },
     { field: "contactoEmail", headerName: "Correo", flex: 1 },
@@ -78,6 +79,6 @@ export const columnas: Record<Entidad, GridColDef[]> = {
     { field: "id", headerName: "ID", flex: 0 },
     { field: "nombre", headerName: "Nombre", flex: 1 },
     { field: "descripcion", headerName: "Descripción", flex: 1 },
-    { field: "costoDefault", headerName: "Costo", type: "number", flex: 0 }
+    { field: "costoDefault", headerName: "Costo", type: "number", flex: 0 },
   ],
 };

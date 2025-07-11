@@ -12,6 +12,12 @@ import DialogoConfirmacion from "../DialogoConfirmacion";
 const camposTransportista: Campo[] = [
   {
     tipo: "text",
+    nombre: "CUIT",
+    clave: "cuit",
+    requerido: true,
+  },
+  {
+    tipo: "text",
     nombre: "Nombre de Contacto",
     clave: "contactoNombre",
     requerido: true,
@@ -49,6 +55,7 @@ export const FormCrearTransportista: React.FC = () => {
   const handleFormSubmit = (formValues: Record<string, any>) => {
     const data: Omit<Transportista, "id"> = {
       ...(editingItem ? editingItem : { activo: true }),
+      cuit: formValues.cuit,
       contactoNombre: formValues.contactoNombre,
       nombreEmpresa: formValues.nombreEmpresa,
       contactoEmail: formValues.contactoEmail,
