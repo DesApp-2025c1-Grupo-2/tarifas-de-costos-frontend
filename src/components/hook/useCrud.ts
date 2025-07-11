@@ -1,11 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CrudService } from '../../services/crudService';
 
+export type MessageState = {
+  text: string;
+  severity: 'success' | 'error';
+};
+
 export const useCrud = <T extends { id: number; activo?: boolean }>(service: CrudService<T>) => {
   const [items, setItems] = useState<T[]>([]);
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState<MessageState | null>(null);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [idToDelete, setIdToDelete] = useState<number | null>(null);
+
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
 
   const loadItems = useCallback(async () => {
     try {
@@ -13,7 +23,7 @@ export const useCrud = <T extends { id: number; activo?: boolean }>(service: Cru
       setItems(data.filter(item => item.activo !== false));
     } catch (error) {
       console.error('Error al cargar los items:', error);
-      setMessage('Error al cargar los datos.');
+      setMessage({ text: 'Error al cargar los datos.', severity: 'error' });
     }
   }, [service]);
 
@@ -23,21 +33,26 @@ export const useCrud = <T extends { id: number; activo?: boolean }>(service: Cru
 
   const handleSubmit = async (values: Omit<T, 'id'>) => {
     try {
+      let changedItem: T;
       if (editingItem) {
-        await service.update(editingItem.id, values);
-        setMessage('Elemento actualizado con éxito.');
+        changedItem = await service.update(editingItem.id, values);
+        setMessage({ text: 'Elemento actualizado con éxito.', severity: 'success' });
       } else {
-        await service.create(values);
-        setMessage('Elemento creado con éxito.');
+        changedItem = await service.create(values);
+        setMessage({ text: 'Elemento creado con éxito.', severity: 'success' });
       }
       setShowForm(false);
       setEditingItem(null);
-      loadItems();
+      await loadItems();
+      
+      setHighlightedId(changedItem.id);
+      setTimeout(() => setHighlightedId(null), 4000);
+
     } catch (err) {
       console.error(err);
-      setMessage('Error al guardar el elemento.');
+      setMessage({ text: 'Error al guardar el elemento.', severity: 'error' });
     } finally {
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(null), 3000);
     }
   };
 
@@ -45,17 +60,25 @@ export const useCrud = <T extends { id: number; activo?: boolean }>(service: Cru
     setEditingItem(item);
     setShowForm(true);
   };
+  
+  const handleDelete = (item: T) => {
+    setIdToDelete(item.id);
+    setConfirmOpen(true);
+  };
 
-  const handleDelete = async (id: number) => {
+  const confirmDelete = async () => {
+    if (idToDelete === null) return;
     try {
-      await service.remove(id);
-      setMessage('Elemento eliminado con éxito.');
+      await service.remove(idToDelete);
+      setMessage({ text: 'Elemento eliminado con éxito.', severity: 'success' });
       loadItems();
     } catch (err) {
       console.error(err);
-      setMessage('Error al eliminar el elemento.');
+      setMessage({ text: 'Error al eliminar el elemento.', severity: 'error' });
     } finally {
-      setTimeout(() => setMessage(''), 3000);
+      setConfirmOpen(false);
+      setIdToDelete(null);
+      setTimeout(() => setMessage(null), 3000);
     }
   };
 
@@ -74,6 +97,10 @@ export const useCrud = <T extends { id: number; activo?: boolean }>(service: Cru
     editingItem,
     showForm,
     message,
+    confirmOpen,
+    highlightedId,
+    setConfirmOpen,
+    confirmDelete,
     fetchItems: loadItems,
     setMessage,
     actions: {

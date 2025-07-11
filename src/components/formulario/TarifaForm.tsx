@@ -19,12 +19,13 @@ import {
 import { obtenerZonas, ZonaViaje } from "../../services/zonaService";
 import { obtenerCargas, Carga } from "../../services/cargaService";
 import { obtenerAdicionales, Adicional } from "../../services/adicionalService";
+import { MessageState } from "../hook/useCrud";
 
 export const FormCrearTarifa: React.FC = () => {
   const [tarifas, setTarifas] = useState<Tarifa[]>([]);
   const [editingItem, setEditingItem] = useState<Tarifa | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<MessageState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [viewingTarifa, setViewingTarifa] = useState<TarifaDetallada | null>(
@@ -39,7 +40,8 @@ export const FormCrearTarifa: React.FC = () => {
   const [cargas, setCargas] = useState<Carga[]>([]);
   const [adicionalesDb, setAdicionalesDb] = useState<Adicional[]>([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [tarifaAEliminar, setTarifaAEliminar] = useState<number | null>(null);
+  const [idAEliminar, setIdAEliminar] = useState<number | null>(null);
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
 
   const cargarTarifas = async () => {
     setIsLoading(true);
@@ -79,11 +81,11 @@ export const FormCrearTarifa: React.FC = () => {
         obtenerCargas(),
         obtenerAdicionales(),
       ]);
-      setTransportistas(transportistasData);
-      setTipoVehiculos(vehiculosData);
-      setZonas(zonasData);
-      setCargas(cargasData);
-      setAdicionalesDb(adicionalesData);
+      setTransportistas(transportistasData.filter((t) => t.activo));
+      setTipoVehiculos(vehiculosData.filter((v) => v.activo));
+      setZonas(zonasData.filter((z) => z.activo));
+      setCargas(cargasData.filter((c) => c.activo));
+      setAdicionalesDb(adicionalesData.filter((a) => a.activo && !a.esGlobal));
       return true;
     } catch (error) {
       alert("Error al cargar datos para el formulario. Intente de nuevo.");
@@ -120,7 +122,7 @@ export const FormCrearTarifa: React.FC = () => {
             descripcion: a.descripcion,
             costoDefault: a.precio,
             activo: true,
-            esGlobal: a.esGlobal !== undefined ? a.esGlobal : true, // Si es un adicional existente, es global
+            esGlobal: a.esGlobal !== undefined ? a.esGlobal : true,
           },
           costoEspecifico: parseFloat(a.costoEspecifico ?? a.precio ?? "0"),
         };
@@ -143,23 +145,34 @@ export const FormCrearTarifa: React.FC = () => {
     };
 
     try {
+      let changedItem: Tarifa;
       if (editingItem && editingItem.id) {
-        await tarifaService.actualizarTarifa(editingItem.id, payload);
-        setMessage("Tarifa actualizada con éxito");
+        changedItem = await tarifaService.actualizarTarifa(
+          editingItem.id,
+          payload
+        );
+        setMessage({
+          text: "Tarifa actualizada con éxito",
+          severity: "success",
+        });
       } else {
-        await tarifaService.crearTarifa(payload);
-        setMessage("Tarifa creada con éxito");
+        changedItem = await tarifaService.crearTarifa(payload);
+        setMessage({ text: "Tarifa creada con éxito", severity: "success" });
       }
       setShowForm(false);
       setEditingItem(null);
       await cargarTarifas();
       await cargarDependencias();
+      setHighlightedId(changedItem.id);
+      setTimeout(() => setHighlightedId(null), 4000);
     } catch (err) {
       const error = err as Error;
-      setMessage(`Error al guardar la tarifa: ${error.message}`);
-      console.error(err);
+      setMessage({
+        text: `Error al guardar la tarifa: ${error.message}`,
+        severity: "error",
+      });
     } finally {
-      setTimeout(() => setMessage(""), 5000);
+      setTimeout(() => setMessage(null), 5000);
     }
   };
 
@@ -175,24 +188,29 @@ export const FormCrearTarifa: React.FC = () => {
     setAdicionalesParaVer(adicionales);
   };
 
-  const handleDelete = (id: number) => {
-    setTarifaAEliminar(id);
+  const handleDelete = (item: Tarifa) => {
+    setIdAEliminar(item.id);
     setConfirmDialogOpen(true);
   };
 
   const confirmarEliminacion = async () => {
-    if (tarifaAEliminar !== null) {
+    if (idAEliminar !== null) {
       try {
-        await tarifaService.eliminarTarifa(tarifaAEliminar);
-        setMessage("Tarifa dada de baja con éxito");
+        await tarifaService.eliminarTarifa(idAEliminar);
+        setMessage({
+          text: "Tarifa dada de baja con éxito",
+          severity: "success",
+        });
         await cargarTarifas();
       } catch (err) {
-        setMessage("Error al dar de baja la tarifa");
-        console.error(err);
+        setMessage({
+          text: "Error al dar de baja la tarifa",
+          severity: "error",
+        });
       } finally {
         setConfirmDialogOpen(false);
-        setTarifaAEliminar(null);
-        setTimeout(() => setMessage(""), 3000);
+        setIdAEliminar(null);
+        setTimeout(() => setMessage(null), 3000);
       }
     }
   };
@@ -209,36 +227,31 @@ export const FormCrearTarifa: React.FC = () => {
         tipo: "select",
         nombre: "Transportista",
         clave: "transportistaId",
-        opciones: transportistas
-          .filter((t) => t.activo)
-          .map((t) => ({ id: t.id, nombre: t.nombreEmpresa })),
+        opciones: transportistas.map((t) => ({
+          id: t.id,
+          nombre: t.nombreEmpresa,
+        })),
         requerido: true,
       },
       {
         tipo: "select",
         nombre: "Tipo de vehículo",
         clave: "tipoVehiculoId",
-        opciones: tipoVehiculos
-          .filter((t) => t.activo)
-          .map((t) => ({ id: t.id, nombre: t.nombre })),
+        opciones: tipoVehiculos.map((t) => ({ id: t.id, nombre: t.nombre })),
         requerido: true,
       },
       {
         tipo: "select",
         nombre: "Zona",
         clave: "zonaId",
-        opciones: zonas
-          .filter((t) => t.activo)
-          .map((t) => ({ id: t.id, nombre: t.nombre })),
+        opciones: zonas.map((t) => ({ id: t.id, nombre: t.nombre })),
         requerido: true,
       },
       {
         tipo: "select",
         nombre: "Tipo de carga",
         clave: "tipoCargaId",
-        opciones: cargas
-          .filter((t) => t.activo)
-          .map((t) => ({ id: t.id, nombre: t.nombre })),
+        opciones: cargas.map((t) => ({ id: t.id, nombre: t.nombre })),
         requerido: true,
       },
       {
@@ -251,14 +264,12 @@ export const FormCrearTarifa: React.FC = () => {
         tipo: "adicionales",
         nombre: "Adicionales",
         clave: "adicionales",
-        opciones: adicionalesDb
-          .filter((a) => a.activo)
-          .map((a) => ({
-            id: a.id,
-            nombre: a.nombre,
-            descripcion: a.descripcion,
-            precio: Number(a.costoDefault) || 0,
-          })),
+        opciones: adicionalesDb.map((a) => ({
+          id: a.id,
+          nombre: a.nombre,
+          descripcion: a.descripcion,
+          precio: Number(a.costoDefault) || 0,
+        })),
       },
       { tipo: "resultado", nombre: "COSTO TOTAL:", clave: "total" },
     ],
@@ -288,9 +299,11 @@ export const FormCrearTarifa: React.FC = () => {
   return (
     <div>
       {!showForm && !isLoading && !loadingError && (
-        <BotonPrimario onClick={handleCrearClick}>
-          Crear nueva tarifa
-        </BotonPrimario>
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+          <BotonPrimario onClick={handleCrearClick}>
+            Crear nueva tarifa
+          </BotonPrimario>
+        </Box>
       )}
       {showForm && (
         <FormularioDinamico
@@ -317,6 +330,7 @@ export const FormCrearTarifa: React.FC = () => {
           handleDelete={handleDelete}
           handleView={handleView}
           handleMostrarAdicionales={handleMostrarAdicionales}
+          highlightedId={highlightedId}
         />
       )}
       <ModalVerTarifa
@@ -333,10 +347,19 @@ export const FormCrearTarifa: React.FC = () => {
         open={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
         onConfirm={confirmarEliminacion}
-        titulo="Confirmar eliminación"
-        descripcion="¿Estás seguro de que deseas dar de baja esta tarifa? Esta acción no se puede deshacer."
-        textoConfirmar="Eliminar"
+        titulo="Confirmar baja de tarifa"
+        descripcion="¿Estás seguro de que deseas dar de baja esta tarifa?"
       />
+      {message && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <Alert
+            severity={message.severity}
+            sx={{ width: "100%", maxWidth: "600px" }}
+          >
+            {message.text}
+          </Alert>
+        </Box>
+      )}
     </div>
   );
 };

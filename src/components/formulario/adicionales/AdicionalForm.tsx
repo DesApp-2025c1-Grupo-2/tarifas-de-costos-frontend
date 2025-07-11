@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box } from "@mui/material";
+import { Box, Alert } from "@mui/material";
 import FormularioDinamico, { Campo } from "../FormularioDinamico";
 import { BotonPrimario, BotonSecundario } from "../../Botones";
 import * as adicionalService from "../../../services/adicionalService";
@@ -8,6 +8,7 @@ import { Adicional } from "../../../services/adicionalService";
 import { useCrud } from "../../hook/useCrud";
 import { CrudService } from "../../../services/crudService";
 import { ModalPromoverAdicional } from "./ModalPromoverAdicional";
+import DialogoConfirmacion from "../../DialogoConfirmacion";
 
 const camposAdicional: Campo[] = [
   {
@@ -48,6 +49,10 @@ export const AdicionalForm: React.FC = () => {
     editingItem,
     showForm,
     message,
+    confirmOpen,
+    setConfirmOpen,
+    confirmDelete,
+    highlightedId,
     fetchItems,
     setMessage,
     actions,
@@ -71,14 +76,17 @@ export const AdicionalForm: React.FC = () => {
       const adicionalPromovido = { ...adicional, esGlobal: false };
       const { id, ...dataToUpdate } = adicionalPromovido;
       await adicionalService.actualizarAdicional(id, dataToUpdate);
-      setMessage("Adicional promovido con éxito.");
+      setMessage({
+        text: "Adicional promovido con éxito.",
+        severity: "success",
+      });
       fetchItems();
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.message || "Error al promover el adicional.";
-      setMessage(errorMsg);
+      setMessage({ text: errorMsg, severity: "error" });
     } finally {
-      setTimeout(() => setMessage(""), 3000);
+      setTimeout(() => setMessage(null), 3000);
     }
   };
 
@@ -86,7 +94,6 @@ export const AdicionalForm: React.FC = () => {
 
   return (
     <div>
-      {/* Contenedor que centra los botones */}
       <Box sx={{ display: "flex", gap: 2, mb: 2, justifyContent: "center" }}>
         <BotonPrimario onClick={actions.handleCreateNew}>
           Crear Adicional
@@ -116,14 +123,32 @@ export const AdicionalForm: React.FC = () => {
         onPromover={handlePromoverSubmit}
       />
 
-      {message && <div className="mensaje-exito">{message}</div>}
-
       <DataTable
         entidad="adicional"
         rows={adicionalesConstantes}
         handleEdit={actions.handleEdit}
         handleDelete={actions.handleDelete}
+        highlightedId={highlightedId}
       />
+
+      <DialogoConfirmacion
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        titulo="Confirmar eliminación"
+        descripcion="¿Estás seguro de que deseas eliminar este elemento?"
+      />
+
+      {message && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <Alert
+            severity={message.severity}
+            sx={{ width: "100%", maxWidth: "600px" }}
+          >
+            {message.text}
+          </Alert>
+        </Box>
+      )}
     </div>
   );
 };

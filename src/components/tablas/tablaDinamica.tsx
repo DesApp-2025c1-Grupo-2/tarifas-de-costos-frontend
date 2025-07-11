@@ -1,5 +1,3 @@
-// En: src/components/tablas/tablaDinamica.tsx
-
 import React, { useState, useMemo } from "react";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
@@ -19,16 +17,17 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EntityCard, { CardConfig } from "./EntityCard";
-
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
+import { keyframes } from "@emotion/react";
 
 interface DataTableProps {
   rows: any[];
   entidad: Entidad;
   handleEdit?: (row: any) => void;
-  handleDelete?: (id: number) => void;
+  handleDelete?: (row: any) => void;
   handleView?: (row: any) => void;
   handleMostrarAdicionales?: (adicionales: any[]) => void;
+  highlightedId?: number | null;
 }
 
 const cardConfigs: Record<Entidad, CardConfig> = {
@@ -88,6 +87,11 @@ const cardConfigs: Record<Entidad, CardConfig> = {
   },
 };
 
+const highlightAnimation = keyframes`
+  0% { background-color: rgba(124, 179, 66, 0.4); }
+  100% { background-color: transparent; }
+`;
+
 export default function DataTable({
   rows,
   entidad,
@@ -95,6 +99,7 @@ export default function DataTable({
   handleDelete,
   handleView,
   handleMostrarAdicionales,
+  highlightedId,
 }: DataTableProps) {
   const theme = useTheme();
   const esMovil = useMediaQuery(theme.breakpoints.down("md"));
@@ -206,7 +211,7 @@ export default function DataTable({
               variant="contained"
               size="small"
               color="error"
-              onClick={() => handleDelete(params.row.id)}
+              onClick={() => handleDelete(params.row)}
             >
               Eliminar
             </Button>
@@ -295,12 +300,20 @@ export default function DataTable({
             checkboxSelection={false}
             disableRowSelectionOnClick
             getRowId={(row) => row.id}
+            getRowClassName={(params) =>
+              params.id === highlightedId ? "highlight" : ""
+            }
             initialState={{
               sorting: { sortModel: [{ field: "id", sort: "desc" }] },
               pagination: { paginationModel: { page: 0, pageSize: 5 } },
             }}
             pageSizeOptions={[5, 10]}
-            sx={{ border: 0 }}
+            sx={{
+              border: 0,
+              "& .highlight": {
+                animation: `${highlightAnimation} 4s ease-out`,
+              },
+            }}
             localeText={esESGrid.components.MuiDataGrid.defaultProps.localeText}
           />
         </Paper>

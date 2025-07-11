@@ -29,13 +29,15 @@ const DialogoConfirmacion: React.FC<DialogoConfirmacionProps> = ({
 }) => {
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{titulo}</DialogTitle>
+      <DialogTitle sx={{ textAlign: "center" }}>{titulo}</DialogTitle>
       <DialogContent>
-        <DialogContentText>{descripcion}</DialogContentText>
+        <DialogContentText sx={{ textAlign: "center" }}>
+          {descripcion}
+        </DialogContentText>
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
         <Button onClick={onClose}>{textoCancelar}</Button>
-        <Button onClick={onConfirm} color="error" autoFocus>
+        <Button onClick={onConfirm} color="error" variant="contained" autoFocus>
           {textoConfirmar}
         </Button>
       </DialogActions>

@@ -6,10 +6,17 @@ import DataTable from "../tablas/tablaDinamica";
 import { Carga } from "../../services/cargaService";
 import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
+import { Box, Alert } from "@mui/material";
+import DialogoConfirmacion from "../DialogoConfirmacion";
 
 const camposCarga: Campo[] = [
   { tipo: "text", nombre: "Nombre", clave: "nombre", requerido: true },
-  { tipo: "text", nombre: "Descripción", clave: "descripcion", requerido: true },
+  {
+    tipo: "text",
+    nombre: "Descripción",
+    clave: "descripcion",
+    requerido: true,
+  },
 ];
 
 const servicioAdaptado: CrudService<Carga> = {
@@ -20,34 +27,35 @@ const servicioAdaptado: CrudService<Carga> = {
 };
 
 export const FormCrearCarga: React.FC = () => {
-  const { items, editingItem, showForm, message, actions } =
-    useCrud<Carga>(servicioAdaptado);
+  const {
+    items,
+    editingItem,
+    showForm,
+    message,
+    confirmOpen,
+    setConfirmOpen,
+    confirmDelete,
+    highlightedId,
+    actions,
+  } = useCrud<Carga>(servicioAdaptado);
 
-  /**
-   * Se ajusta la forma en que se construyen los datos para enviarlos.
-   * Esto asegura que siempre se envíe el campo 'activo' y que el 'id'
-   * se omita, cumpliendo el contrato Omit<Carga, 'id'>.
-   */
   const handleFormSubmit = (formValues: Record<string, any>) => {
     const data: Omit<Carga, "id"> = {
-      // Si estamos editando, usamos el item original como base para no perder su estado 'activo'.
-      // Si estamos creando, establecemos 'activo: true' por defecto.
       ...(editingItem ? editingItem : { activo: true }),
-      // Sobrescribimos con los valores del formulario.
       nombre: formValues.nombre,
       descripcion: formValues.descripcion,
     };
-
-    // El objeto 'data' no tiene 'id', por lo que coincide perfectamente con lo que handleSubmit espera.
     actions.handleSubmit(data);
   };
 
   return (
     <div>
       {!showForm && (
-        <BotonPrimario onClick={actions.handleCreateNew}>
-          Crear nuevo Tipo de Carga
-        </BotonPrimario>
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+          <BotonPrimario onClick={actions.handleCreateNew}>
+            Crear nuevo Tipo de Carga
+          </BotonPrimario>
+        </Box>
       )}
 
       {showForm && (
@@ -66,14 +74,32 @@ export const FormCrearCarga: React.FC = () => {
         />
       )}
 
-      {message && <div className="mensaje-exito">{message}</div>}
-
       <DataTable
         entidad="tipoDeCarga"
         rows={items}
         handleEdit={actions.handleEdit}
         handleDelete={actions.handleDelete}
+        highlightedId={highlightedId}
       />
+
+      <DialogoConfirmacion
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        titulo="Confirmar eliminación"
+        descripcion="¿Estás seguro de que deseas eliminar este tipo de carga?"
+      />
+
+      {message && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <Alert
+            severity={message.severity}
+            sx={{ width: "100%", maxWidth: "600px" }}
+          >
+            {message.text}
+          </Alert>
+        </Box>
+      )}
     </div>
   );
 };
