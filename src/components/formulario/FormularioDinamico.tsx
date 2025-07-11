@@ -1,4 +1,3 @@
-// En: src/components/formulario/FormularioDinamico.tsx
 import React, { useState, useEffect } from "react";
 import {
   BasicTextFields,
@@ -13,6 +12,8 @@ import {
   DialogContent,
   IconButton,
   Box,
+  FormControlLabel, // Importado
+  Switch, // Importado
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AdicionalSelector } from "./adicionales/AdicionalSelector";
@@ -20,7 +21,6 @@ import {
   ModalCrearAdicional,
   NuevoAdicional,
 } from "./adicionales/ModalCrearAdicional";
-import * as adicionalService from "../../services/adicionalService";
 
 export type Campo = {
   tipo:
@@ -32,7 +32,8 @@ export type Campo = {
     | "number"
     | "adicionales"
     | "resultado"
-    | "costoBase";
+    | "costoBase"
+    | "switch"; // Tipo añadido
   nombre: string;
   clave: string;
   opciones?: any[];
@@ -47,6 +48,7 @@ type Props = {
   modal?: boolean;
   open?: boolean;
   onClose?: () => void;
+  children?: React.ReactNode; // Se añade para permitir hijos
 };
 
 const FormularioDinamico: React.FC<Props> = ({
@@ -57,6 +59,7 @@ const FormularioDinamico: React.FC<Props> = ({
   modal = false,
   open = false,
   onClose,
+  children, // Se añade para permitir hijos
 }) => {
   const [valores, setValores] = useState<Record<string, any>>({});
   const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
@@ -74,13 +77,11 @@ const FormularioDinamico: React.FC<Props> = ({
 
   const validarFormulario = () => {
     const nuevosErrores: Record<string, string> = {};
-
     campos.forEach((campo) => {
       const valor = valores[campo.clave];
       const esRequerido = campo.hasOwnProperty("requerido")
         ? campo["requerido"]
         : false;
-
       if (
         esRequerido &&
         (!valor || (Array.isArray(valor) && valor.length === 0))
@@ -88,7 +89,6 @@ const FormularioDinamico: React.FC<Props> = ({
         nuevosErrores[campo.clave] = "Este campo es obligatorio";
       }
     });
-
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
@@ -100,27 +100,20 @@ const FormularioDinamico: React.FC<Props> = ({
     if (onClose) onClose();
   };
 
-  // --- INICIO DE LA MODIFICACIÓN ---
-  // Esta función ahora crea un adicional TEMPORAL en el estado del formulario.
   const handleCrearAdicional = async (nuevo: NuevoAdicional) => {
     const adicionalParaFormulario = {
-      // Usamos un ID temporal negativo para que React lo pueda usar como "key".
-      // El backend ignorará este ID.
       id: -Math.floor(Math.random() * 100000),
       nombre: nuevo.nombre,
       descripcion: nuevo.descripcion,
       precio: nuevo.precio,
       costoEspecifico: nuevo.precio,
       activo: true,
-      esGlobal: false, // ¡Clave! Este adicional no es global.
+      esGlobal: false,
     };
-
     const actuales = valores["adicionales"] || [];
     handleChange("adicionales", [...actuales, adicionalParaFormulario]);
-
     setModalNuevoAdicional(false);
   };
-  // --- FIN DE LA MODIFICACIÓN ---
 
   const contenidoFormulario = (
     <>
@@ -150,7 +143,6 @@ const FormularioDinamico: React.FC<Props> = ({
                   helperText={errores[campo.clave]}
                 />
               );
-
             case "select":
               return (
                 <BasicAutocomplete
@@ -163,7 +155,6 @@ const FormularioDinamico: React.FC<Props> = ({
                   helperText={errores[campo.clave]}
                 />
               );
-
             case "adicionales":
               return (
                 <AdicionalSelector
@@ -174,7 +165,6 @@ const FormularioDinamico: React.FC<Props> = ({
                   onCrearNuevo={() => setModalNuevoAdicional(true)}
                 />
               );
-
             case "resultado":
               const totalAdicionales = (valores["adicionales"] || []).reduce(
                 (
@@ -185,11 +175,9 @@ const FormularioDinamico: React.FC<Props> = ({
               );
               const costoBase = Number(valores["valorBase"] || 0);
               let displayValue = "";
-
               if (campo.clave === "total") {
                 displayValue = (costoBase + totalAdicionales).toFixed(2);
               }
-
               return (
                 <Resultado
                   key={campo.clave}
@@ -197,7 +185,6 @@ const FormularioDinamico: React.FC<Props> = ({
                   value={displayValue}
                 />
               );
-
             case "costoBase":
               return (
                 <NumberField
@@ -207,11 +194,29 @@ const FormularioDinamico: React.FC<Props> = ({
                   onChange={(val) => handleChange(campo.clave, val)}
                 />
               );
-
+            case "switch":
+              return (
+                <FormControlLabel
+                  key={campo.clave}
+                  control={
+                    <Switch
+                      checked={!!valores[campo.clave]}
+                      onChange={(e) =>
+                        handleChange(campo.clave, e.target.checked)
+                      }
+                      name={campo.clave}
+                    />
+                  }
+                  label={campo.nombre}
+                  sx={{ mt: 1, mb: 1, alignSelf: "flex-start" }}
+                />
+              );
             default:
               return null;
           }
         })}
+        {/* Renderiza los hijos aquí, para permitir componentes manuales como el switch */}
+        {children}
         <BotonGuardar />
       </Box>
       <ModalCrearAdicional

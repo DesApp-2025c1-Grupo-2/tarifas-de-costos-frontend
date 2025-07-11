@@ -1,26 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { Paper, Typography, Box, CircularProgress, Alert } from '@mui/material';
-import { obtenerAdicionales, Adicional } from '../../services/adicionalService';
-import { getFrecuenciaAdicionales, FrecuenciaAdicional } from '../../services/reporteService';
+import React, { useEffect, useState } from "react";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { Paper, Typography, Box, CircularProgress, Alert } from "@mui/material";
+import { obtenerAdicionales } from "../../services/adicionalService";
+import { getFrecuenciaAdicionales } from "../../services/reporteService";
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
 
 const columns: GridColDef[] = [
-  { field: 'id', headerName: 'ID', width: 90 },
-  { field: 'nombre', headerName: 'Nombre Adicional', flex: 1 },
-  { field: 'descripcion', headerName: 'Descripción', flex: 1 },
+  { field: "id", headerName: "ID", width: 90 },
+  { field: "nombre", headerName: "Nombre Adicional", flex: 1 },
+  { field: "descripcion", headerName: "Descripción", flex: 1 },
   {
-    field: 'cantidad',
-    headerName: 'Veces Utilizado',
-    type: 'number',
+    field: "cantidad",
+    headerName: "Veces Utilizado",
+    type: "number",
     width: 180,
   },
   {
-    field: 'costoDefault',
-    headerName: 'Costo Base',
-    type: 'number',
+    field: "costoDefault",
+    headerName: "Costo Base",
+    type: "number",
     width: 150,
-    valueFormatter: (value) => `$${((value as number) ?? 0).toFixed(2)}`
+    valueFormatter: (value) => `$${((value as number) ?? 0).toFixed(2)}`,
   },
 ];
 
@@ -37,15 +37,14 @@ const CatalogoAdicionales: React.FC = () => {
           getFrecuenciaAdicionales(),
         ]);
 
-        const activos = adicionales.filter(a => a.activo !== false);
+        // CORRECCIÓN: Se simplifica el filtro de activos.
+        const activos = adicionales.filter((a) => a.activo);
 
-        // Crear un map rápido por nombre para unir
         const frecuenciaMap = new Map(
-          frecuencia.map(f => [f.nombreAdicional, f.cantidad])
+          frecuencia.map((f) => [f.nombreAdicional, f.cantidad])
         );
 
-        // Combinar datos
-        const combinados = activos.map(a => ({
+        const combinados = activos.map((a) => ({
           ...a,
           cantidad: frecuenciaMap.get(a.nombre) ?? 0,
         }));
@@ -64,7 +63,14 @@ const CatalogoAdicionales: React.FC = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "200px",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -79,7 +85,7 @@ const CatalogoAdicionales: React.FC = () => {
       <Typography variant="h6" gutterBottom>
         Catálogo de Adicionales con Frecuencia de Uso
       </Typography>
-      <Box sx={{ height: 400, width: '100%' }}>
+      <Box sx={{ height: 400, width: "100%" }}>
         <DataGrid
           rows={adicionalesCombinados}
           columns={columns}
@@ -88,7 +94,7 @@ const CatalogoAdicionales: React.FC = () => {
               paginationModel: { page: 0, pageSize: 5 },
             },
             sorting: {
-              sortModel: [{ field: 'cantidad', sort: 'desc' }],
+              sortModel: [{ field: "cantidad", sort: "desc" }],
             },
           }}
           getRowId={(row) => row.id}

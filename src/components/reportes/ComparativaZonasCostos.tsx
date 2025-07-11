@@ -1,27 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import { Paper, Typography, Box, CircularProgress, Alert, List, ListItem, ListItemText, TextField } from '@mui/material';
-import { obtenerComparativaCostosPorZona, ZonaComparativa } from '../../services/zonaService';
- 
+import React, { useEffect, useState } from "react";
+import {
+  Paper,
+  Typography,
+  Box,
+  CircularProgress,
+  Alert,
+  List,
+  ListItem,
+  ListItemText,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from "@mui/material";
+import {
+  getComparativaGeneralPorZona,
+  ComparativaZonaStats,
+} from "../../services/reporteService";
 
 interface MinMaxZonaData {
   nombre: string;
   average: number;
 }
 
-const formatCurrency = (value: number | undefined) => {
-  return `$${(value ?? 0).toFixed(2)}`;
+const formatCurrency = (value: number) => {
+  if (typeof value !== "number") return "$0.00";
+  return `$${value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;
 };
 
 const ComparativaZonasCostos: React.FC = () => {
-  const [comparativaData, setComparativaData] = useState<Record<string, ZonaComparativa>>({});
+  const [comparativaData, setComparativaData] = useState<
+    Record<string, ComparativaZonaStats>
+  >({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [busquedaZona, setBusquedaZona] = useState<string>('');
+  const [busquedaZona, setBusquedaZona] = useState<string>("");
 
   useEffect(() => {
     const fetchComparativa = async () => {
       try {
-        const data = await obtenerComparativaCostosPorZona(); 
+        const data = await getComparativaGeneralPorZona();
         setComparativaData(data);
       } catch (err) {
         console.error("Error al cargar la comparativa de zonas y costos:", err);
@@ -30,13 +51,19 @@ const ComparativaZonasCostos: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchComparativa();
   }, []);
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "200px",
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -50,11 +77,13 @@ const ComparativaZonasCostos: React.FC = () => {
     zona.toLowerCase().includes(busquedaZona.toLowerCase())
   );
 
-  const zonasConPromedioValido: MinMaxZonaData[] = Object.entries(comparativaData)
-    .filter(([, stats]) => stats.average !== undefined && stats.average !== null && stats.average > 0) 
+  const zonasConPromedioValido: MinMaxZonaData[] = Object.entries(
+    comparativaData
+  )
+    .filter(([, stats]) => stats.average > 0)
     .map(([nombreZona, stats]) => ({
       nombre: nombreZona,
-      average: stats.average as number 
+      average: stats.average as number,
     }));
 
   let zonaMayorCosto: MinMaxZonaData | null = null;
@@ -62,26 +91,27 @@ const ComparativaZonasCostos: React.FC = () => {
 
   if (zonasConPromedioValido.length > 0) {
     zonaMayorCosto = zonasConPromedioValido.reduce((prev, current) =>
-      (prev.average > current.average) ? prev : current
+      prev.average > current.average ? prev : current
     );
     zonaMenorCosto = zonasConPromedioValido.reduce((prev, current) =>
-      (prev.average < current.average) ? prev : current
+      prev.average < current.average ? prev : current
     );
   }
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
-      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-        Zonas Destacadas por Costo Promedio
+      <Typography variant="h6" gutterBottom>
+        Análisis de Costos por Zona de Viaje
       </Typography>
-      <List sx={{mb:"1.2em"}}>
+      <List sx={{ mb: "1.2em" }}>
         {zonaMayorCosto && (
           <ListItem divider>
             <ListItemText
               primary="Zona con MAYOR Costo Promedio"
               secondary={
-                <Typography color="error">
-                  {zonaMayorCosto.nombre}: {formatCurrency(zonaMayorCosto.average)}
+                <Typography color="error" component="span">
+                  {zonaMayorCosto.nombre}:{" "}
+                  {formatCurrency(zonaMayorCosto.average)}
                 </Typography>
               }
             />
@@ -92,20 +122,20 @@ const ComparativaZonasCostos: React.FC = () => {
             <ListItemText
               primary="Zona con MENOR Costo Promedio"
               secondary={
-                <Typography color="success">
-                  {zonaMenorCosto.nombre}: {formatCurrency(zonaMenorCosto.average)}
+                <Typography color="success.main" component="span">
+                  {zonaMenorCosto.nombre}:{" "}
+                  {formatCurrency(zonaMenorCosto.average)}
                 </Typography>
               }
             />
           </ListItem>
         )}
-        {zonasConPromedioValido.length === 0 && (
-            <ListItem><ListItemText primary="No hay datos de tarifas válidos para comparar zonas." /></ListItem>
+        {zonasConPromedioValido.length === 0 && !loading && (
+          <ListItem>
+            <ListItemText primary="No hay datos de tarifas válidos para comparar zonas." />
+          </ListItem>
         )}
       </List>
-      <Typography variant="h6" gutterBottom>
-        Comparativa de Costos por Zona Geográfica
-      </Typography>
       <TextField
         label="Buscar Zona"
         variant="outlined"
@@ -115,30 +145,38 @@ const ComparativaZonasCostos: React.FC = () => {
         value={busquedaZona}
         onChange={(e) => setBusquedaZona(e.target.value)}
       />
-      <List>
-        {datosFiltrados.map(([nombreZona, stats]) => (
-          <ListItem key={nombreZona} divider>
-            <ListItemText
-              primary={<Typography variant="subtitle1">{nombreZona}</Typography>}
-              secondary={
-
-                <Box>
-                  {stats.count === 0 && stats.average === 0 ? (
-                    <Typography variant="body2" color="textSecondary">No hay tarifas registradas en esta zona.</Typography>
-                  ) : (
-                    <>
-                      <Typography variant="body2">Total Tarifas: {stats.count ?? 0}</Typography>
-                      <Typography variant="body2">Costo Mínimo: {formatCurrency(stats.min)}</Typography>
-                      <Typography variant="body2">Costo Máximo: {formatCurrency(stats.max)}</Typography>
-                      <Typography variant="body1" color="primary">Costo Promedio: {formatCurrency(stats.average)}</Typography>
-                    </>
-                  )}
-                </Box>
-              }
-            />
-          </ListItem>
-        ))}
-      </List>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableRow>
+              <TableCell>Zona de Viaje</TableCell>
+              <TableCell align="right">Tarifas Registradas</TableCell>
+              <TableCell align="right">Costo Mínimo</TableCell>
+              <TableCell align="right">Costo Promedio</TableCell>
+              <TableCell align="right">Costo Máximo</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {datosFiltrados.map(([nombreZona, stats]) => (
+              <TableRow key={nombreZona}>
+                <TableCell component="th" scope="row">
+                  {nombreZona}
+                </TableCell>
+                <TableCell align="right">{stats.count ?? 0}</TableCell>
+                <TableCell align="right">
+                  {stats.count > 0 ? formatCurrency(stats.min) : "-"}
+                </TableCell>
+                <TableCell align="right">
+                  {stats.count > 0 ? formatCurrency(stats.average) : "-"}
+                </TableCell>
+                <TableCell align="right">
+                  {stats.count > 0 ? formatCurrency(stats.max) : "-"}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Paper>
   );
 };

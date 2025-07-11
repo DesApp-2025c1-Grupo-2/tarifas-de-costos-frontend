@@ -2,9 +2,7 @@
 
 import { API_BASE_URL } from '../config/api';
 
-// --- INICIO DE LA MODIFICACIÓN ---
-// Se define el tipo 'Tarifa' para que coincida con los datos que la API envía y el formulario necesita.
-// Tu DTO en el backend debe enviar todos estos campos.
+
 export type Tarifa = {
   id: number;
   nombreTarifa: string;
@@ -35,8 +33,6 @@ export type Tarifa = {
   
   total?: number;
 };
-// --- FIN DE LA MODIFICACIÓN ---
-
 
 const TARIFAS_URL = `${API_BASE_URL}/tarifas`;
 
@@ -83,4 +79,17 @@ export async function eliminarTarifa(id: number | string): Promise<void> {
     method: 'PUT',
   });
   if (!res.ok) throw new Error('Error al eliminar tarifa');
+}
+export async function agregarAdicionalATarifa(tarifaId: number, datosAdicional: { adicional: { id: number }, costoEspecifico?: number }): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/tarifas/${tarifaId}/adicionales`, { // Asumiendo TARIFAS_URL está definido arriba
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datosAdicional),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Error al agregar el adicional: ${errorText}`);
+  }
+  return res.json();
 }
