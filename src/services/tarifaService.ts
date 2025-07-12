@@ -1,26 +1,20 @@
-// ruta: src/services/tarifaService.ts
-
 import { API_BASE_URL } from '../config/api';
+import { apiClient } from './apiClient'; // 👈 1. Importar el apiClient
 
-
+// --- TIPOS (Sin cambios) ---
 export type Tarifa = {
   id: number;
   nombreTarifa: string;
   valorBase: number;
   esVigente?: boolean;
-
   transportistaId: number;
   transportistaNombre: string;
-  
   tipoVehiculoId: number;
   tipoVehiculoNombre: string;
-
   zonaId: number;
   zonaNombre: string;
-
   tipoCargaId: number;
   tipoCargaNombre: string;
-
   adicionales: {
     adicional: {
       id: number;
@@ -30,66 +24,42 @@ export type Tarifa = {
     };
     costoEspecifico: number;
   }[];
-  
   total?: number;
 };
 
+// --- URL (Sin cambios) ---
 const TARIFAS_URL = `${API_BASE_URL}/tarifas`;
 
+// --- FUNCIONES (Refactorizadas) ---
+
+// 👇 2. Se usa apiClient.get y se mantiene la lógica de mapeo
 export async function obtenerTarifas(): Promise<Tarifa[]> {
-  const res = await fetch(TARIFAS_URL);
-  if (!res.ok) throw new Error('Error al obtener tarifas');
-
-  const data = await res.json();
-
+  const data = await apiClient.get<any[]>(TARIFAS_URL);
+  
+  // Se conserva la lógica de transformación específica de este endpoint
   return data.map((tarifa: any) => ({
     ...tarifa,
-    nombreTarifa: tarifa.nombre
+    // El backend devuelve 'nombre' pero el frontend espera 'nombreTarifa'
+    nombreTarifa: tarifa.nombre 
   }));
 }
 
-export const crearTarifa = async (tarifa: any) => {
-  const response = await fetch(TARIFAS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(tarifa),
-  });
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Error al crear la tarifa: ${errorText}`);
-  }
-  return response.json();
+// 👇 3. Reemplazado fetch con apiClient.post
+export function crearTarifa(tarifa: any): Promise<Tarifa> {
+  return apiClient.post<Tarifa>(TARIFAS_URL, tarifa);
 };
 
-export async function actualizarTarifa(id: number, data: any): Promise<Tarifa> {
-  const res = await fetch(`${TARIFAS_URL}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Error al actualizar la tarifa: ${errorText}`);
-  }
-  return res.json();
+// 👇 4. Reemplazado fetch con apiClient.put
+export function actualizarTarifa(id: number, data: any): Promise<Tarifa> {
+  return apiClient.put<Tarifa>(`${TARIFAS_URL}/${id}`, data);
 }
 
-export async function eliminarTarifa(id: number | string): Promise<void> {
-  const res = await fetch(`${TARIFAS_URL}/${id}/baja`, {
-    method: 'PUT',
-  });
-  if (!res.ok) throw new Error('Error al eliminar tarifa');
+// 👇 5. Reemplazado fetch con apiClient.baja
+export function eliminarTarifa(id: number | string): Promise<void> {
+  return apiClient.baja(`${TARIFAS_URL}/${id}/baja`);
 }
-export async function agregarAdicionalATarifa(tarifaId: number, datosAdicional: { adicional: { id: number }, costoEspecifico?: number }): Promise<any> {
-  const res = await fetch(`${API_BASE_URL}/tarifas/${tarifaId}/adicionales`, { // Asumiendo TARIFAS_URL está definido arriba
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(datosAdicional),
-  });
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error al agregar el adicional: ${errorText}`);
-  }
-  return res.json();
+// 👇 6. Reemplazado fetch con apiClient.post para agregar adicionales
+export function agregarAdicionalATarifa(tarifaId: number, datosAdicional: { adicional: { id: number }, costoEspecifico?: number }): Promise<any> {
+  return apiClient.post(`${TARIFAS_URL}/${tarifaId}/adicionales`, datosAdicional);
 }
