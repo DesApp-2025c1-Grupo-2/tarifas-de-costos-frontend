@@ -30,9 +30,10 @@ interface DataTableProps {
   handleDelete?: (row: any) => void;
   handleView?: (row: any) => void;
   handleMostrarAdicionales?: (adicionales: any[]) => void;
-  handleMostrarHistorial?: (tarifaId: number) => void; 
+  handleMostrarHistorial?: (tarifaId: number) => void;
   highlightedId?: number | null;
 }
+
 
 const cardConfigs: Record<Entidad, CardConfig> = {
   tarifa: {
@@ -301,6 +302,7 @@ export default function DataTable({
               onView={handleView!}
               onEdit={handleEdit!}
               onDelete={handleDelete!}
+              onHistory={entidad === 'tarifa' ? handleMostrarHistorial : undefined}
             />
           ))}
         </Box>

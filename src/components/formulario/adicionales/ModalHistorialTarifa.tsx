@@ -56,22 +56,18 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
 
   const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
   
-  const formatDate = (dateString: string) => {
-
-    const date = new Date(dateString);
+  const formatDate = (dateString: any) => {
+    if (typeof dateString !== 'string' || !dateString) {
+      return 'N/A';
+    }
+    
+    const compatibleDateString = dateString.replace('T', ' ');
+    const date = new Date(compatibleDateString);
     
     if (isNaN(date.getTime())) {
       return 'Fecha inválida';
     }
-
-    return new Intl.DateTimeFormat('es-AR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }).format(date);
+    return date.toLocaleString('es-AR');
   };
 
   return (
