@@ -1,5 +1,7 @@
 import { API_BASE_URL } from '../config/api';
+import { apiClient } from './apiClient'; // 👈 1. Importar el apiClient
 
+// --- TIPOS (Sin cambios) ---
 export type TipoVehiculo = {
   activo: boolean;
   id: number;
@@ -9,35 +11,27 @@ export type TipoVehiculo = {
   descripcion: string;
 };
 
+// --- URL (Sin cambios) ---
 const TIPOS_VEHICULO_URL = `${API_BASE_URL}/tipos-vehiculo`;
 
-export async function obtenerTiposVehiculo(): Promise<TipoVehiculo[]> {
-  const res = await fetch(TIPOS_VEHICULO_URL);
-  if (!res.ok) throw new Error('Error al obtener tipos de vehículo');
-  return res.json();
+// --- FUNCIONES (Refactorizadas) ---
+
+// 👇 2. Reemplazado fetch con apiClient.get
+export function obtenerTiposVehiculo(): Promise<TipoVehiculo[]> {
+  return apiClient.get<TipoVehiculo[]>(TIPOS_VEHICULO_URL);
 }
 
-export async function crearTipoVehiculo(data: Omit<TipoVehiculo, 'id'>): Promise<TipoVehiculo> {
-  const res = await fetch(TIPOS_VEHICULO_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error('Error al crear tipo de vehículo');
-  return res.json();
+// 👇 3. Reemplazado fetch con apiClient.post
+export function crearTipoVehiculo(data: Omit<TipoVehiculo, 'id'>): Promise<TipoVehiculo> {
+  return apiClient.post<TipoVehiculo>(TIPOS_VEHICULO_URL, data);
 }
 
-export async function actualizarTipoVehiculo(id: string, data: Omit<TipoVehiculo, 'id'>): Promise<TipoVehiculo> {
-  const res = await fetch(`${TIPOS_VEHICULO_URL}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error('Error al actualizar tipo de vehículo');
-  return res.json();
+// 👇 4. Reemplazado fetch con apiClient.put
+export function actualizarTipoVehiculo(id: string | number, data: Omit<TipoVehiculo, 'id'>): Promise<TipoVehiculo> {
+  return apiClient.put<TipoVehiculo>(`${TIPOS_VEHICULO_URL}/${id}`, data);
 }
 
-export async function eliminarTipoVehiculo(id: string): Promise<void> {
-  const res = await fetch(`${TIPOS_VEHICULO_URL}/${id}/baja`, { method: 'PUT' });
-  if (!res.ok) throw new Error('Error al eliminar tipo de vehículo');
+// 👇 5. Reemplazado fetch con apiClient.baja
+export function eliminarTipoVehiculo(id: string | number): Promise<void> {
+  return apiClient.baja(`${TIPOS_VEHICULO_URL}/${id}/baja`);
 }

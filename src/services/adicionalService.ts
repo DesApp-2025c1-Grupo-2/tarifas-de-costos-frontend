@@ -1,5 +1,6 @@
 
 import { API_BASE_URL } from '../config/api'; 
+import { apiClient } from './apiClient';
 
 export type Adicional = {
   activo: boolean;
@@ -16,32 +17,21 @@ const ADICIONALES_URL = `${API_BASE_URL}/adicionales`;
 /**
  * @returns 
  */
-export async function obtenerAdicionales(): Promise<Adicional[]> {
-  const res = await fetch(ADICIONALES_URL);
-  if (!res.ok) {
-    
-    const errorText = await res.text(); 
-    throw new Error(`Error al obtener adicionales: ${res.status} ${res.statusText} - ${errorText}`);
-  }
-  return res.json();
+export function obtenerAdicionales(): Promise<Adicional[]> {
+  return apiClient.get<Adicional[]>(ADICIONALES_URL);
 }
+
 
 /**
  * @param data 
  * @returns 
  */
-export async function crearAdicional(data: Omit<Adicional, 'id'>): Promise<Adicional> {
-  const res = await fetch(ADICIONALES_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error al crear adicional: ${res.status} ${res.statusText} - ${errorText}`);
-  }
-  return res.json();
+
+/** */
+export function crearAdicional(data: Omit<Adicional, 'id'>): Promise<Adicional> {
+  return apiClient.post<Adicional>(ADICIONALES_URL, data);
 }
+
 
 /**
 
@@ -49,29 +39,14 @@ export async function crearAdicional(data: Omit<Adicional, 'id'>): Promise<Adici
  * @param data 
  * @returns 
  */
-export async function actualizarAdicional(id: string | number, data: Omit<Adicional, 'id'>): Promise<Adicional> {
-  const res = await fetch(`${ADICIONALES_URL}/${id}`, { 
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error al actualizar adicional: ${res.status} ${res.statusText} - ${errorText}`);
-  }
-  return res.json();
+export function actualizarAdicional(id: string | number, data: Omit<Adicional, 'id'>): Promise<Adicional> {
+  return apiClient.put<Adicional>(`${ADICIONALES_URL}/${id}`, data);
 }
 
 /**.
  * @param id 
  * @returns 
  */
-export async function eliminarAdicional(id: string | number): Promise<void> {
-  const res = await fetch(`${ADICIONALES_URL}/${id}/baja`, { 
-    method: 'PUT',
-  });
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error al eliminar adicional: ${res.status} ${res.statusText} - ${errorText}`);
-  }
+export function eliminarAdicional(id: string | number): Promise<void> {
+  return apiClient.baja(`${ADICIONALES_URL}/${id}/baja`);
 }
