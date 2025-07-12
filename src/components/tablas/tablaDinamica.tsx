@@ -14,8 +14,11 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import HistoryIcon from '@mui/icons-material/History';
 import EntityCard, { CardConfig } from "./EntityCard";
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
 import { keyframes } from "@emotion/react";
@@ -27,6 +30,7 @@ interface DataTableProps {
   handleDelete?: (row: any) => void;
   handleView?: (row: any) => void;
   handleMostrarAdicionales?: (adicionales: any[]) => void;
+  handleMostrarHistorial?: (tarifaId: number) => void; 
   highlightedId?: number | null;
 }
 
@@ -100,6 +104,7 @@ export default function DataTable({
   handleDelete,
   handleView,
   handleMostrarAdicionales,
+  handleMostrarHistorial,
   highlightedId,
 }: DataTableProps) {
   const theme = useTheme();
@@ -207,6 +212,13 @@ export default function DataTable({
               Editar
             </Button>
           )}
+          {entidad === 'tarifa' && handleMostrarHistorial && (
+            <Tooltip title="Ver Historial">
+              <IconButton onClick={() => handleMostrarHistorial(params.row.id)} size="small">
+                <HistoryIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           {handleDelete && (
             <Button
               variant="contained"
@@ -228,6 +240,7 @@ export default function DataTable({
     handleDelete,
     handleView,
     handleMostrarAdicionales,
+    handleMostrarHistorial,
   ]);
 
   return (

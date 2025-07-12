@@ -20,6 +20,7 @@ import { obtenerZonas, ZonaViaje } from "../../services/zonaService";
 import { obtenerCargas, Carga } from "../../services/cargaService";
 import { obtenerAdicionales, Adicional } from "../../services/adicionalService";
 import { MessageState } from "../hook/useCrud";
+import { ModalHistorialTarifa } from "./adicionales/ModalHistorialTarifa";
 
 export const FormCrearTarifa: React.FC = () => {
   const [tarifas, setTarifas] = useState<Tarifa[]>([]);
@@ -42,6 +43,7 @@ export const FormCrearTarifa: React.FC = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [idAEliminar, setIdAEliminar] = useState<number | null>(null);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const [historialTarifaId, setHistorialTarifaId] = useState<number | null>(null);
 
   const cargarTarifas = async () => {
     setIsLoading(true);
@@ -215,6 +217,14 @@ export const FormCrearTarifa: React.FC = () => {
     }
   };
 
+  const handleMostrarHistorial = (tarifaId: number) => {
+    setHistorialTarifaId(tarifaId);
+  };
+
+  const handleCerrarHistorial = () => {
+    setHistorialTarifaId(null);
+  };
+
   const camposTarifa: Campo[] = useMemo(
     () => [
       {
@@ -330,6 +340,7 @@ export const FormCrearTarifa: React.FC = () => {
           handleDelete={handleDelete}
           handleView={handleView}
           handleMostrarAdicionales={handleMostrarAdicionales}
+          handleMostrarHistorial={handleMostrarHistorial}
           highlightedId={highlightedId}
         />
       )}
@@ -349,6 +360,11 @@ export const FormCrearTarifa: React.FC = () => {
         onConfirm={confirmarEliminacion}
         titulo="Confirmar baja de tarifa"
         descripcion="¿Estás seguro de que deseas dar de baja esta tarifa?"
+      />
+       <ModalHistorialTarifa
+        open={!!historialTarifaId}
+        onClose={handleCerrarHistorial}
+        tarifaId={historialTarifaId}
       />
       {message && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
