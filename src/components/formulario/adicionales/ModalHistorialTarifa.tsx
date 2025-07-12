@@ -56,18 +56,26 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
 
   const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
   
-  const formatDate = (dateString: any) => {
-    if (typeof dateString !== 'string' || !dateString) {
+  const formatDate = (dateArray: number[]) => {
+    if (!Array.isArray(dateArray) || dateArray.length < 6) {
       return 'N/A';
     }
     
-    const compatibleDateString = dateString.replace('T', ' ');
-    const date = new Date(compatibleDateString);
+    const [year, month, day, hour, minute, second] = dateArray;
+    
+    const date = new Date(year, month - 1, day, hour, minute, second);
     
     if (isNaN(date.getTime())) {
       return 'Fecha inválida';
     }
-    return date.toLocaleString('es-AR');
+
+    return date.toLocaleString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -105,7 +113,7 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
               <TableBody>
                 {historial.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell>{formatDate(item.fechaModificacion)}</TableCell>
+                    <TableCell>{formatDate(item.fechaModificacion as any)}</TableCell>
                     <TableCell>{item.nombreTarifa}</TableCell>
                     <TableCell>{formatCurrency(item.valorBase)}</TableCell>
                     <TableCell>{item.tipoVehiculo.nombre}</TableCell>
