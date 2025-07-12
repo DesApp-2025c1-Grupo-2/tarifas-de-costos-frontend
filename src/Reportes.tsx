@@ -6,6 +6,7 @@ import CatalogoAdicionales from "./components/reportes/CatalogoAdicionales";
 import ComparativaZonasCostos from "./components/reportes/ComparativaZonasCostos";
 import { TransportistasMasUtilizadosReporte } from "./components/reportes/TransportistasMasUtilizadosReporte";
 import ComparativaCostosTransportistas from "./components/reportes/ComparativaCostosTransportistas";
+import ComparativaAumentosReporte from "./components/reportes/ComparativaAumentosReporte";
 
 const Reportes: React.FC = () => {
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
@@ -57,6 +58,7 @@ const Reportes: React.FC = () => {
             <Tab label="Catálogo de Adicionales" />
             <Tab label="Transportistas Más Utilizados" />
             <Tab label="Comparativa por Transportista" />
+            <Tab label="Análisis de Aumentos" />
           </Tabs>
         </Box>
 
@@ -65,6 +67,7 @@ const Reportes: React.FC = () => {
           {tabIndex === 1 && <CatalogoAdicionales />}
           {tabIndex === 2 && <TransportistasMasUtilizadosReporte />}
           {tabIndex === 3 && <ComparativaCostosTransportistas />}
+          {tabIndex === 4 && <ComparativaAumentosReporte />}
         </Box>
       </Box>
     </Box>
