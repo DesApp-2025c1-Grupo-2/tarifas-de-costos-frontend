@@ -1,23 +1,19 @@
-// src/components/tablas/EntityCard.tsx
-
 import React from 'react';
 import { Paper, Box, Typography, Divider, IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import HistoryIcon from '@mui/icons-material/History'; 
 
-// Un tipo genérico para los items, que deben tener un ID.
 type EntityItem = {
   id: number;
-  [key: string]: any; // Permite cualquier otra propiedad
+  [key: string]: any; 
 };
 
-// Configuración para saber qué campos mostrar en la tarjeta.
 export interface CardConfig {
   titleField: string;
   subtitleField?: string;
   detailFields: string[];
-  // Mapeo de claves de campo a nombres para mostrar.
   fieldLabels: { [key: string]: string };
 }
 
@@ -26,10 +22,11 @@ interface EntityCardProps {
   config: CardConfig;
   onEdit: (item: EntityItem) => void;
   onDelete: (id: number) => void;
-  onView: (item: EntityItem) => void;
+  onView?: (item: EntityItem) => void; 
+  onHistory?: (id: number) => void; 
 }
 
-const EntityCard: React.FC<EntityCardProps> = ({ item, config, onEdit, onDelete, onView }) => {
+const EntityCard: React.FC<EntityCardProps> = ({ item, config, onEdit, onDelete, onView, onHistory }) => {
   return (
     <Paper sx={{ p: 2, mb: 2, borderRadius: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -37,8 +34,8 @@ const EntityCard: React.FC<EntityCardProps> = ({ item, config, onEdit, onDelete,
           {item[config.titleField] || 'N/A'}
         </Typography>
         {config.subtitleField && (
-            <Typography variant="body2" color="text.secondary">
-                {item[config.subtitleField]}
+            <Typography variant="h6" color="primary">
+                ${(item[config.subtitleField] || 0).toFixed(2)}
             </Typography>
         )}
       </Box>
@@ -57,6 +54,13 @@ const EntityCard: React.FC<EntityCardProps> = ({ item, config, onEdit, onDelete,
                 <IconButton onClick={() => onView(item)} size="small">
                     <VisibilityIcon fontSize="small" />
                 </IconButton>
+            </Tooltip>
+        )}
+        {onHistory && (
+            <Tooltip title="Ver Historial">
+              <IconButton onClick={() => onHistory(item.id)} size="small">
+                <HistoryIcon fontSize="small" />
+              </IconButton>
             </Tooltip>
         )}
         <Tooltip title="Editar">
