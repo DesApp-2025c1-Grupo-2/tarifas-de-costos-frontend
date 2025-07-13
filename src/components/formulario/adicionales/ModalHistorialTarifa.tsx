@@ -15,7 +15,14 @@ import {
   IconButton,
   CircularProgress,
   Box,
-  Alert
+  Alert,
+  Typography,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { obtenerHistorialPorTarifaId, HistorialTarifa } from '../../../services/historialService';
@@ -26,10 +33,22 @@ type Props = {
   tarifaId: number | null;
 };
 
+const parseDateArray = (dateArray: number[]): Date | null => {
+  if (!Array.isArray(dateArray) || dateArray.length < 6) {
+    return null;
+  }
+  const [year, month, day, hour, minute, second] = dateArray;
+  const date = new Date(year, month - 1, day, hour, minute, second);
+  return isNaN(date.getTime()) ? null : date;
+};
+
 export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId }) => {
   const [historial, setHistorial] = useState<HistorialTarifa[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const theme = useTheme();
+  const esMovil = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     if (open && tarifaId) {
@@ -42,7 +61,13 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
           if (data.length === 0) {
             setError("Esta tarifa no tiene un historial de cambios.");
           } else {
-            setHistorial(data);
+            const datosOrdenados = data.sort((a, b) => {
+              const dateA = parseDateArray(a.fechaModificacion as any);
+              const dateB = parseDateArray(b.fechaModificacion as any);
+              if (!dateA || !dateB) return 0;
+              return dateB.getTime() - dateA.getTime();
+            });
+            setHistorial(datosOrdenados);
           }
         })
         .catch(() => {
@@ -54,21 +79,12 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
     }
   }, [open, tarifaId]);
 
-  const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
+  const formatCurrency = (value: number) => `$${(value || 0).toFixed(2)}`;
   
   const formatDate = (dateArray: number[]) => {
-    if (!Array.isArray(dateArray) || dateArray.length < 6) {
-      return 'N/A';
-    }
+    const date = parseDateArray(dateArray);
+    if (!date) return 'N/A';
     
-    const [year, month, day, hour, minute, second] = dateArray;
-    
-    const date = new Date(year, month - 1, day, hour, minute, second);
-    
-    if (isNaN(date.getTime())) {
-      return 'Fecha inválida';
-    }
-
     return date.toLocaleString('es-AR', {
       day: '2-digit',
       month: '2-digit',
@@ -76,6 +92,71 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const renderContenido = () => {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    if (error) {
+      return <Alert severity="info">{error}</Alert>;
+    }
+
+    if (esMovil) {
+      return (
+        <List sx={{ pt: 0 }}>
+          {historial.map((item, index) => (
+            <React.Fragment key={item.id}>
+              <Paper sx={{ p: 2, my: 1 }}>
+                <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                  Cambio del {formatDate(item.fechaModificacion as any)}
+                </Typography>
+                <Divider sx={{ mb: 1 }} />
+                <ListItemText primary="Nombre Anterior" secondary={item.nombreTarifa} />
+                <ListItemText primary="Valor Base Anterior" secondary={formatCurrency(item.valorBase)} />
+                <ListItemText primary="Vehículo Anterior" secondary={item.tipoVehiculo.nombre} />
+                <ListItemText primary="Carga Anterior" secondary={item.tipoCargaTarifa.nombre} />
+                <ListItemText primary="Zona Anterior" secondary={item.zonaViaje.nombre} />
+              </Paper>
+            </React.Fragment>
+          ))}
+        </List>
+      );
+    } else {
+      return (
+        <TableContainer component={Paper}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Fecha de Modificación</TableCell>
+                <TableCell>Nombre Anterior</TableCell>
+                <TableCell>Valor Base Anterior</TableCell>
+                <TableCell>Vehículo Anterior</TableCell>
+                <TableCell>Carga Anterior</TableCell>
+                <TableCell>Zona Anterior</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {historial.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{formatDate(item.fechaModificacion as any)}</TableCell>
+                  <TableCell>{item.nombreTarifa}</TableCell>
+                  <TableCell>{formatCurrency(item.valorBase)}</TableCell>
+                  <TableCell>{item.tipoVehiculo.nombre}</TableCell>
+                  <TableCell>{item.tipoCargaTarifa.nombre}</TableCell>
+                  <TableCell>{item.zonaViaje.nombre}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      );
+    }
   };
 
   return (
@@ -91,40 +172,7 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert severity="info">{error}</Alert>
-        ) : (
-          <TableContainer component={Paper}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Fecha de Modificación</TableCell>
-                  <TableCell>Nombre Anterior</TableCell>
-                  <TableCell>Valor Base Anterior</TableCell>
-                  <TableCell>Vehículo Anterior</TableCell>
-                  <TableCell>Carga Anterior</TableCell>
-                  <TableCell>Zona Anterior</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {historial.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{formatDate(item.fechaModificacion as any)}</TableCell>
-                    <TableCell>{item.nombreTarifa}</TableCell>
-                    <TableCell>{formatCurrency(item.valorBase)}</TableCell>
-                    <TableCell>{item.tipoVehiculo.nombre}</TableCell>
-                    <TableCell>{item.tipoCargaTarifa.nombre}</TableCell>
-                    <TableCell>{item.zonaViaje.nombre}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
+        {renderContenido()}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} variant="contained">
