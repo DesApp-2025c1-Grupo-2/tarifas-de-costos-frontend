@@ -14,6 +14,7 @@ export type Entidad =
 export const columnas: Record<Entidad, GridColDef[]> = {
   tarifa: [
     { field: "id", headerName: "ID", flex: 0 },
+    { field: "nombre", headerName: "Tarifa", flex: 1 },
     { field: "transportistaNombre", headerName: "Transportista", flex: 1 },
     { field: "tipoVehiculoNombre", headerName: "Tipo de vehículo", flex: 1 },
     { field: "zonaNombre", headerName: "Zona", flex: 1 },
