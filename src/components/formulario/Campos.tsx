@@ -1,87 +1,144 @@
-type Text = {
-    nombre: string;
-    tipo: string;
-  };
-  
-export const TextInput = ({ nombre, tipo }: { nombre: string; tipo: string }) => {
+import * as React from "react";
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+import Autocomplete from "@mui/material/Autocomplete";
+import { Input, InputAdornment } from "@mui/material";
+
+
+type TextProps = {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  type?: "text" | "email" | "tel"; 
+  error?: boolean;
+  helperText?: string;
+};
+
+export const BasicTextFields: React.FC<TextProps> = ({
+  label,
+  value,
+  onChange,
+  type = "text",
+  error = false,
+  helperText = "",
+}) => (
+  <Box sx={{ mb: 1 }}>
+    <TextField
+      fullWidth
+      label={label}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      margin="normal"
+      type={type} 
+      error={error}
+      helperText={helperText}
+    />
+  </Box>
+);
+
+export type Opcion = {
+  id: string | number;
+  nombre: string;
+};
+
+type AutocompleteFieldProps = {
+  label: string;
+  opciones: Opcion[];
+  value: string;
+  onChange: (val: string) => void;
+  error?: boolean;
+  helperText?: string;
+};
+
+export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({
+  label,
+  opciones,
+  value,
+  onChange,
+  error = false,
+  helperText = "",
+}) => {
+  const selectedOption = opciones.find((op) => String(op.id) === value) || null;
+
   return (
-    <div className="form-group">
-      <label htmlFor={nombre.replace(/\s+/g, '-').toLowerCase()}>
-        {nombre}:
-      </label>
-      <input
-        type={tipo}
-        id={nombre.replace(/\s+/g, '-').toLowerCase()}
-        name={nombre}
-        className="form-control"
-        required
+    <Box sx={{ mb: 1 }}>
+      <Autocomplete
+        options={opciones}
+        getOptionLabel={(option: Opcion) => option.nombre}
+        value={selectedOption}
+        onChange={(_, newValue) => {
+          onChange(newValue ? String(newValue.id) : "");
+        }}
+        isOptionEqualToValue={(option, val) =>
+          String(option.id) === String(val.id)
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={label}
+            fullWidth
+            error={error}
+            helperText={helperText}
+          />
+        )}
+        renderOption={(props, option) => (
+          <li {...props} key={option.id}>
+            {option.nombre}
+          </li>
+        )}
       />
-    </div>
+    </Box>
   );
 };
-  
-type Select = {
-    nombre: string;
-    opciones: Array<string>;
-};
-  
-export const SelectField: React.FC<Select> = ({ nombre, opciones }) => {
-    const name = nombre;
-  
-    return (
-      <div className='text-field'>
-        <label htmlFor={nombre} className="label-espaciada">{nombre}</label>
-        <select id={name} className='select-field'>
-            <option value='default' selected>-</option>
-            {opciones.map((e) => 
-                <option value={e}>{e}</option>
-            )}
-        </select>
-      </div>
-    );
-};
 
-type Options = {
-    opciones: Array<string>;
-};
-
-export const ChipBlock: React.FC<Options> = ({ opciones }) => {
-    const op = opciones;
-
-    return (
-        <div>
-            <label>Requisitos especiales</label>
-            {opciones.map((e, index) => 
-                <Chip id={e} nombre={e} key={index}/>
-            )}
-        </div>
-    )
-};
-
-type ChipOp = {
-    id: string;
-    nombre: string;
-};
-
-const Chip: React.FC<ChipOp> = ({ id, nombre }) => {
-
-    return (
-        <div className="div-margin-top">
-            <input type='checkbox' id={String(id)} name={nombre} value={nombre}/>
-            <label htmlFor={nombre}>{nombre}</label>
-        </div>
-    )
+interface NumberFieldProps {
+  label: string;
+  value: string | number;
+  onChange: (value: string) => void;
 }
+
+export const NumberField: React.FC<NumberFieldProps> = ({
+  label,
+  value,
+  onChange,
+}) => {
+  return (
+    <FormControl fullWidth sx={{ m: 1, my: 2 }} variant="standard">
+      <InputLabel htmlFor="costoBase">{label}</InputLabel>
+      <Input
+        id="costoBase"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        type="number"
+        startAdornment={<InputAdornment position="start">$</InputAdornment>}
+      />
+    </FormControl>
+  );
+};
 
 type Res = {
-    nombre: string;
+  nombre: string;
+  value: string;
 };
 
-export const Resultado: React.FC<Res> = ({ nombre }) => {
-    return (
-        <div className='result'>
-            <p>{nombre}</p>
-            <p>$$$</p>
-        </div>
-    )
-}
+export const Resultado: React.FC<Res> = ({ nombre, value }) => {
+  return (
+    <Box sx={{ mb: 2 }}>
+      <FormControl fullWidth sx={{ m: 1, my: 2 }} variant="standard">
+        <InputLabel htmlFor={`resultado-${nombre.toLowerCase()}`}>
+          {nombre}
+        </InputLabel>
+        <Input
+          id={`resultado-${nombre.toLowerCase()}`}
+          value={value}
+          readOnly
+          startAdornment={<InputAdornment position="start">$</InputAdornment>}
+        />
+      </FormControl>
+    </Box>
+  );
+};

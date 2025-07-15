@@ -1,45 +1,45 @@
 import React from "react";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
-import * as transportistaService from "../../services/transportistaService";
+import * as tipoVehiculoService from "../../services/tipoVehiculoService";
 import DataTable from "../tablas/tablaDinamica";
-import { Transportista } from "../../services/transportistaService";
+import { TipoVehiculo } from "../../services/tipoVehiculoService";
 import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
 import { Box, Alert } from "@mui/material";
 import DialogoConfirmacion from "../DialogoConfirmacion";
 
-const camposTransportista: Campo[] = [
+const camposTipoVehiculo: Campo[] = [
+  { tipo: "text", nombre: "Tipo", clave: "nombre", requerido: true },
   {
     tipo: "text",
-    nombre: "CUIT",
-    clave: "cuit",
+    nombre: "Peso Máximo (KG)",
+    clave: "capacidadPesoKG",
     requerido: true,
   },
   {
     tipo: "text",
-    nombre: "Nombre de Contacto",
-    clave: "contactoNombre",
+    nombre: "Volumen Máximo (M³)",
+    clave: "capacidadVolumenM3",
     requerido: true,
   },
-  { tipo: "text", nombre: "Empresa", clave: "nombreEmpresa", requerido: true },
-  { tipo: "email", nombre: "Correo", clave: "contactoEmail", requerido: true },
   {
-    tipo: "tel",
-    nombre: "Teléfono",
-    clave: "contactoTelefono",
+    tipo: "text",
+    nombre: "Descripción",
+    clave: "descripcion",
     requerido: true,
   },
 ];
 
-const servicioAdaptado: CrudService<Transportista> = {
-  getAll: transportistaService.obtenerTransportistas,
-  create: transportistaService.crearTransportista,
-  update: transportistaService.actualizarTransportista,
-  remove: transportistaService.eliminarTransportista,
+const servicioAdaptado: CrudService<TipoVehiculo> = {
+  getAll: tipoVehiculoService.obtenerTiposVehiculo,
+  create: tipoVehiculoService.crearTipoVehiculo,
+  update: (id, data) =>
+    tipoVehiculoService.actualizarTipoVehiculo(id.toString(), data),
+  remove: (id) => tipoVehiculoService.eliminarTipoVehiculo(id.toString()),
 };
 
-export const FormCrearTransportista: React.FC = () => {
+export const FormCrearTipoVehiculo: React.FC = () => {
   const {
     items,
     editingItem,
@@ -50,16 +50,15 @@ export const FormCrearTransportista: React.FC = () => {
     confirmDelete,
     highlightedId,
     actions,
-  } = useCrud<Transportista>(servicioAdaptado);
+  } = useCrud<TipoVehiculo>(servicioAdaptado);
 
   const handleFormSubmit = (formValues: Record<string, any>) => {
-    const data: Omit<Transportista, "id"> = {
+    const data: Omit<TipoVehiculo, "id"> = {
       ...(editingItem ? editingItem : { activo: true }),
-      cuit: formValues.cuit,
-      contactoNombre: formValues.contactoNombre,
-      nombreEmpresa: formValues.nombreEmpresa,
-      contactoEmail: formValues.contactoEmail,
-      contactoTelefono: formValues.contactoTelefono,
+      nombre: formValues.nombre,
+      capacidadPesoKG: parseFloat(formValues.capacidadPesoKG),
+      capacidadVolumenM3: parseFloat(formValues.capacidadVolumenM3),
+      descripcion: formValues.descripcion,
     };
     actions.handleSubmit(data);
   };
@@ -69,7 +68,7 @@ export const FormCrearTransportista: React.FC = () => {
       {!showForm && (
         <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
           <BotonPrimario onClick={actions.handleCreateNew}>
-            Crear nuevo transportista
+            Crear nuevo tipo de vehiculo
           </BotonPrimario>
         </Box>
       )}
@@ -78,10 +77,10 @@ export const FormCrearTransportista: React.FC = () => {
         <FormularioDinamico
           titulo={
             editingItem
-              ? "Editar Transportista"
-              : "Registrar nuevo transportista"
+              ? "Editar Tipo de Vehículo"
+              : "Registrar nuevo Tipo de Vehículo"
           }
-          campos={camposTransportista}
+          campos={camposTipoVehiculo}
           onSubmit={handleFormSubmit}
           initialValues={editingItem}
           modal
@@ -91,7 +90,7 @@ export const FormCrearTransportista: React.FC = () => {
       )}
 
       <DataTable
-        entidad="transportista"
+        entidad="tipoDeVehiculo"
         rows={items}
         handleEdit={actions.handleEdit}
         handleDelete={actions.handleDelete}
@@ -103,7 +102,7 @@ export const FormCrearTransportista: React.FC = () => {
         onClose={() => setConfirmOpen(false)}
         onConfirm={confirmDelete}
         titulo="Confirmar eliminación"
-        descripcion="¿Estás seguro de que deseas eliminar este transportista?"
+        descripcion="¿Estás seguro de que deseas eliminar este tipo de vehículo?"
       />
 
       {message && (

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import { HeaderConMenu } from "./components/Header";
-import { FormCrearZona } from "./components/formulario/ZonaForm";
+import { FormCrearTipoVehiculo } from "./components/formulario/TipoVehiculoForm";
 import { Box } from "@mui/material";
 
-const CrearZona: React.FC = () => {
+const CrearVehiculo: React.FC = () => {
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
 
   const toggleSidebar = () => {
@@ -32,10 +32,10 @@ const CrearZona: React.FC = () => {
       <Sidebar isOpen={sidebarAbierta} toggleSidebar={toggleSidebar} />
 
       <Box component="main" sx={{ padding: "2rem" }}>
-        <FormCrearZona />
+        <FormCrearTipoVehiculo />
       </Box>
     </Box>
   );
 };
 
-export default CrearZona;
+export default CrearVehiculo;

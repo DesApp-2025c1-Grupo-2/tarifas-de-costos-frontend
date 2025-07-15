@@ -1,65 +1,117 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { ReactNode } from "react";
+import Button, { ButtonProps } from "@mui/material/Button";
 
-export const estiloBoton: React.CSSProperties = {
-    padding: '0.5rem 1rem',
-    marginTop: '16px',
-    backgroundColor: '#1B2A41',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    display: 'inline-block',
-    textDecoration: 'none',
-    textAlign: 'center'
-};
-
-interface BotonProps {
-    to: string;
-    texto: string;
+// Interfaz genérica para botones que reciben hijos (children)
+interface BotonConHijosProps extends ButtonProps {
+  children: ReactNode;
 }
 
-////////// CREAR NUEVA TARIFA //////////
+export function BotonPrimario({
+  children,
+  onClick,
+  ...props
+}: BotonConHijosProps) {
+  return (
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={onClick}
+      sx={{
+        backgroundColor: "#7CB342",
+        "&:hover": {
+          backgroundColor: "#689F38",
+        },
+        color: "#fff",
+        borderRadius: "8px",
+        px: 2,
+        py: 1,
+      }}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
+}
 
-const Boton: React.FC<BotonProps> = ({ to, texto }) => (
-    <Link to={to} style={estiloBoton}>
-        {texto}
-    </Link>
-);
+export function BotonSecundario({
+  children,
+  onClick,
+  ...props
+}: BotonConHijosProps) {
+  return (
+    <Button
+      variant="outlined"
+      color="primary"
+      onClick={onClick}
+      sx={{
+        borderColor: "#7CB342",
+        color: "#7CB342",
+        "&:hover": {
+          borderColor: "#689F38",
+          backgroundColor: "rgba(104, 159, 56, 0.04)",
+        },
+        borderRadius: "8px",
+        px: 2,
+        py: 1,
+      }}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
+}
 
-export const BotonTarifas: React.FC = () => (
-    <Boton to='./tarifas' texto='Tarifas' />
-);
+export function BotonGuardar() {
+  return (
+    <Button type="submit" variant="contained">
+      Guardar
+    </Button>
+  );
+}
 
-////////// GUARDAR //////////
+// Interfaz para botones de acción que no reciben hijos
+interface AccionBotonProps extends ButtonProps {}
 
-export const BotonGuardar: React.FC = () => (
-    <button style={{
-        padding: '0.5rem 1rem',
-        marginTop: '16px',
-        backgroundColor: '#1B2A41',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer'
-    }}>
-        Guardar
-    </button>
-);
+export function BotonEditar({ onClick, ...props }: AccionBotonProps) {
+  return (
+    <Button
+      variant="contained"
+      sx={{
+        backgroundColor: "#FF9800",
+        "&:hover": { backgroundColor: "#FB8C00" },
+        color: "#fff",
+        borderRadius: "4px",
+      }}
+      onClick={onClick}
+      {...props}
+    >
+      Editar
+    </Button>
+  );
+}
 
-// lo movi para que esten todos los botones juntos
-export const BotonNuevaTarifa: React.FC = () => (
-    <Link to="/crear-tarifa">
-        <button style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#1B2A41',
-            marginLeft: '24px',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer'
-        }}>
-            + Nueva Tarifa
-        </button>
-    </Link>
-);
+export function BotonEliminar({ onClick, ...props }: AccionBotonProps) {
+  return (
+    <Button
+      variant="contained"
+      sx={{
+        backgroundColor: "#FF3D00",
+        "&:hover": { backgroundColor: "#DD2C00" },
+        color: "#fff",
+        borderRadius: "4px",
+      }}
+      onClick={onClick}
+      {...props}
+    >
+      Eliminar
+    </Button>
+  );
+}
+
+export function BotonVer({ onClick, ...props }: AccionBotonProps) {
+  return (
+    <Button variant="contained" color="primary" onClick={onClick} {...props}>
+      Ver
+    </Button>
+  );
+}
