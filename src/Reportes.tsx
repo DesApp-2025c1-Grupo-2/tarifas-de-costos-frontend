@@ -56,18 +56,18 @@ const Reportes: React.FC = () => {
           >
             <Tab label="Comparativa Zonas y Costos" />
             <Tab label="Catálogo de Adicionales" />
-            <Tab label="Transportistas Más Utilizados" />
             <Tab label="Comparativa por Transportista" />
             <Tab label="Análisis de Aumentos" />
+            <Tab label="Transportistas Más Utilizados" />         
           </Tabs>
         </Box>
 
         <Box sx={{ mt: 2 }}>
           {tabIndex === 0 && <ComparativaZonasCostos />}
           {tabIndex === 1 && <CatalogoAdicionales />}
-          {tabIndex === 2 && <TransportistasMasUtilizadosReporte />}
-          {tabIndex === 3 && <ComparativaCostosTransportistas />}
-          {tabIndex === 4 && <ComparativaAumentosReporte />}
+          {tabIndex === 2 && <ComparativaCostosTransportistas />}
+          {tabIndex === 3 && <ComparativaAumentosReporte />}
+          {tabIndex === 4 && <TransportistasMasUtilizadosReporte />}
         </Box>
       </Box>
     </Box>
