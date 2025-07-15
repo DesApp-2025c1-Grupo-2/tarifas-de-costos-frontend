@@ -28,7 +28,6 @@ export const TransportistasMasUtilizadosReporte: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // CORRECCIÓN: Se utiliza la función del servicio en lugar de fetch directo.
         const result = await getTransportistasMasUtilizados();
         setData(result);
       } catch (err) {

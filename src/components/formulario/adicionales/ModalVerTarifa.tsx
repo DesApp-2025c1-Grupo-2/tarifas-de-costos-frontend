@@ -1,5 +1,3 @@
-// src/components/formulario/adicionales/ModalVerTarifa.tsx
-
 import React from "react";
 import {
   Dialog,

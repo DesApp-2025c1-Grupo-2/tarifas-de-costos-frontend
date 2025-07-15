@@ -195,6 +195,13 @@ export default function DataTable({
             gap: 1,
           }}
         >
+          {entidad === 'tarifa' && handleMostrarHistorial && (
+            <Tooltip title="Ver Historial">
+              <IconButton onClick={() => handleMostrarHistorial(params.row.id)} size="small">
+                <HistoryIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           {handleView && (
             <Button
               variant="outlined"
@@ -213,13 +220,7 @@ export default function DataTable({
               Editar
             </Button>
           )}
-          {entidad === 'tarifa' && handleMostrarHistorial && (
-            <Tooltip title="Ver Historial">
-              <IconButton onClick={() => handleMostrarHistorial(params.row.id)} size="small">
-                <HistoryIcon />
-              </IconButton>
-            </Tooltip>
-          )}
+          
           {handleDelete && (
             <Button
               variant="contained"
