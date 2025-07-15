@@ -6,12 +6,13 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemButton,
   ListItemText,
   CircularProgress,
   Alert,
   Typography,
   Box,
+  Button, 
+  Stack,  
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import {
@@ -30,7 +31,7 @@ export const ModalPromoverAdicional: React.FC<Props> = ({
   onClose,
   onPromover,
 }) => {
-  const [flotantes, setFlotantes] = useState<Adicional[]>([]);
+  const [adicionalesPersonalizados, setAdicionalesPersonalizados] = useState<Adicional[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,11 +39,9 @@ export const ModalPromoverAdicional: React.FC<Props> = ({
       setLoading(true);
       obtenerAdicionales()
         .then((data) => {
-          // Filtramos para obtener solo los adicionales que son flotantes (globales)
-          setFlotantes(data.filter((a) => a.esGlobal && a.activo));
+          setAdicionalesPersonalizados(data.filter((a) => a.esGlobal && a.activo));
         })
         .catch(() => {
-          /* Manejar error si es necesario */
         })
         .finally(() => setLoading(false));
     }
@@ -54,9 +53,9 @@ export const ModalPromoverAdicional: React.FC<Props> = ({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm"> 
       <DialogTitle>
-        Promover Adicional Flotante
+        Añadir Adicional Personalizado al Catálogo
         <IconButton
           aria-label="close"
           onClick={onClose}
@@ -67,8 +66,7 @@ export const ModalPromoverAdicional: React.FC<Props> = ({
       </DialogTitle>
       <DialogContent dividers>
         <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-          Seleccione un adicional para convertirlo en "constante" y poder
-          gestionarlo en la tabla principal.
+          Seleccione un adicional personalizado para añadirlo al catálogo principal y hacerlo reutilizable.
         </Typography>
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center" }}>
@@ -76,20 +74,28 @@ export const ModalPromoverAdicional: React.FC<Props> = ({
           </Box>
         ) : (
           <List>
-            {flotantes.length > 0 ? (
-              flotantes.map((ad) => (
-                <ListItem key={ad.id} disablePadding>
-                  <ListItemButton onClick={() => handleSelect(ad)}>
+            {adicionalesPersonalizados.length > 0 ? (
+              adicionalesPersonalizados.map((ad) => (
+                <ListItem key={ad.id} disablePadding sx={{ borderBottom: '1px solid #eee' }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" width="100%" paddingY={1}>
                     <ListItemText
                       primary={ad.nombre}
                       secondary={`Costo base: $${ad.costoDefault}`}
+                      sx={{ flexGrow: 1 }}
                     />
-                  </ListItemButton>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleSelect(ad)}
+                    >
+                      Añadir al Catálogo
+                    </Button>
+                  </Stack>
                 </ListItem>
               ))
             ) : (
               <Alert severity="info">
-                No hay adicionales flotantes disponibles para promover.
+                No hay adicionales personalizados disponibles para añadir al catálogo.
               </Alert>
             )}
           </List>

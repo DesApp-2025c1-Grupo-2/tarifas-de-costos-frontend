@@ -12,8 +12,8 @@ import {
   DialogContent,
   IconButton,
   Box,
-  FormControlLabel, // Importado
-  Switch, // Importado
+  FormControlLabel, 
+  Switch, 
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AdicionalSelector } from "./adicionales/AdicionalSelector";
@@ -33,7 +33,7 @@ export type Campo = {
     | "adicionales"
     | "resultado"
     | "costoBase"
-    | "switch"; // Tipo añadido
+    | "switch"; 
   nombre: string;
   clave: string;
   opciones?: any[];
@@ -48,7 +48,7 @@ type Props = {
   modal?: boolean;
   open?: boolean;
   onClose?: () => void;
-  children?: React.ReactNode; // Se añade para permitir hijos
+  children?: React.ReactNode; 
 };
 
 const FormularioDinamico: React.FC<Props> = ({
@@ -59,7 +59,7 @@ const FormularioDinamico: React.FC<Props> = ({
   modal = false,
   open = false,
   onClose,
-  children, // Se añade para permitir hijos
+  children, 
 }) => {
   const [valores, setValores] = useState<Record<string, any>>({});
   const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
@@ -108,7 +108,7 @@ const FormularioDinamico: React.FC<Props> = ({
       precio: nuevo.precio,
       costoEspecifico: nuevo.precio,
       activo: true,
-      esGlobal: false,
+      esGlobal: true,
     };
     const actuales = valores["adicionales"] || [];
     handleChange("adicionales", [...actuales, adicionalParaFormulario]);
@@ -215,7 +215,6 @@ const FormularioDinamico: React.FC<Props> = ({
               return null;
           }
         })}
-        {/* Renderiza los hijos aquí, para permitir componentes manuales como el switch */}
         {children}
         <BotonGuardar />
       </Box>

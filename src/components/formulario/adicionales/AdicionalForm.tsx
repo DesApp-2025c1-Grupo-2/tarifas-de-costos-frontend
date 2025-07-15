@@ -31,7 +31,7 @@ const camposAdicional: Campo[] = [
   },
   {
     tipo: "switch",
-    nombre: "Es Adicional Flotante (Global)",
+    nombre: "Crear como Adicional Personalizado (no aparecerá en la lista principal)",
     clave: "esGlobal",
   },
 ];
@@ -77,20 +77,20 @@ export const AdicionalForm: React.FC = () => {
       const { id, ...dataToUpdate } = adicionalPromovido;
       await adicionalService.actualizarAdicional(id, dataToUpdate);
       setMessage({
-        text: "Adicional promovido con éxito.",
+        text: "Adicional personalizado añadido a la lista.",
         severity: "success",
       });
       fetchItems();
     } catch (error: any) {
       const errorMsg =
-        error.response?.data?.message || "Error al promover el adicional.";
+        error.response?.data?.message || "Error al añadir el adicional.";
       setMessage({ text: errorMsg, severity: "error" });
     } finally {
       setTimeout(() => setMessage(null), 3000);
     }
   };
 
-  const adicionalesConstantes = items.filter((item) => !item.esGlobal);
+  const adicionalesDeLista = items.filter((item) => !item.esGlobal);
 
   return (
     <div>
@@ -99,7 +99,7 @@ export const AdicionalForm: React.FC = () => {
           Crear Adicional
         </BotonPrimario>
         <BotonSecundario onClick={() => setModalPromoverAbierto(true)}>
-          Promover Flotante
+          Añadir Desde Personalizados
         </BotonSecundario>
       </Box>
 
@@ -125,7 +125,7 @@ export const AdicionalForm: React.FC = () => {
 
       <DataTable
         entidad="adicional"
-        rows={adicionalesConstantes}
+        rows={adicionalesDeLista}
         handleEdit={actions.handleEdit}
         handleDelete={actions.handleDelete}
         highlightedId={highlightedId}
@@ -136,7 +136,7 @@ export const AdicionalForm: React.FC = () => {
         onClose={() => setConfirmOpen(false)}
         onConfirm={confirmDelete}
         titulo="Confirmar eliminación"
-        descripcion="¿Estás seguro de que deseas eliminar este elemento?"
+        descripcion="¿Estás seguro de que deseas eliminar este adicional?"
       />
 
       {message && (
