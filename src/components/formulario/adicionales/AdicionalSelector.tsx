@@ -143,7 +143,7 @@ export const AdicionalSelector: React.FC<Props> = ({
             Definir Precio para {editingAdicional?.nombre}
           </Typography>
           <TextField
-            label="Precio EspecÃ­fico"
+            label="Precio"
             type="number"
             fullWidth
             value={specificPrice}
