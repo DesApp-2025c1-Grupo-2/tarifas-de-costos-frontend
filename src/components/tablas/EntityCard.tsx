@@ -5,11 +5,11 @@ import { Paper, Box, Typography, Divider, IconButton, Tooltip } from '@mui/mater
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import HistoryIcon from '@mui/icons-material/History';
+import HistoryIcon from '@mui/icons-material/History'; 
 
 type EntityItem = {
   id: number;
-  [key: string]: any;
+  [key: string]: any; 
 };
 
 export interface CardConfig {
@@ -23,13 +23,13 @@ interface EntityCardProps {
   item: EntityItem;
   config: CardConfig;
   onEdit: (item: EntityItem) => void;
-  onDelete: (id: number) => void;
-  onView?: (item: EntityItem) => void;
-  onHistory?: (id: number) => void;
+  // MODIFICACIÓN: Se cambia el tipo de la prop para que espere el objeto completo.
+  onDelete: (item: EntityItem) => void;
+  onView?: (item: EntityItem) => void; 
+  onHistory?: (id: number) => void; 
 }
 
 const EntityCard: React.FC<EntityCardProps> = ({ item, config, onEdit, onDelete, onView, onHistory }) => {
-  // MODIFICACIÓN: Se obtiene el valor del subtítulo y se comprueba si es numérico.
   const subtitleValue = config.subtitleField ? item[config.subtitleField] : undefined;
   const isNumericSubtitle = typeof subtitleValue === 'number';
 
@@ -39,7 +39,6 @@ const EntityCard: React.FC<EntityCardProps> = ({ item, config, onEdit, onDelete,
         <Typography variant="subtitle1" fontWeight="bold">
           {item[config.titleField] || 'N/A'}
         </Typography>
-        {/* MODIFICACIÓN: Se renderiza el subtítulo de forma condicional */}
         {subtitleValue !== undefined && (
             <Typography variant="h6" color="primary">
               {isNumericSubtitle ? `$${(subtitleValue || 0).toFixed(2)}` : subtitleValue}
@@ -76,7 +75,8 @@ const EntityCard: React.FC<EntityCardProps> = ({ item, config, onEdit, onDelete,
           </IconButton>
         </Tooltip>
         <Tooltip title="Eliminar">
-          <IconButton onClick={() => onDelete(item.id)} size="small">
+          {/* MODIFICACIÓN: Se pasa el objeto 'item' completo en lugar de solo 'item.id'. */}
+          <IconButton onClick={() => onDelete(item)} size="small">
             <DeleteIcon color="error" fontSize="small" />
           </IconButton>
         </Tooltip>
