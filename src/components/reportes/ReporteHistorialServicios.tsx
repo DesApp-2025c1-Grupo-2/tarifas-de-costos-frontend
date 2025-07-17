@@ -28,6 +28,17 @@ import {
 import { getTransportistaProfile, TransportistaProfile } from '../../services/transportistaService';
 import { obtenerTransportistas, Transportista } from '../../services/transportistaService';
 
+
+const parseDateArray = (dateArray: number[]): Date | null => {
+  if (!Array.isArray(dateArray) || dateArray.length < 5) { 
+    return null;
+  }
+  const [year, month, day, hour, minute, second] = dateArray;
+  const date = new Date(year, month - 1, day, hour, minute, second || 0);
+  return isNaN(date.getTime()) ? null : date;
+};
+
+
 const ReporteHistorialServicios: React.FC = () => {
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [selectedTransportistaId, setSelectedTransportistaId] = useState<string>('');
@@ -80,11 +91,29 @@ const ReporteHistorialServicios: React.FC = () => {
       setLoading(false);
     }
   };
+  
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? 'Fecha inválida' : date.toLocaleDateString('es-AR');
+  const formatDate = (dateInput: string | number[]) => {
+    if (!dateInput) return 'N/A';
+    
+    let date: Date | null = null;
+
+    if (Array.isArray(dateInput)) {
+        date = parseDateArray(dateInput);
+    } else {
+        const parsed = new Date(dateInput);
+        if (!isNaN(parsed.getTime())) {
+            date = parsed;
+        }
+    }
+
+    if (!date) return 'Fecha inválida';
+
+    return date.toLocaleDateString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   const formatCurrency = (value: number) => `$${(value || 0).toFixed(2)}`;
@@ -146,7 +175,7 @@ const ReporteHistorialServicios: React.FC = () => {
               <Typography variant="h6" gutterBottom>Vehículos Disponibles</Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {profile.vehiculos.length > 0 ? profile.vehiculos.map(v => (
-                  <Chip key={v.id} label={v.tipoVehiculo} />
+                  <Chip key={v.id} label={v.nombre} />
                 )) : <Typography>No hay vehículos registrados.</Typography>}
               </Box>
             </Box>
@@ -168,7 +197,7 @@ const ReporteHistorialServicios: React.FC = () => {
                   <ListItem key={s.id} sx={{ p: 0, my: 1 }}>
                     <Paper sx={{ p: 2, width: '100%' }}>
                       <Typography variant="subtitle1" fontWeight="bold">
-                        Viaje del {formatDate(s.fechaViaje)}
+                        Tarifa Creada el {formatDate(s.fecha)}
                       </Typography>
                       <Divider sx={{ my: 1 }} />
                       <ListItemText primary="Tarifa Utilizada" secondary={s.nombreTarifaUtilizada || 'N/A'} />
@@ -183,7 +212,7 @@ const ReporteHistorialServicios: React.FC = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Fecha del Viaje</TableCell>
+                      <TableCell>Fecha de Creación</TableCell>
                       <TableCell>Tarifa Utilizada</TableCell>
                       <TableCell align="right">Costo de Tarifa ($)</TableCell>
                       <TableCell>Tipo de Carga</TableCell>
@@ -192,7 +221,7 @@ const ReporteHistorialServicios: React.FC = () => {
                   <TableBody>
                     {profile.historialServicios.map(s => (
                       <TableRow key={s.id}>
-                        <TableCell>{formatDate(s.fechaViaje)}</TableCell>
+                        <TableCell>{formatDate(s.fecha)}</TableCell>
                         <TableCell>{s.nombreTarifaUtilizada || 'N/A'}</TableCell>
                         <TableCell align="right">{formatCurrency(s.valorTotalTarifa)}</TableCell>
                         <TableCell>{s.nombreCarga || 'N/A'}</TableCell>

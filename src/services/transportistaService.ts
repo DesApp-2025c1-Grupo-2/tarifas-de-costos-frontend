@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../config/api';
 
 export interface VehiculoPerfil {
   id: number;
-  tipoVehiculo: string;
+  nombre: string; 
 }
 
 export interface ZonaOperacion {
@@ -13,7 +13,7 @@ export interface ZonaOperacion {
 
 export interface HistorialServicioPerfil {
   id: number;
-  fechaViaje: string;
+  fecha: string | number[]; 
   nombreTarifaUtilizada: string;
   valorTotalTarifa: number;
   nombreCarga: string;
