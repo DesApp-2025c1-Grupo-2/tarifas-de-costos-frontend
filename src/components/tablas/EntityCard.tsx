@@ -1,13 +1,15 @@
+// src/components/tablas/EntityCard.tsx
+
 import React from 'react';
 import { Paper, Box, Typography, Divider, IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import HistoryIcon from '@mui/icons-material/History'; 
+import HistoryIcon from '@mui/icons-material/History';
 
 type EntityItem = {
   id: number;
-  [key: string]: any; 
+  [key: string]: any;
 };
 
 export interface CardConfig {
@@ -22,20 +24,25 @@ interface EntityCardProps {
   config: CardConfig;
   onEdit: (item: EntityItem) => void;
   onDelete: (id: number) => void;
-  onView?: (item: EntityItem) => void; 
-  onHistory?: (id: number) => void; 
+  onView?: (item: EntityItem) => void;
+  onHistory?: (id: number) => void;
 }
 
 const EntityCard: React.FC<EntityCardProps> = ({ item, config, onEdit, onDelete, onView, onHistory }) => {
+  // MODIFICACIÓN: Se obtiene el valor del subtítulo y se comprueba si es numérico.
+  const subtitleValue = config.subtitleField ? item[config.subtitleField] : undefined;
+  const isNumericSubtitle = typeof subtitleValue === 'number';
+
   return (
     <Paper sx={{ p: 2, mb: 2, borderRadius: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="subtitle1" fontWeight="bold">
           {item[config.titleField] || 'N/A'}
         </Typography>
-        {config.subtitleField && (
+        {/* MODIFICACIÓN: Se renderiza el subtítulo de forma condicional */}
+        {subtitleValue !== undefined && (
             <Typography variant="h6" color="primary">
-                ${(item[config.subtitleField] || 0).toFixed(2)}
+              {isNumericSubtitle ? `$${(subtitleValue || 0).toFixed(2)}` : subtitleValue}
             </Typography>
         )}
       </Box>
