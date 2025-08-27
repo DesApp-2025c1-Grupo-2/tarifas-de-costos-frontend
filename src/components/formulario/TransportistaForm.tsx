@@ -54,7 +54,8 @@ export const FormCrearTransportista: React.FC = () => {
 
   const handleFormSubmit = (formValues: Record<string, any>) => {
     const data: Omit<Transportista, "id"> = {
-      ...(editingItem ? editingItem : { activo: true }),
+      ...(editingItem ?? {}),
+      activo: true,
       cuit: formValues.cuit,
       contactoNombre: formValues.contactoNombre,
       nombreEmpresa: formValues.nombreEmpresa,

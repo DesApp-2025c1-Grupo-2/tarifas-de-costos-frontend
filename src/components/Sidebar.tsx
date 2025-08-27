@@ -1,70 +1,113 @@
-// src/components/Sidebar.tsx
 import React from "react";
-import { Link } from "react-router-dom";
-import { Box, Typography } from "@mui/material";
-
-// Anchos ajustados
-const DESKTOP_DRAWER_WIDTH = 240;
-const MOBILE_DRAWER_WIDTH = 220; // Más angosto para que no ocupe tanto
+import { Link, useLocation } from "react-router-dom";
+import Drawer from "@mui/material/Drawer";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Toolbar from "@mui/material/Toolbar";
+import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import MapIcon from "@mui/icons-material/Map";
+import InventoryIcon from "@mui/icons-material/Inventory";
 
 interface SidebarProps {
-  isOpen: boolean;
-  toggleSidebar: () => void;
+  open: boolean;
+  onClose: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
+const drawerWidth = 240;
+
+const menuItems = [
+  { text: "Reportes", icon: <AssessmentIcon />, path: "/reportes" },
+  { text: "Tarifas", icon: <AttachMoneyIcon />, path: "/crear-tarifa" },
+  {
+    text: "Adicionales",
+    icon: <AddCircleOutlineIcon />,
+    path: "/crear-adicional",
+  },
+  {
+    text: "Transportistas",
+    icon: <LocalShippingIcon />,
+    path: "/crear-transportista",
+  },
+  { text: "Vehiculos", icon: <DirectionsCarIcon />, path: "/crear-vehiculo" },
+  { text: "Zonas", icon: <MapIcon />, path: "/crear-zona" },
+  { text: "Carga", icon: <InventoryIcon />, path: "/crear-carga" },
+];
+
+const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
+  const location = useLocation();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+
+  const drawer = (
+    <Box sx={{ backgroundColor: "#F39237", height: "100%", color: "black" }}>
+      <Toolbar />
+      <List>
+        {menuItems.map(({ text, icon, path }) => (
+          <ListItem key={text} disablePadding>
+            <ListItemButton
+              component={Link}
+              to={path}
+              onClick={!isDesktop ? onClose : undefined}
+              selected={location.pathname === path}
+              sx={{
+                "&:hover": {
+                  backgroundColor: "#FFB74D",
+                },
+                "&.Mui-selected": {
+                  backgroundColor: "#FFB74D",
+                  "&:hover": {
+                    backgroundColor: "#FFB74D",
+                  },
+                },
+                "& .MuiListItemIcon-root": {
+                  color: "inherit",
+                },
+              }}
+            >
+              <ListItemIcon>{icon}</ListItemIcon>
+              <ListItemText primary={text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+
   return (
     <Box
-      component="aside"
-      sx={{
-        position: "fixed",
-        top: 0,
-        // Ancho y posición 'left' responsivos
-        width: { xs: MOBILE_DRAWER_WIDTH, md: DESKTOP_DRAWER_WIDTH },
-        left: isOpen
-          ? 0
-          : {
-              xs: `-${MOBILE_DRAWER_WIDTH}px`,
-              md: `-${DESKTOP_DRAWER_WIDTH}px`,
-            },
-        height: "100%",
-        backgroundColor: "#1B2A41",
-        color: "white",
-        padding: "4em 0",
-        boxShadow: "2px 0 5px rgba(0,0,0,0.2)",
-        transition: "left 0.3s ease-in-out",
-        zIndex: 1001, // z-index alto para que esté por encima de todo
-        display: "flex",
-        flexDirection: "column",
-        a: {
-          color: "white",
-          textDecoration: "none",
-          padding: "12px 20px",
-          display: "block",
-          transition: "background-color 0.3s ease",
-          "&:hover": {
-            backgroundColor: "#F39237",
-          },
-        },
-      }}
+      component="nav"
+      sx={{ width: { md: open ? drawerWidth : 0 }, flexShrink: { md: 0 } }}
     >
-      <Typography
-        variant="h5"
-        component="h2"
-        sx={{ color: "white", paddingLeft: "0.8em", marginBottom: "1.5rem" }}
+      <Drawer
+        variant={isDesktop ? "persistent" : "temporary"}
+        open={open}
+        onClose={onClose}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          display: { xs: "block", md: "block" },
+          "& .MuiDrawer-paper": {
+            width: drawerWidth,
+            boxSizing: "border-box",
+            backgroundColor: "#F39237",
+            color: "black",
+          },
+        }}
       >
-        Menú Principal
-      </Typography>
-
-      <Link to="/reportes">Reportes</Link>
-      <Link to="/crear-tarifa">Tarifas</Link>
-      <Link to="/crear-adicional">Adicionales</Link>
-      <Link to="/crear-transportista">Transportistas</Link>
-      <Link to="/crear-vehiculo">Vehiculos</Link>
-      <Link to="/crear-zona">Zonas</Link>
-      <Link to="/crear-carga">Carga</Link>
+        {drawer}
+      </Drawer>
     </Box>
   );
 };
 
 export default Sidebar;
+export type { SidebarProps };

@@ -1,3 +1,5 @@
+// ruta: src/components/formulario/adicionales/ModalVerAdicionales.tsx
+
 import React from "react";
 import {
   Dialog,
@@ -16,6 +18,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
+// Se definen los tipos de datos que el componente espera recibir.
 type AdicionalItem = {
   adicional: {
     id: number;
@@ -30,12 +33,14 @@ type Props = {
   adicionales: AdicionalItem[];
 };
 
-
+// Se define el componente funcional de React.
 export const ModalVerAdicionales: React.FC<Props> = ({
   open,
   onClose,
   adicionales,
 }) => {
+  // El componente siempre retorna un Dialog. La visibilidad se controla
+  // exclusivamente a través de la prop 'open' que viene desde el componente padre.
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle>
@@ -59,6 +64,7 @@ export const ModalVerAdicionales: React.FC<Props> = ({
               </TableRow>
             </TableHead>
             <TableBody>
+              {/* Se realiza un mapeo seguro. Si 'adicionales' es nulo o indefinido, no dará error. */}
               {adicionales?.map((item) => (
                 <TableRow key={item.adicional.id}>
                   <TableCell>{item.adicional.id}</TableCell>

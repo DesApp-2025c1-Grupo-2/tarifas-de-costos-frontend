@@ -1,7 +1,7 @@
 import React, { ReactNode } from "react";
 import Button, { ButtonProps } from "@mui/material/Button";
+import { useTheme } from "@mui/material/styles";
 
-// Interfaz genérica para botones que reciben hijos (children)
 interface BotonConHijosProps extends ButtonProps {
   children: ReactNode;
 }
@@ -11,20 +11,22 @@ export function BotonPrimario({
   onClick,
   ...props
 }: BotonConHijosProps) {
+  const theme = useTheme();
   return (
     <Button
       variant="contained"
       color="primary"
       onClick={onClick}
       sx={{
-        backgroundColor: "#7CB342",
+        backgroundColor: theme.palette.primary.main,
         "&:hover": {
-          backgroundColor: "#689F38",
+          backgroundColor: theme.palette.primary.dark,
         },
-        color: "#fff",
+        color: theme.palette.primary.contrastText,
         borderRadius: "8px",
         px: 2,
         py: 1,
+        ...theme.typography.button,
       }}
       {...props}
     >
@@ -38,21 +40,23 @@ export function BotonSecundario({
   onClick,
   ...props
 }: BotonConHijosProps) {
+  const theme = useTheme();
   return (
     <Button
       variant="outlined"
       color="primary"
       onClick={onClick}
       sx={{
-        borderColor: "#7CB342",
-        color: "#7CB342",
+        borderColor: theme.palette.primary.main,
+        color: theme.palette.primary.main,
         "&:hover": {
-          borderColor: "#689F38",
-          backgroundColor: "rgba(104, 159, 56, 0.04)",
+          borderColor: theme.palette.primary.dark,
+          backgroundColor: theme.palette.primary.light,
         },
         borderRadius: "8px",
         px: 2,
         py: 1,
+        ...theme.typography.button,
       }}
       {...props}
     >
@@ -69,18 +73,19 @@ export function BotonGuardar() {
   );
 }
 
-// Interfaz para botones de acción que no reciben hijos
 interface AccionBotonProps extends ButtonProps {}
 
 export function BotonEditar({ onClick, ...props }: AccionBotonProps) {
+  const theme = useTheme();
   return (
     <Button
       variant="contained"
       sx={{
-        backgroundColor: "#FF9800",
-        "&:hover": { backgroundColor: "#FB8C00" },
-        color: "#fff",
+        backgroundColor: theme.palette.secondary.main,
+        "&:hover": { backgroundColor: theme.palette.secondary.dark },
+        color: theme.palette.secondary.contrastText,
         borderRadius: "4px",
+        ...theme.typography.button,
       }}
       onClick={onClick}
       {...props}
@@ -91,14 +96,16 @@ export function BotonEditar({ onClick, ...props }: AccionBotonProps) {
 }
 
 export function BotonEliminar({ onClick, ...props }: AccionBotonProps) {
+  const theme = useTheme();
   return (
     <Button
       variant="contained"
       sx={{
-        backgroundColor: "#FF3D00",
-        "&:hover": { backgroundColor: "#DD2C00" },
-        color: "#fff",
+        backgroundColor: theme.palette.error.main,
+        "&:hover": { backgroundColor: theme.palette.error.dark },
+        color: theme.palette.error.contrastText,
         borderRadius: "4px",
+        ...theme.typography.button,
       }}
       onClick={onClick}
       {...props}
@@ -109,8 +116,15 @@ export function BotonEliminar({ onClick, ...props }: AccionBotonProps) {
 }
 
 export function BotonVer({ onClick, ...props }: AccionBotonProps) {
+  const theme = useTheme();
   return (
-    <Button variant="contained" color="primary" onClick={onClick} {...props}>
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={onClick}
+      sx={{ ...theme.typography.button }}
+      {...props}
+    >
       Ver
     </Button>
   );

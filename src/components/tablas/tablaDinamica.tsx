@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
+import { Card, CardHeader, CardContent } from "@mui/material";
 import { columnas, Entidad } from "./columnas";
 import {
   Box,
@@ -18,7 +18,7 @@ import {
   IconButton,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import HistoryIcon from '@mui/icons-material/History';
+import HistoryIcon from "@mui/icons-material/History";
 import EntityCard, { CardConfig } from "./EntityCard";
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
 import { keyframes } from "@emotion/react";
@@ -33,7 +33,6 @@ interface DataTableProps {
   handleMostrarHistorial?: (tarifaId: number) => void;
   highlightedId?: number | null;
 }
-
 
 const cardConfigs: Record<Entidad, CardConfig> = {
   tarifa: {
@@ -93,6 +92,15 @@ const cardConfigs: Record<Entidad, CardConfig> = {
   },
 };
 
+const titulosEntidad: Record<Entidad, string> = {
+  tarifa: "Tarifas",
+  transportista: "Transportistas",
+  tipoDeVehiculo: "Tipos de Vehículo",
+  tipoDeCarga: "Tipos de Carga",
+  zona: "Zonas",
+  adicional: "Adicionales",
+};
+
 const highlightAnimation = keyframes`
   0% { background-color: rgba(124, 179, 66, 0.4); }
   100% { background-color: transparent; }
@@ -118,7 +126,6 @@ export default function DataTable({
       entidad === "tarifa"
         ? rows.filter((row) => row.esVigente !== false)
         : rows.filter((row) => row.activo !== false);
-
     return filteredRows.filter((row) =>
       columnasBase.every((col) => {
         const valFiltro = filtros[col.field];
@@ -184,6 +191,8 @@ export default function DataTable({
       headerName: "Acciones",
       width: 280,
       sortable: false,
+      align: "right",
+      headerAlign: "right",
       renderCell: (params) => (
         <Box
           sx={{
@@ -191,17 +200,10 @@ export default function DataTable({
             height: "100%",
             display: "flex",
             alignItems: "center",
-            justifyContent: "flex-start",
+            justifyContent: "flex-end",
             gap: 1,
           }}
         >
-          {entidad === 'tarifa' && handleMostrarHistorial && (
-            <Tooltip title="Ver Historial">
-              <IconButton onClick={() => handleMostrarHistorial(params.row.id)} size="small">
-                <HistoryIcon />
-              </IconButton>
-            </Tooltip>
-          )}
           {handleView && (
             <Button
               variant="outlined"
@@ -220,7 +222,16 @@ export default function DataTable({
               Editar
             </Button>
           )}
-          
+          {entidad === "tarifa" && handleMostrarHistorial && (
+            <Tooltip title="Ver Historial">
+              <IconButton
+                onClick={() => handleMostrarHistorial(params.row.id)}
+                size="small"
+              >
+                <HistoryIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           {handleDelete && (
             <Button
               variant="contained"
@@ -303,37 +314,50 @@ export default function DataTable({
               onView={handleView!}
               onEdit={handleEdit!}
               onDelete={handleDelete!}
-              onHistory={entidad === 'tarifa' ? handleMostrarHistorial : undefined}
+              onHistory={
+                entidad === "tarifa" ? handleMostrarHistorial : undefined
+              }
             />
           ))}
         </Box>
       ) : (
-        <Paper sx={{ p: { xs: 1, md: 2 } }}>
-          <DataGrid
-            rows={rowsFiltrados}
-            columns={columnasConAcciones}
-            autoHeight
-            disableColumnMenu
-            checkboxSelection={false}
-            disableRowSelectionOnClick
-            getRowId={(row) => row.id}
-            getRowClassName={(params) =>
-              params.id === highlightedId ? "highlight" : ""
-            }
-            initialState={{
-              sorting: { sortModel: [{ field: "id", sort: "desc" }] },
-              pagination: { paginationModel: { page: 0, pageSize: 5 } },
-            }}
-            pageSizeOptions={[5, 10]}
-            sx={{
-              border: 0,
-              "& .highlight": {
-                animation: `${highlightAnimation} 4s ease-out`,
-              },
-            }}
-            localeText={esESGrid.components.MuiDataGrid.defaultProps.localeText}
-          />
-        </Paper>
+        <Card>
+          <CardHeader title={titulosEntidad[entidad]} />
+          <CardContent sx={{ p: { xs: 1, md: 2 } }}>
+            <DataGrid
+              rows={rowsFiltrados}
+              columns={columnasConAcciones}
+              autoHeight
+              disableColumnMenu
+              checkboxSelection={false}
+              disableRowSelectionOnClick
+              getRowId={(row) => row.id}
+              getRowClassName={(params) =>
+                params.id === highlightedId ? "highlight" : ""
+              }
+              initialState={{
+                sorting: { sortModel: [{ field: "id", sort: "desc" }] },
+                pagination: { paginationModel: { page: 0, pageSize: 5 } },
+              }}
+              pageSizeOptions={[5, 10]}
+              sx={{
+                border: 0,
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: theme.palette.grey[200],
+                },
+                "& .MuiDataGrid-row:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+                "& .highlight": {
+                  animation: `${highlightAnimation} 4s ease-out`,
+                },
+              }}
+              localeText={
+                esESGrid.components.MuiDataGrid.defaultProps.localeText
+              }
+            />
+          </CardContent>
+        </Card>
       )}
     </Box>
   );

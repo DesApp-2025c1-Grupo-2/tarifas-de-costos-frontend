@@ -42,7 +42,8 @@ export const FormCrearZona: React.FC = () => {
 
   const handleFormSubmit = (formValues: Record<string, any>) => {
     const data: Omit<ZonaViaje, "id"> = {
-      ...(editingItem ? editingItem : { activo: true }),
+      ...(editingItem ?? {}),
+      activo: true,
       nombre: formValues.nombre,
       descripcion: formValues.descripcion,
       regionMapa: formValues.regionMapa,

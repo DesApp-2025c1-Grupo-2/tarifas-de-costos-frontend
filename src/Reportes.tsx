@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import { Tabs, Tab, Box, Typography } from "@mui/material";
+import { Tabs, Tab, Box, Typography, Toolbar } from "@mui/material";
 import Sidebar from "./components/Sidebar";
-import { HeaderConMenu } from "./components/Header";
+import Header from "./components/Header";
 import CatalogoAdicionales from "./components/reportes/CatalogoAdicionales";
 import ComparativaZonasCostos from "./components/reportes/ComparativaZonasCostos";
 import { TransportistasMasUtilizadosReporte } from "./components/reportes/TransportistasMasUtilizadosReporte";
 import ComparativaCostosTransportistas from "./components/reportes/ComparativaCostosTransportistas";
 import ComparativaAumentosReporte from "./components/reportes/ComparativaAumentosReporte";
-import ReporteHistorialServicios from "./components/reportes/ReporteHistorialServicios"; 
 
 const Reportes: React.FC = () => {
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
@@ -22,26 +21,12 @@ const Reportes: React.FC = () => {
   };
 
   return (
-    <Box sx={{ backgroundColor: "#f5f7fa", minHeight: "100vh" }}>
-      {sidebarAbierta && (
-        <Box
-          onClick={toggleSidebar}
-          sx={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 1000,
-          }}
-        />
-      )}
+    <Box sx={{ display: "flex", backgroundColor: "#f5f7fa", height: "100vh" }}>
+      <Header onMenuClick={toggleSidebar} />
+      <Sidebar open={sidebarAbierta} onClose={toggleSidebar} />
 
-      <HeaderConMenu onImagenClick={toggleSidebar} />
-      <Sidebar isOpen={sidebarAbierta} toggleSidebar={toggleSidebar} />
-
-      <Box component="main" sx={{ padding: "2rem" }}>
+      <Box component="main" sx={{ flexGrow: 1, p: "2rem", overflow: "auto" }}>
+        <Toolbar />
         <Typography variant="h4" component="h1" gutterBottom>
           Reportes Generales
         </Typography>
@@ -57,20 +42,18 @@ const Reportes: React.FC = () => {
           >
             <Tab label="Comparativa Zonas y Costos" />
             <Tab label="Catálogo de Adicionales" />
+            <Tab label="Transportistas Más Utilizados" />
             <Tab label="Comparativa por Transportista" />
-            <Tab label="Análisis comparativo de Tarifas" />
-            <Tab label="Registro de Transportistas" />
-            <Tab label="Transportistas Más Utilizados" />         
+            <Tab label="Análisis de Aumentos" />
           </Tabs>
         </Box>
 
         <Box sx={{ mt: 2 }}>
           {tabIndex === 0 && <ComparativaZonasCostos />}
           {tabIndex === 1 && <CatalogoAdicionales />}
-          {tabIndex === 2 && <ComparativaCostosTransportistas />}
-          {tabIndex === 3 && <ComparativaAumentosReporte />}
-          {tabIndex === 4 && <ReporteHistorialServicios />}
-          {tabIndex === 5 && <TransportistasMasUtilizadosReporte />}
+          {tabIndex === 2 && <TransportistasMasUtilizadosReporte />}
+          {tabIndex === 3 && <ComparativaCostosTransportistas />}
+          {tabIndex === 4 && <ComparativaAumentosReporte />}
         </Box>
       </Box>
     </Box>

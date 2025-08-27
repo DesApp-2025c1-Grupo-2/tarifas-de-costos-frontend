@@ -1,14 +1,13 @@
-// src/components/tablas/TarifaCard.tsx
-
 import React from "react";
 import {
-  Paper,
-  Box,
+  Card,
+  CardHeader,
+  CardContent,
+  CardActions,
   Typography,
   Divider,
   IconButton,
   Tooltip,
-  Button,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -31,29 +30,18 @@ const TarifaCard: React.FC<TarifaCardProps> = ({
   onView,
 }) => {
   return (
-    <Paper sx={{ p: 2, mb: 2, borderRadius: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 1,
-        }}
-      >
-        <Typography variant="subtitle1" fontWeight="bold">
-          {tarifa.transportistaNombre || "N/A"}
+    <Card sx={{ mb: 2 }}>
+      <CardHeader
+        title={tarifa.transportistaNombre || "N/A"}
+        subheader={`$${(tarifa.total || 0).toFixed(2)}`}
+      />
+      <Divider />
+      <CardContent>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Vehículo: {tarifa.tipoVehiculoNombre || "N/A"}
         </Typography>
-        <Typography variant="h6" color="primary">
-          ${(tarifa.total || 0).toFixed(2)}
-        </Typography>
-      </Box>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Vehículo: {tarifa.tipoVehiculoNombre || "N/A"}
-      </Typography>
-
-      <Divider sx={{ mb: 1 }} />
-
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+      </CardContent>
+      <CardActions sx={{ justifyContent: "flex-end", gap: 1 }}>
         <Tooltip title="Ver">
           <IconButton onClick={() => onView(tarifa)} size="small">
             <VisibilityIcon fontSize="small" />
@@ -69,8 +57,8 @@ const TarifaCard: React.FC<TarifaCardProps> = ({
             <DeleteIcon color="error" fontSize="small" />
           </IconButton>
         </Tooltip>
-      </Box>
-    </Paper>
+      </CardActions>
+    </Card>
   );
 };
 

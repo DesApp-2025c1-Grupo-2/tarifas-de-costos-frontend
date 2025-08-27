@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import Header from "./components/Header";
-import { Box, Button } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { Box, Button, Toolbar, Typography } from "@mui/material";
 
 const Inicio = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const handleGenerarTarifa = () => {
     navigate("./generar-tarifa");
@@ -13,6 +15,7 @@ const Inicio = () => {
     <Box>
       <Header />
       <Box component="main">
+        <Toolbar />
         <Box
           component="img"
           src="/img/Logo.png"
@@ -37,10 +40,9 @@ const Inicio = () => {
             type="button"
             onClick={handleGenerarTarifa}
             sx={{
-              backgroundColor: "#ff7300",
-              color: "white",
-              fontSize: "1.1rem",
-              fontWeight: 600,
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
+              ...theme.typography.button,
               padding: "12px 28px",
               border: "none",
               borderRadius: "8px",
@@ -48,7 +50,7 @@ const Inicio = () => {
               boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
               transition: "background-color 0.3s ease, transform 0.2s ease",
               "&:hover": {
-                backgroundColor: "#324A72",
+                backgroundColor: theme.palette.secondary.main,
                 transform: "translateY(-2px)",
               },
             }}
@@ -65,11 +67,19 @@ const Inicio = () => {
           left: 0,
           right: 0,
           height: "60px",
-          backgroundColor: "#1B2A41",
+          backgroundColor: "#F39237",
+          color: "#000",
           zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           boxShadow: "0 -2px 10px rgba(0, 0, 0, 0.1)",
         }}
-      ></Box>
+      >
+        <Typography variant="body2" sx={{ color: "inherit" }}>
+          © {new Date().getFullYear()} Acme SRL. Todos los derechos reservados.
+        </Typography>
+      </Box>
     </Box>
   );
 };

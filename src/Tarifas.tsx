@@ -1,7 +1,7 @@
 import React from "react";
 import Header from "./components/Header";
 import Filtros from "./components/Filtros";
-import { Box } from "@mui/material";
+import { Box, Toolbar } from "@mui/material";
 
 const Tarifas: React.FC = () => {
   return (
@@ -9,7 +9,7 @@ const Tarifas: React.FC = () => {
       sx={{
         display: "flex",
         flexDirection: "column",
-        minHeight: "100vh",
+        height: "100vh",
         backgroundColor: "#f5f7fa",
       }}
     >
@@ -23,6 +23,7 @@ const Tarifas: React.FC = () => {
           paddingBottom: "100px",
         }}
       >
+        <Toolbar />
         <Box sx={{ display: "block", gap: "2rem" }}>
           <Filtros />
           {/* <TarifaTable /> */}

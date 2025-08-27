@@ -1,3 +1,5 @@
+// ruta: src/components/formulario/adicionales/AdicionalSelector.tsx
+
 import React, { useState } from "react";
 import {
   Autocomplete,
@@ -101,6 +103,8 @@ export const AdicionalSelector: React.FC<Props> = ({
           });
           onChange(updatedValue);
         }}
+        // --- INICIO DE LA MODIFICACIÓN 1 ---
+        // Se corrige el renderizado de los tags para evitar el error de "key" en "spread"
         renderTags={(value: Adicional[], getTagProps) =>
           value.map((option: Adicional, index: number) => {
             const { key, ...chipProps } = getTagProps({ index });
@@ -126,15 +130,19 @@ export const AdicionalSelector: React.FC<Props> = ({
             );
           })
         }
+        // --- FIN DE LA MODIFICACIÓN 1 ---
         isOptionEqualToValue={(option, value) => option.id === value.id}
         renderInput={(params) => (
           <TextField {...params} label="Seleccionar adicionales" />
         )}
+        // --- INICIO DE LA MODIFICACIÓN 2 ---
+        // Se añade `renderOption` para asegurar keys únicas en la lista desplegable
         renderOption={(props, option) => (
           <li {...props} key={option.id}>
             {option.nombre}
           </li>
         )}
+        // --- FIN DE LA MODIFICACIÓN 2 ---
       />
 
       <Modal open={!!editingAdicional} onClose={handleCloseModal}>
@@ -143,7 +151,7 @@ export const AdicionalSelector: React.FC<Props> = ({
             Definir Precio para {editingAdicional?.nombre}
           </Typography>
           <TextField
-            label="Precio"
+            label="Precio Específico"
             type="number"
             fullWidth
             value={specificPrice}

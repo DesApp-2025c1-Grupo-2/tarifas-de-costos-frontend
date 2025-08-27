@@ -31,7 +31,7 @@ const camposAdicional: Campo[] = [
   },
   {
     tipo: "switch",
-    nombre: "Crear como Adicional Personalizado (no aparecerá en la lista principal)",
+    nombre: "Es Adicional Flotante (Global)",
     clave: "esGlobal",
   },
 ];
@@ -62,7 +62,8 @@ export const AdicionalForm: React.FC = () => {
 
   const handleFormSubmit = (formValues: Record<string, any>) => {
     const data: Omit<Adicional, "id"> = {
-      ...(editingItem ? editingItem : { activo: true }),
+      ...(editingItem ?? {}),
+      activo: true,
       nombre: formValues.nombre,
       descripcion: formValues.descripcion,
       costoDefault: Number(formValues.costoDefault),
@@ -77,20 +78,20 @@ export const AdicionalForm: React.FC = () => {
       const { id, ...dataToUpdate } = adicionalPromovido;
       await adicionalService.actualizarAdicional(id, dataToUpdate);
       setMessage({
-        text: "Adicional personalizado añadido a la lista.",
+        text: "Adicional promovido con éxito.",
         severity: "success",
       });
       fetchItems();
     } catch (error: any) {
       const errorMsg =
-        error.response?.data?.message || "Error al añadir el adicional.";
+        error.response?.data?.message || "Error al promover el adicional.";
       setMessage({ text: errorMsg, severity: "error" });
     } finally {
       setTimeout(() => setMessage(null), 3000);
     }
   };
 
-  const adicionalesDeLista = items.filter((item) => !item.esGlobal);
+  const adicionalesConstantes = items.filter((item) => !item.esGlobal);
 
   return (
     <div>
@@ -99,7 +100,7 @@ export const AdicionalForm: React.FC = () => {
           Crear Adicional
         </BotonPrimario>
         <BotonSecundario onClick={() => setModalPromoverAbierto(true)}>
-          Añadir Desde Personalizados
+          Promover Flotante
         </BotonSecundario>
       </Box>
 
@@ -125,7 +126,7 @@ export const AdicionalForm: React.FC = () => {
 
       <DataTable
         entidad="adicional"
-        rows={adicionalesDeLista}
+        rows={adicionalesConstantes}
         handleEdit={actions.handleEdit}
         handleDelete={actions.handleDelete}
         highlightedId={highlightedId}
@@ -136,7 +137,7 @@ export const AdicionalForm: React.FC = () => {
         onClose={() => setConfirmOpen(false)}
         onConfirm={confirmDelete}
         titulo="Confirmar eliminación"
-        descripcion="¿Estás seguro de que deseas eliminar este adicional?"
+        descripcion="¿Estás seguro de que deseas eliminar este elemento?"
       />
 
       {message && (

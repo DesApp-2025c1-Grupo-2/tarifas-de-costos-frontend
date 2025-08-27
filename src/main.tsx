@@ -15,12 +15,24 @@ import Reportes from "./Reportes";
 import Inicio from "./Inicio";
 import CrearAdicional from "./CrearAdicional";
 
-// Es una buena práctica crear un tema, aunque sea el default.
-const theme = createTheme();
+// Tema personalizado con colores corporativos y tipografía
+const customTheme = createTheme({
+  palette: {
+    primary: {
+      main: "#F39237",
+    },
+    secondary: {
+      main: "#1B2A41",
+    },
+  },
+  typography: {
+    fontFamily: '"Poppins", "Helvetica", "Arial", sans-serif',
+  },
+});
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={customTheme}>
       {/* --- AÑADÍ ESTE COMPONENTE --- */}
       <CssBaseline />
       <BrowserRouter>

@@ -33,6 +33,7 @@ import {
 import { obtenerCargas, Carga } from "../../services/cargaService";
 import { obtenerZonas, ZonaViaje } from "../../services/zonaService";
 
+// --- MODIFICACIÓN 1: Se crea un tipo local para el reporte enriquecido ---
 interface ReporteEnriquecido {
   id: number;
   displayName: string;
@@ -115,6 +116,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
     try {
       const data = await getComparativaCostos(params);
 
+      // --- MODIFICACIÓN 2: Se enriquece la data del reporte para el display ---
       const transportistasSeleccionados = transportistas.filter((t) =>
         selectedTransportistaIds.includes(t.id)
       );
@@ -274,6 +276,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
         </Alert>
       )}
 
+      {/* --- MODIFICACIÓN 3: La tabla ahora consume el reporte enriquecido --- */}
       {reporte && reporte.length > 0 && (
         <TableContainer component={Paper}>
           <Table>
