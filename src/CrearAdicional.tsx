@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "./components/Sidebar/Sidebar";
 import Header from "./components/Header";
 import { AdicionalForm } from "./components/formulario/adicionales/AdicionalForm";
 import { Box, Toolbar } from "@mui/material";
@@ -13,7 +13,7 @@ const CrearAdicional: React.FC = () => {
 
   return (
     <Box sx={{ display: "flex", backgroundColor: "#f5f7fa", height: "100vh" }}>
-      <Header onMenuClick={toggleSidebar} />
+      {/* <Header onMenuClick={toggleSidebar} /> */}
       <Sidebar open={sidebarAbierta} onClose={toggleSidebar} />
 
       <Box component="main" sx={{ flexGrow: 1, p: "2rem", overflow: "auto" }}>

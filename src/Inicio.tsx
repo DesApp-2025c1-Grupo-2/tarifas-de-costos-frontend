@@ -13,7 +13,7 @@ const Inicio = () => {
 
   return (
     <Box>
-      <Header />
+      {/* <Header /> */}
       <Box component="main">
         <Toolbar />
         <Box
