@@ -15,24 +15,26 @@ import Reportes from "./Reportes";
 import Inicio from "./Inicio";
 import CrearAdicional from "./CrearAdicional";
 
+import { customMuiTheme } from "./components/Config/customMuiTheme";
+
 // Tema personalizado con colores corporativos y tipografía
-const customTheme = createTheme({
-  palette: {
-    primary: {
-      main: "#F39237",
-    },
-    secondary: {
-      main: "#1B2A41",
-    },
-  },
-  typography: {
-    fontFamily: '"Poppins", "Helvetica", "Arial", sans-serif',
-  },
-});
+// const customTheme = createTheme({
+//   palette: {
+//     primary: {
+//       main: "#F39237",
+//     },
+//     secondary: {
+//       main: "#1B2A41",
+//     },
+//   },
+//   typography: {
+//     fontFamily: '"Poppins", "Helvetica", "Arial", sans-serif',
+//   },
+// });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider theme={customTheme}>
+    <ThemeProvider theme={customMuiTheme}>
       {/* --- AÑADÍ ESTE COMPONENTE --- */}
       <CssBaseline />
       <BrowserRouter>

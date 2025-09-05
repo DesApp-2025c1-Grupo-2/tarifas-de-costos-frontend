@@ -1,3 +1,4 @@
+
 import React, { ReactNode } from "react";
 import Button, { ButtonProps } from "@mui/material/Button";
 import { useTheme } from "@mui/material/styles";
@@ -18,22 +19,34 @@ export function BotonPrimario({
       color="primary"
       onClick={onClick}
       sx={{
-        backgroundColor: theme.palette.primary.main,
-        "&:hover": {
-          backgroundColor: theme.palette.primary.dark,
-        },
-        color: theme.palette.primary.contrastText,
-        borderRadius: "8px",
-        px: 2,
-        py: 1,
-        ...theme.typography.button,
-      }}
+                textTransform: "none",
+                "&:hover": {
+                    backgroundColor: "#C94715",
+                    boxShadow: "none",
+                },
+                boxShadow: "none",
+                borderRadius: "8px",
+                padding: "8px 16px"
+            }}
+            className="w-full sm:max-w-max"
       {...props}
     >
       {children}
     </Button>
   );
 }
+
+
+
+export function BotonGuardar() {
+  return (
+    <Button type="submit" variant="contained">
+      Guardar
+    </Button>
+  );
+}
+
+interface AccionBotonProps extends ButtonProps {}
 
 export function BotonSecundario({
   children,
@@ -61,71 +74,6 @@ export function BotonSecundario({
       {...props}
     >
       {children}
-    </Button>
-  );
-}
-
-export function BotonGuardar() {
-  return (
-    <Button type="submit" variant="contained">
-      Guardar
-    </Button>
-  );
-}
-
-interface AccionBotonProps extends ButtonProps {}
-
-export function BotonEditar({ onClick, ...props }: AccionBotonProps) {
-  const theme = useTheme();
-  return (
-    <Button
-      variant="contained"
-      sx={{
-        backgroundColor: theme.palette.secondary.main,
-        "&:hover": { backgroundColor: theme.palette.secondary.dark },
-        color: theme.palette.secondary.contrastText,
-        borderRadius: "4px",
-        ...theme.typography.button,
-      }}
-      onClick={onClick}
-      {...props}
-    >
-      Editar
-    </Button>
-  );
-}
-
-export function BotonEliminar({ onClick, ...props }: AccionBotonProps) {
-  const theme = useTheme();
-  return (
-    <Button
-      variant="contained"
-      sx={{
-        backgroundColor: theme.palette.error.main,
-        "&:hover": { backgroundColor: theme.palette.error.dark },
-        color: theme.palette.error.contrastText,
-        borderRadius: "4px",
-        ...theme.typography.button,
-      }}
-      onClick={onClick}
-      {...props}
-    >
-      Eliminar
-    </Button>
-  );
-}
-
-export function BotonVer({ onClick, ...props }: AccionBotonProps) {
-  const theme = useTheme();
-  return (
-    <Button
-      variant="contained"
-      color="primary"
-      onClick={onClick}
-      sx={{ ...theme.typography.button }}
-      {...props}
-    >
-      Ver
     </Button>
   );
 }
