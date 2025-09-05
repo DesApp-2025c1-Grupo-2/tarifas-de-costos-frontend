@@ -1,61 +1,78 @@
-import { Link, useLocation } from "react-router-dom";
-import React, { useEffect, useRef, useState } from "react";
+import { Link as RouterLink, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { ListItem, ListItemButton, ListItemIcon, ListItemText, Tooltip } from "@mui/material";
 
 interface OptionMenuProps {
   isCollapsed: boolean;
   onClick: () => void;
   title: string;
   link?: string;
-  IconComponent: React.FC<{color?: string}>;
+  IconComponent: React.FC<{ color?: string }>;
 }
 
-export default function OptionMenu({ isCollapsed,onClick, IconComponent, title, link = "" }: OptionMenuProps) {
+export default function OptionMenu({ isCollapsed, onClick, IconComponent, title, link = "" }: OptionMenuProps) {
   const location = useLocation();
-  const textRef = useRef<HTMLParagraphElement>(null);
   const [isActive, setIsActive] = useState(false);
 
-  // Verificar si la ruta actual comienza con el link asignado
   useEffect(() => {
-    const currentPath = location.pathname;
+    const currentPathname = location.pathname;
     const targetPath = `/${link}`;
 
-    // Si es la home exacta
-    if (link === "" && currentPath === "/") {
-      setIsActive(true);
-    } else if (link !== "" && currentPath.startsWith(targetPath)) {
-      setIsActive(true);
+    if (link === "") {
+      setIsActive(currentPathname === "/");
     } else {
-      setIsActive(false);
+      setIsActive(currentPathname.startsWith(targetPath));
     }
   }, [location, link]);
 
+  const activeColor = "#E65F2B";
+  const inactiveColor = "#5A5A65";
+
   return (
-      <Link 
-        to={`/${link}`}
-        onClick={onClick}
-        className={`
-          flex items-center h-14 rounded-lg overflow-hidden
-          transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
-          w-full px-4
-          ${isActive 
-            ? 'bg-menu-hover text-primary-orange' 
-            : 'hover:bg-menu-hover text-gray-600'
-          }
-        `}
-      >
-      <div className={`flex items-center  ${!isCollapsed && "gap-4 "} w-full`}>
-        <IconComponent color={isActive ? " #E65F2B" : "#5A5A65" } />
-        <p 
-          ref={textRef}
-          className={`
-            text-sm  whitespace-nowrap
-            transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
-            ${isCollapsed ? 'opacity-0 translate-x-[-10px] w-0' : 'opacity-100 translate-x-0 w-auto'}
-          `}
+    <ListItem disablePadding sx={{ display: 'block' }}>
+      <Tooltip title={isCollapsed ? title : ""} placement="right">
+        <ListItemButton
+          component={RouterLink}
+          to={`/${link}`}
+          onClick={onClick}
+          selected={isActive}
+          sx={{
+            borderRadius: 2,
+            minHeight: 48,
+            justifyContent: isCollapsed ? 'center' : 'initial',
+            px: 2.5,
+            '&.Mui-selected': {
+              backgroundColor: '#FFEBE2',
+              color: activeColor,
+              '&:hover': {
+                backgroundColor: '#FADFD1',
+              },
+            },
+            color: inactiveColor,
+
+            '&:hover': {
+              backgroundColor: '#FFEBE2',
+              color: activeColor,
+              '& .MuiListItemIcon-root svg': {
+                 fill: activeColor, 
+              }
+            },
+          }}
         >
-          {title}
-        </p>
-      </div>
-    </Link>
+          <ListItemIcon sx={{ minWidth: 0, mr: isCollapsed ? 0 : 3, justifyContent: 'center' }}>
+            <IconComponent color={isActive ? activeColor : inactiveColor} />
+          </ListItemIcon>
+          <ListItemText
+            primary={title}
+            sx={{
+              opacity: isCollapsed ? 0 : 1,
+              '& .MuiTypography-root': {
+                fontWeight: isActive ? 600 : 500,
+              }
+            }}
+          />
+        </ListItemButton>
+      </Tooltip>
+    </ListItem>
   );
 }
