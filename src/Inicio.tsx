@@ -8,7 +8,7 @@ const Inicio = () => {
   const theme = useTheme();
 
   const handleGenerarTarifa = () => {
-    navigate("./generar-tarifa");
+    navigate("./tarifas");
   };
 
   return (

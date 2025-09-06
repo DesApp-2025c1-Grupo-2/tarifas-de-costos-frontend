@@ -16,13 +16,13 @@ interface SidebarProps {
 
   const menuItems = [
     { src: HomeIcon, title: "Inicio", link: "" },
+    { src: TripIcon, title: "Tarifas", link: "tarifas" },
     { src: CompanyIcon, title: "Reportes", link: "reportes" },
-    { src: TripIcon, title: "Tarifas", link: "crear-tarifa" },
-    { src: DriverIcon, title: "Adicionales", link: "crear-adicional" }, 
-    { src: CompanyIcon, title: "Transportistas", link: "crear-transportista" },
-    { src: VehicleIcon, title: "Vehículos", link: "crear-vehiculo" },
-    { src: DepotIcon, title: "Zonas", link: "crear-zona" },
-    { src: CompanyIcon, title: "Cargas", link: "crear-carga" },
+    { src: DriverIcon, title: "Adicionales", link: "adicionales" }, 
+    { src: CompanyIcon, title: "Transportistas", link: "transportistas" },
+    { src: VehicleIcon, title: "Vehículos", link: "vehiculos" },
+    { src: DepotIcon, title: "Zonas", link: "zonas" },
+    { src: CompanyIcon, title: "Cargas", link: "tipos-de-carga" },
   ];
 
 const drawerWidth = 256; 

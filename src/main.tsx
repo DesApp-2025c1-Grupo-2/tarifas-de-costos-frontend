@@ -10,7 +10,6 @@ import CrearTransportista from "./CrearTransportista";
 import CrearVehiculo from "./CrearVehiculo";
 import CrearZona from "./CrearZona";
 import CrearCarga from "./CrearCarga";
-import Tarifas from "./Tarifas";
 import Reportes from "./Reportes";
 import Inicio from "./Inicio";
 import CrearAdicional from "./CrearAdicional";
@@ -40,15 +39,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Inicio />} />
-          <Route path="/generar-tarifa" element={<CrearTarifa />} />
+          <Route path="/tarifas" element={<CrearTarifa />} />
           <Route path="/reportes" element={<Reportes />} />
-          <Route path="/tarifas" element={<Tarifas />} />
-          <Route path="/crear-tarifa" element={<CrearTarifa />} />
-          <Route path="/crear-transportista" element={<CrearTransportista />} />
-          <Route path="/crear-vehiculo" element={<CrearVehiculo />} />
-          <Route path="/crear-carga" element={<CrearCarga />} />
-          <Route path="/crear-zona" element={<CrearZona />} />
-          <Route path="/crear-adicional" element={<CrearAdicional />} />
+          <Route path="/transportistas" element={<CrearTransportista />} />
+          <Route path="/vehiculos" element={<CrearVehiculo />} />
+          <Route path="/tipos-de-carga" element={<CrearCarga />} />
+          <Route path="/zonas" element={<CrearZona />} />
+          <Route path="/adicionales" element={<CrearAdicional />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
