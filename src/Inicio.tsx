@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import Header from "./components/Header";
 import { useTheme } from "@mui/material/styles";
 import { Box, Button, Toolbar, Typography } from "@mui/material";
 
@@ -13,18 +12,18 @@ const Inicio = () => {
 
   return (
     <Box>
-      {/* <Header /> */}
       <Box component="main">
         <Toolbar />
         <Box
           component="img"
-          src="/img/Logo.png"
+          src="/img/acmelogo.png"
           alt="Logo Acme SRL"
           sx={{
             width: "min(90%, 500px)",
             height: "auto",
             display: "block",
             margin: "40px auto",
+            marginTop: "80px",
             objectFit: "contain",
           }}
         />
@@ -50,7 +49,7 @@ const Inicio = () => {
               boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
               transition: "background-color 0.3s ease, transform 0.2s ease",
               "&:hover": {
-                backgroundColor: theme.palette.secondary.main,
+                backgroundColor: "#C94715",
                 transform: "translateY(-2px)",
               },
             }}

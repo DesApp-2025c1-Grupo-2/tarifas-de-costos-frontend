@@ -18,6 +18,7 @@ interface SidebarProps {
     { src: HomeIcon, title: "Inicio", link: "" },
     { src: TripIcon, title: "Tarifas", link: "tarifas" },
     { src: CompanyIcon, title: "Reportes", link: "reportes" },
+    { src: CompanyIcon, title: "Combustible", link: "combustible"},
     { src: DriverIcon, title: "Adicionales", link: "adicionales" }, 
     { src: CompanyIcon, title: "Transportistas", link: "transportistas" },
     { src: VehicleIcon, title: "Vehículos", link: "vehiculos" },

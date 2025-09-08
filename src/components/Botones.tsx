@@ -46,8 +46,6 @@ export function BotonGuardar() {
   );
 }
 
-interface AccionBotonProps extends ButtonProps {}
-
 export function BotonSecundario({
   children,
   onClick,
