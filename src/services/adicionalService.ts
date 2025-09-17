@@ -1,51 +1,24 @@
 import { apiClient } from './apiClient';
-const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export type Adicional = {
   activo: boolean;
-  id: number; 
+  id: number;
   nombre: string;
-  costoDefault: number; 
+  costoDefault: number;
   descripcion: string;
   esGlobal?: boolean;
 };
 
+const ADICIONALES_URL = '/api/adicionales';
 
-const ADICIONALES_URL = `${API_URL}/adicionales`; 
+export const obtenerAdicionales = () =>
+  apiClient.get<Adicional[]>(ADICIONALES_URL);
 
-/**
- * @returns 
- */
-export function obtenerAdicionales(): Promise<Adicional[]> {
-  return apiClient.get<Adicional[]>(ADICIONALES_URL);
-}
+export const crearAdicional = (data: Omit<Adicional, 'id'>) =>
+  apiClient.post<Adicional>(ADICIONALES_URL, data);
 
+export const actualizarAdicional = (id: number | string, data: Omit<Adicional, 'id'>) =>
+  apiClient.put<Adicional>(`${ADICIONALES_URL}/${id}`, data);
 
-/**
- * @param data 
- * @returns 
- */
-
-/** */
-export function crearAdicional(data: Omit<Adicional, 'id'>): Promise<Adicional> {
-  return apiClient.post<Adicional>(ADICIONALES_URL, data);
-}
-
-
-/**
-
- * @param id 
- * @param data 
- * @returns 
- */
-export function actualizarAdicional(id: string | number, data: Omit<Adicional, 'id'>): Promise<Adicional> {
-  return apiClient.put<Adicional>(`${ADICIONALES_URL}/${id}`, data);
-}
-
-/**.
- * @param id 
- * @returns 
- */
-export function eliminarAdicional(id: string | number): Promise<void> {
-  return apiClient.baja(`${ADICIONALES_URL}/${id}/baja`);
-}
+export const eliminarAdicional = (id: number | string) =>
+  apiClient.baja(`${ADICIONALES_URL}/${id}/baja`);

@@ -74,6 +74,7 @@ export const columnas: Record<Entidad, GridColDef[]> = {
     { field: "nombre", headerName: "Nombre", flex: 1 },
     { field: "descripcion", headerName: "Descripcion", flex: 1 },
     { field: "regionMapa", headerName: "Region", flex: 1 },
+    { field: "Provincia", headerName: "Provincia", flex: 1 },
   ],
 
   adicional: [

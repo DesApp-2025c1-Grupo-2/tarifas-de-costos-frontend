@@ -1,7 +1,5 @@
-import { apiClient } from './apiClient'; // 👈 1. Importar el apiClient
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+import { apiClient } from './apiClient';
 
-// --- TIPOS (Sin cambios) ---
 export type Carga = {
   activo: boolean;
   id: number;
@@ -9,27 +7,21 @@ export type Carga = {
   descripcion: string;
 };
 
-// --- URL (Sin cambios) ---
-const CARGAS_URL = `${API_URL}/tipo-carga-tarifa`;
+// Todas las rutas con el prefijo /api
+const CARGAS_URL = '/api/tipo-carga-tarifa';
 
-// --- FUNCIONES (Refactorizadas) ---
-
-// 👇 2. Reemplazado fetch con apiClient.get
-export function obtenerCargas(): Promise<Carga[]> {
+export function obtenerCargas() {
   return apiClient.get<Carga[]>(CARGAS_URL);
 }
 
-// 👇 3. Reemplazado fetch con apiClient.post
-export function crearCarga(data: Omit<Carga, 'id'>): Promise<Carga> {
+export function crearCarga(data: Omit<Carga, 'id'>) {
   return apiClient.post<Carga>(CARGAS_URL, data);
 }
 
-// 👇 4. Reemplazado fetch con apiClient.put
-export function actualizarCarga(id: string | number, data: Omit<Carga, 'id'>): Promise<Carga> {
+export function actualizarCarga(id: number | string, data: Omit<Carga, 'id'>) {
   return apiClient.put<Carga>(`${CARGAS_URL}/${id}`, data);
 }
 
-// 👇 5. Reemplazado fetch con apiClient.baja
-export function eliminarCarga(id: number): Promise<void> {
+export function eliminarCarga(id: number) {
   return apiClient.baja(`${CARGAS_URL}/${id}/baja`);
 }

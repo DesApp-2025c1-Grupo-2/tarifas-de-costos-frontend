@@ -1,8 +1,5 @@
-import { apiClient } from './apiClient'; // 👈 1. Importar el apiClient
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+import { apiClient } from './apiClient';
 
-
-// --- TIPOS (Sin cambios) ---
 export type TipoVehiculo = {
   activo: boolean;
   id: number;
@@ -12,27 +9,16 @@ export type TipoVehiculo = {
   descripcion: string;
 };
 
-// --- URL (Sin cambios) ---
-const TIPOS_VEHICULO_URL = `${API_URL}/vehiculos`;
+const TIPOS_VEHICULO_URL = '/api/tipos-vehiculo'; // ojo: incluye /api
 
-// --- FUNCIONES (Refactorizadas) ---
+export const obtenerTiposVehiculo = () =>
+  apiClient.get<TipoVehiculo[]>(TIPOS_VEHICULO_URL);
 
-// 👇 2. Reemplazado fetch con apiClient.get
-export function obtenerTiposVehiculo(): Promise<TipoVehiculo[]> {
-  return apiClient.get<TipoVehiculo[]>(TIPOS_VEHICULO_URL);
-}
+export const crearTipoVehiculo = (data: Omit<TipoVehiculo, 'id'>) =>
+  apiClient.post<TipoVehiculo>(TIPOS_VEHICULO_URL, data);
 
-// 👇 3. Reemplazado fetch con apiClient.post
-export function crearTipoVehiculo(data: Omit<TipoVehiculo, 'id'>): Promise<TipoVehiculo> {
-  return apiClient.post<TipoVehiculo>(TIPOS_VEHICULO_URL, data);
-}
+export const actualizarTipoVehiculo = (id: number | string, data: Omit<TipoVehiculo, 'id'>) =>
+  apiClient.put<TipoVehiculo>(`${TIPOS_VEHICULO_URL}/${id}`, data);
 
-// 👇 4. Reemplazado fetch con apiClient.put
-export function actualizarTipoVehiculo(id: string | number, data: Omit<TipoVehiculo, 'id'>): Promise<TipoVehiculo> {
-  return apiClient.put<TipoVehiculo>(`${TIPOS_VEHICULO_URL}/${id}`, data);
-}
-
-// 👇 5. Reemplazado fetch con apiClient.baja
-export function eliminarTipoVehiculo(id: string | number): Promise<void> {
-  return apiClient.baja(`${TIPOS_VEHICULO_URL}/${id}/baja`);
-}
+export const eliminarTipoVehiculo = (id: number | string) =>
+  apiClient.baja(`${TIPOS_VEHICULO_URL}/${id}/baja`);

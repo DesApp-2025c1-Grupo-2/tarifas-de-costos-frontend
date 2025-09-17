@@ -1,109 +1,35 @@
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+import { apiClient } from './apiClient';
 
-export interface FrecuenciaAdicional {
-  nombreAdicional: string;
-  cantidad: number;
-}
-
-export interface TransportistaMasUtilizado {
-  nombreTransportista: string;
-  cantidadTarifas: number;
-}
-
-export interface Comparativa {
-    transportista: string;
-    costo: number;
-}
-
-export interface ComparativaTransportistaDTO {
-    servicio: string;
-    comparativas: Comparativa[];
-}
-
-export interface ComparativaZonaStats {
-    average: number;
-    count: number;
-    max: number;
-    min: number;
-    sum: number;
-}
-
+export interface FrecuenciaAdicional { nombreAdicional: string; cantidad: number; }
+export interface TransportistaMasUtilizado { nombreTransportista: string; cantidadTarifas: number; }
+export interface Comparativa { transportista: string; costo: number; }
+export interface ComparativaTransportistaDTO { servicio: string; comparativas: Comparativa[]; }
+export interface ComparativaZonaStats { average: number; count: number; max: number; min: number; sum: number; }
 export interface ComparativaAumento {
-  tarifaId: number;
-  nombreTarifa: string;
-  valorInicial: number;
-  fechaInicial: string;
-  valorFinal: number;
-  fechaFinal: string;
-  variacionAbsoluta: number;
-  variacionPorcentual: number;
+  tarifaId: number; nombreTarifa: string;
+  valorInicial: number; fechaInicial: string;
+  valorFinal: number; fechaFinal: string;
+  variacionAbsoluta: number; variacionPorcentual: number;
 }
 
-const REPORTES_URL = `${API_URL}/reportes`;
-const ZONAS_URL = `${API_URL}/zonas`;
+const REPORTES_URL = '/api/reportes';
+const ZONAS_URL = '/api/zonas';
 
-export async function getFrecuenciaAdicionales(): Promise<FrecuenciaAdicional[]> {
-  const res = await fetch(`${REPORTES_URL}/frecuencia-adicionales`, {
-    method: 'GET', 
-  });
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error al obtener el reporte de frecuencias: ${res.status} ${res.statusText} - ${errorText}`);
-  }
-  return res.json();
-}
+export const getFrecuenciaAdicionales = () =>
+  apiClient.get<FrecuenciaAdicional[]>(`${REPORTES_URL}/frecuencia-adicionales`);
 
-export async function getTransportistasMasUtilizados(): Promise<TransportistaMasUtilizado[]> {
-  const res = await fetch(`${REPORTES_URL}/transportistas-mas-utilizados`, {
-    method: 'GET', 
-  });
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error al obtener el reporte de transportistas: ${res.status} ${res.statusText} - ${errorText}`);
-  }
-  return res.json();
-}
+export const getTransportistasMasUtilizados = () =>
+  apiClient.get<TransportistaMasUtilizado[]>(`${REPORTES_URL}/transportistas-mas-utilizados`);
 
-export async function getComparativaCostos(params: { [key: string]: number }): Promise<ComparativaTransportistaDTO> {
-  const query = new URLSearchParams(params as any).toString();
-  const res = await fetch(`${REPORTES_URL}/comparativa-costos?${query}`, {
-    method: 'GET', 
-  });
+export const getComparativaCostos = (params: { [k: string]: number }) => {
+  const qs = new URLSearchParams(params as any).toString();
+  return apiClient.get<ComparativaTransportistaDTO>(`${REPORTES_URL}/comparativa-costos?${qs}`);
+};
 
-  if (res.status === 204) {
-      throw new Error('204: No Content');
-  }
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error al obtener la comparativa de costos: ${res.status} ${res.statusText} - ${errorText}`);
-  }
-  return res.json();
-}
+export const getComparativaGeneralPorZona = () =>
+  apiClient.get<Record<string, ComparativaZonaStats>>(`${ZONAS_URL}/comparativa-costos`);
 
-export async function getComparativaGeneralPorZona(): Promise<Record<string, ComparativaZonaStats>> {
-    const res = await fetch(`${ZONAS_URL}/comparativa-costos`, {
-      method: 'GET', 
-    });
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Error al obtener la comparativa por zona: ${res.status} ${res.statusText} - ${errorText}`);
-    }
-    return res.json();
-}
-
-export async function getComparativaAumentos(fechaInicio: string, fechaFin: string): Promise<ComparativaAumento[]> {
-  const params = new URLSearchParams({ fechaInicio, fechaFin });
-  const res = await fetch(`${REPORTES_URL}/comparativa-aumentos?${params.toString()}`, {
-    method: 'GET', 
-  });
-
-  if (res.status === 204) {
-    return [];
-  }
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error al obtener la comparativa de aumentos: ${res.status} ${res.statusText} - ${errorText}`);
-  }
-  return res.json();
-}
+export const getComparativaAumentos = (fechaInicio: string, fechaFin: string) => {
+  const qs = new URLSearchParams({ fechaInicio, fechaFin }).toString();
+  return apiClient.get<ComparativaAumento[]>(`${REPORTES_URL}/comparativa-aumentos?${qs}`);
+};
