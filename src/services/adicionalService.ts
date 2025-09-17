@@ -1,6 +1,5 @@
-
-import { API_BASE_URL } from '../config/api'; 
 import { apiClient } from './apiClient';
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export type Adicional = {
   activo: boolean;
@@ -12,7 +11,7 @@ export type Adicional = {
 };
 
 
-const ADICIONALES_URL = `${API_BASE_URL}/adicionales`; 
+const ADICIONALES_URL = `${API_URL}/adicionales`; 
 
 /**
  * @returns 

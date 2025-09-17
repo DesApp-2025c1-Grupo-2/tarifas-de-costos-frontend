@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api';
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export interface FrecuenciaAdicional {
   nombreAdicional: string;
@@ -39,8 +39,8 @@ export interface ComparativaAumento {
   variacionPorcentual: number;
 }
 
-const REPORTES_URL = `${API_BASE_URL}/reportes`;
-const ZONAS_URL = `${API_BASE_URL}/zonas`;
+const REPORTES_URL = `${API_URL}/reportes`;
+const ZONAS_URL = `${API_URL}/zonas`;
 
 export async function getFrecuenciaAdicionales(): Promise<FrecuenciaAdicional[]> {
   const res = await fetch(`${REPORTES_URL}/frecuencia-adicionales`, {

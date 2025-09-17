@@ -1,5 +1,6 @@
-import { API_BASE_URL } from '../config/api'; 
 import { apiClient } from './apiClient'; // 👈 1. Importar el apiClient
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 // --- TIPOS (Sin cambios) ---
 export type ZonaViaje = {
@@ -19,8 +20,8 @@ export type ZonaComparativa = {
 };
 
 // --- URLs (Sin cambios) ---
-const ZONAS_URL = `${API_BASE_URL}/zonas`;
-const REPORTES_ZONAS_COMPARATIVA_URL = `${API_BASE_URL}/zonas/comparativa-costos`;
+const ZONAS_URL = `${API_URL}/zonas`;
+const REPORTES_ZONAS_COMPARATIVA_URL = `${API_URL}/zonas/comparativa-costos`;
 
 // --- FUNCIONES (Refactorizadas) ---
 

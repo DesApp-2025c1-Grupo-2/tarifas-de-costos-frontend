@@ -1,5 +1,5 @@
-import { API_BASE_URL } from '../config/api';
 import { apiClient } from './apiClient'; // 👈 1. Importar el apiClient
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 // --- TIPOS (Sin cambios) ---
 export type Tarifa = {
@@ -28,7 +28,7 @@ export type Tarifa = {
 };
 
 // --- URL (Sin cambios) ---
-const TARIFAS_URL = `${API_BASE_URL}/tarifas`;
+const TARIFAS_URL = `${API_URL}/tarifas`;
 
 // --- FUNCIONES (Refactorizadas) ---
 

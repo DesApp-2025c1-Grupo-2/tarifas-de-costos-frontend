@@ -1,5 +1,5 @@
-import { API_BASE_URL } from '../config/api';
 import { apiClient } from './apiClient'; // 👈 1. Importar el apiClient
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export type Transportista = {
   activo: boolean;
@@ -30,7 +30,7 @@ export interface TransportistaProfile {
 }
 
 // --- URL (Sin cambios) ---
-const TRANSPORTISTAS_URL = `${API_BASE_URL}/transportistas`;
+const TRANSPORTISTAS_URL = `${API_URL}/transportistas`;
 
 // --- FUNCIONES (Refactorizadas) ---
 

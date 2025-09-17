@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api';
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export interface HistorialTarifa {
   id: number;
@@ -15,7 +15,7 @@ export interface HistorialTarifa {
   comentarioCambio: string;
 }
 
-const HISTORIAL_URL = `${API_BASE_URL}/historial/tarifa`;
+const HISTORIAL_URL = `${API_URL}/historial/tarifa`;
 
 /**
  * @param tarifaId 

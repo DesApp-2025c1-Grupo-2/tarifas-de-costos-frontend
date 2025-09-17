@@ -1,5 +1,6 @@
-import { API_BASE_URL } from '../config/api';
 import { apiClient } from './apiClient'; // 👈 1. Importar el apiClient
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 
 // --- TIPOS (Sin cambios) ---
 export type TipoVehiculo = {
@@ -12,7 +13,7 @@ export type TipoVehiculo = {
 };
 
 // --- URL (Sin cambios) ---
-const TIPOS_VEHICULO_URL = `${API_BASE_URL}/tipos-vehiculo`;
+const TIPOS_VEHICULO_URL = `${API_URL}/vehiculos`;
 
 // --- FUNCIONES (Refactorizadas) ---
 
