@@ -204,24 +204,6 @@ export default function DataTable({
             gap: 1,
           }}
         >
-          {handleView && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => handleView(params.row)}
-            >
-              Ver
-            </Button>
-          )}
-          {handleEdit && (
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => handleEdit(params.row)}
-            >
-              Editar
-            </Button>
-          )}
           {entidad === "tarifa" && handleMostrarHistorial && (
             <Tooltip title="Ver Historial">
               <IconButton
@@ -232,12 +214,54 @@ export default function DataTable({
               </IconButton>
             </Tooltip>
           )}
+          {handleView && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => handleView(params.row)}
+              sx={{
+                backgroundColor: (theme.palette as any).actionButtons.details.background,
+                borderColor: (theme.palette as any).actionButtons.details.border,
+                color: (theme.palette as any).actionButtons.details.text,
+                '&:hover': {
+                  backgroundColor: '#e0e0e0',
+                  borderColor: '#bdbdbd',
+                }
+              }}
+            >
+              Ver
+            </Button>
+          )}
+          {handleEdit && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => handleEdit(params.row)}
+              sx={{
+                backgroundColor: (theme.palette as any).actionButtons.edit.background,
+                borderColor: (theme.palette as any).actionButtons.edit.border,
+                color: (theme.palette as any).actionButtons.edit.text,
+                 '&:hover': {
+                  backgroundColor: '#c7dcfc',
+                }
+              }}
+            >
+              Editar
+            </Button>
+          )}
           {handleDelete && (
             <Button
-              variant="contained"
+              variant="outlined"
               size="small"
-              color="error"
               onClick={() => handleDelete(params.row)}
+               sx={{
+                backgroundColor: (theme.palette as any).actionButtons.delete.background,
+                borderColor: (theme.palette as any).actionButtons.delete.border,
+                color: (theme.palette as any).actionButtons.delete.text,
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 53, 53, 0.4)',
+                }
+              }}
             >
               Eliminar
             </Button>
@@ -254,6 +278,7 @@ export default function DataTable({
     handleView,
     handleMostrarAdicionales,
     handleMostrarHistorial,
+    theme,
   ]);
 
   return (
@@ -343,7 +368,7 @@ export default function DataTable({
               sx={{
                 border: 0,
                 "& .MuiDataGrid-columnHeaders": {
-                  backgroundColor: theme.palette.grey[200],
+                  backgroundColor: theme.palette.grey[100],
                 },
                 "& .MuiDataGrid-row:hover": {
                   backgroundColor: theme.palette.action.hover,
