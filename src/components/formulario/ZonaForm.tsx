@@ -18,6 +18,7 @@ const camposZona: Campo[] = [
     requerido: true,
   },
   { tipo: "text", nombre: "Region", clave: "regionMapa", requerido: true },
+  { tipo: "provincias", nombre: "Provincias", clave: "provincias", requerido: true },
 ];
 
 const servicioAdaptado: CrudService<ZonaViaje> = {
@@ -47,6 +48,7 @@ export const FormCrearZona: React.FC = () => {
       nombre: formValues.nombre,
       descripcion: formValues.descripcion,
       regionMapa: formValues.regionMapa,
+      provincias: formValues.provincias,
     };
     actions.handleSubmit(data);
   };

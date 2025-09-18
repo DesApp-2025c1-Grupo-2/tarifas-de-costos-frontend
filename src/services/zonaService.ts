@@ -6,6 +6,7 @@ export type ZonaViaje = {
   nombre: string;
   descripcion: string;
   regionMapa: string;
+  provincias: string[];
 };
 
 export type ZonaComparativa = {
