@@ -52,8 +52,6 @@ export const ProvinciaSelector: React.FC<Props> = ({
     setEditingProvincia(null);
   };
 
-  
-
   return (
     <Box sx={{ mt: 2 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -131,9 +129,7 @@ export const ProvinciaSelector: React.FC<Props> = ({
             <Button onClick={handleCloseModal} sx={{ mr: 1 }}>
               Cancelar
             </Button>
-            <Button variant="contained">
-              Guardar
-            </Button>
+            <Button variant="contained">Guardar</Button>
           </Box>
         </Box>
       </Modal>

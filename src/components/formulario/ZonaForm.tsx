@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
 import * as zonaService from "../../services/zonaService";
@@ -8,6 +8,7 @@ import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
 import { Box, Alert } from "@mui/material";
 import DialogoConfirmacion from "../DialogoConfirmacion";
+import { Provincia, obtenerProvincias } from "../../services/provinciaService";
 
 const camposZona: Campo[] = [
   { tipo: "text", nombre: "Nombre", clave: "nombre", requerido: true },
@@ -18,7 +19,12 @@ const camposZona: Campo[] = [
     requerido: true,
   },
   { tipo: "text", nombre: "Region", clave: "regionMapa", requerido: true },
-  { tipo: "provincias", nombre: "Provincias", clave: "provincias", requerido: true },
+  {
+    tipo: "provincias",
+    nombre: "Provincias",
+    clave: "provincias",
+    requerido: true,
+  },
 ];
 
 const servicioAdaptado: CrudService<ZonaViaje> = {
@@ -38,8 +44,51 @@ export const FormCrearZona: React.FC = () => {
     setConfirmOpen,
     confirmDelete,
     highlightedId,
+    setMessage,
     actions,
   } = useCrud<ZonaViaje>(servicioAdaptado);
+  const [provincias, setProvincias] = useState<Provincia[]>([]);
+
+  useEffect(() => {
+    let estaActivo = true;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const cargarProvincias = async () => {
+      try {
+        const data = await obtenerProvincias();
+        if (!estaActivo) return;
+        const activas = data.filter((provincia) => provincia.activo !== false);
+        setProvincias(activas);
+      } catch (error) {
+        console.error("Error al obtener las provincias:", error);
+        if (!estaActivo) return;
+        setMessage({
+          text: "Error al cargar las provincias.",
+          severity: "error",
+        });
+        timeoutId = setTimeout(() => setMessage(null), 8000);
+      }
+    };
+
+    cargarProvincias();
+
+    return () => {
+      estaActivo = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [setMessage]);
+
+  const camposFormulario = React.useMemo(
+    () =>
+      camposZona.map((campo) =>
+        campo.clave === "provincias"
+          ? { ...campo, opciones: provincias }
+          : campo
+      ),
+    [provincias]
+  );
 
   const handleFormSubmit = (formValues: Record<string, any>) => {
     const data: Omit<ZonaViaje, "id"> = {
@@ -66,7 +115,7 @@ export const FormCrearZona: React.FC = () => {
       {showForm && (
         <FormularioDinamico
           titulo={editingItem ? "Editar Zona" : "Registrar nueva zona"}
-          campos={camposZona}
+          campos={camposFormulario}
           onSubmit={handleFormSubmit}
           initialValues={editingItem}
           modal
