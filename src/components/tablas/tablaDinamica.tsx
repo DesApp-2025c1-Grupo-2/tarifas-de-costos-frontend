@@ -186,7 +186,7 @@ export default function DataTable({
       });
     }
 
-    cols.push({
+    if (entidad === "tarifa" || entidad === "adicional" || entidad === "zona") cols.push({
       field: "acciones",
       headerName: "Acciones",
       width: 280,

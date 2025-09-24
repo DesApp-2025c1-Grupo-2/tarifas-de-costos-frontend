@@ -4,3 +4,7 @@ export interface CrudService<T> {
   update: (id: number, data: Omit<T, 'id'>) => Promise<T>;
   remove: (id: number) => Promise<void>;
 }
+
+export interface CrudGet<T> {
+  getAll: () => Promise<T[]>;
+}
