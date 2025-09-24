@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AdicionalSelector } from "./adicionales/AdicionalSelector";
+import { ProvinciaSelector } from "./provincias/provinciaSelector";
 import {
   ModalCrearAdicional,
   NuevoAdicional,
@@ -31,6 +32,7 @@ export type Campo = {
     | "select"
     | "number"
     | "adicionales"
+    | "provincias"
     | "resultado"
     | "costoBase"
     | "switch"; // Tipo añadido
@@ -165,6 +167,15 @@ const FormularioDinamico: React.FC<Props> = ({
                   onCrearNuevo={() => setModalNuevoAdicional(true)}
                 />
               );
+            case "provincias":
+            return (
+              <ProvinciaSelector
+                key={campo.clave}
+                provincias={campo.opciones || []}
+                seleccionados={valores[campo.clave] || []}
+                onChange={(val) => handleChange(campo.clave, val)}
+              />
+            );
             case "resultado":
               const totalAdicionales = (valores["adicionales"] || []).reduce(
                 (

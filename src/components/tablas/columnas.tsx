@@ -1,6 +1,6 @@
 // src/components/tablas/columnas.tsx
 
-import { GridColDef } from "@mui/x-data-grid";
+import { GridColDef, GridValidRowModel } from "@mui/x-data-grid";
 import { Tarifa } from "../../services/tarifaService";
 
 export type Entidad =
@@ -74,6 +74,41 @@ export const columnas: Record<Entidad, GridColDef[]> = {
     { field: "nombre", headerName: "Nombre", flex: 1 },
     { field: "descripcion", headerName: "Descripcion", flex: 1 },
     { field: "regionMapa", headerName: "Region", flex: 1 },
+    {
+      field: "provincias",
+      headerName: "Provincias",
+      flex: 1,
+      valueGetter: (
+        _value,
+        row: GridValidRowModel & { provincias?: unknown }
+      ) => {
+        const { provincias } = row;
+
+        if (!Array.isArray(provincias)) {
+          return "";
+        }
+
+        return provincias
+          .map((provincia) => {
+            if (typeof provincia === "string") {
+              return provincia;
+            }
+
+            if (
+              provincia &&
+              typeof provincia === "object" &&
+              "nombre" in provincia &&
+              typeof (provincia as { nombre?: unknown }).nombre === "string"
+            ) {
+              return (provincia as { nombre: string }).nombre;
+            }
+
+            return "";
+          })
+          .filter((nombre) => nombre.length > 0)
+          .join(", ");
+      },
+    },
   ],
 
   adicional: [

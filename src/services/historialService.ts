@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api';
+import { apiClient } from './apiClient';
 
 export interface HistorialTarifa {
   id: number;
@@ -15,23 +15,7 @@ export interface HistorialTarifa {
   comentarioCambio: string;
 }
 
-const HISTORIAL_URL = `${API_BASE_URL}/historial/tarifa`;
+const HISTORIAL_URL = '/api/historial/tarifa';
 
-/**
- * @param tarifaId 
- * @returns 
- */
-export async function obtenerHistorialPorTarifaId(tarifaId: number): Promise<HistorialTarifa[]> {
-  const res = await fetch(`${HISTORIAL_URL}/${tarifaId}`);
-
-  if (res.status === 204) {
-    return [];
-  }
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error al obtener el historial: ${res.status} ${res.statusText} - ${errorText}`);
-  }
-
-  return res.json();
-}
+export const obtenerHistorialPorTarifaId = (tarifaId: number) =>
+  apiClient.get<HistorialTarifa[]>(`${HISTORIAL_URL}/${tarifaId}`);
