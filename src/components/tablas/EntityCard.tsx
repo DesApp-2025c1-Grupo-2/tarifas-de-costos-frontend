@@ -84,16 +84,20 @@ const EntityCard: React.FC<EntityCardProps> = ({
             </IconButton>
           </Tooltip>
         )}
+        {onEdit && (
         <Tooltip title="Editar">
           <IconButton onClick={() => onEdit(item)} size="small">
             <EditIcon fontSize="small" />
           </IconButton>
         </Tooltip>
+        )}
+        {onDelete && (
         <Tooltip title="Eliminar">
           <IconButton onClick={() => onDelete(item.id)} size="small">
             <DeleteIcon color="error" fontSize="small" />
           </IconButton>
         </Tooltip>
+        )}
       </CardActions>
     </Card>
   );
