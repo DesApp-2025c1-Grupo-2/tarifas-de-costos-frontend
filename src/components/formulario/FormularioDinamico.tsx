@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AdicionalSelector } from "./adicionales/AdicionalSelector";
-import { ProvinciaSelector } from "./provincias/provinciaSelector";
+import { ProvinciaSelector } from "./provincias/ProvinciaSelector";
 import {
   ModalCrearAdicional,
   NuevoAdicional,
