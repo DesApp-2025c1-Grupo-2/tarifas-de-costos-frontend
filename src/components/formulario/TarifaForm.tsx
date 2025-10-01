@@ -43,7 +43,9 @@ export const FormCrearTarifa: React.FC = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [idAEliminar, setIdAEliminar] = useState<number | null>(null);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
-  const [historialTarifaId, setHistorialTarifaId] = useState<number | null>(null);
+  const [historialTarifaId, setHistorialTarifaId] = useState<number | null>(
+    null
+  );
 
   const cargarTarifas = async () => {
     setIsLoading(true);
@@ -83,8 +85,8 @@ export const FormCrearTarifa: React.FC = () => {
         obtenerCargas(),
         obtenerAdicionales(),
       ]);
-      setTransportistas(transportistasData.filter((t) => t.activo));
-      setTipoVehiculos(vehiculosData.filter((v) => v.activo));
+      setTransportistas(transportistasData.filter((t) => t.activo !== false));
+      setTipoVehiculos(vehiculosData.filter((v) => v.activo !== false));
       setZonas(zonasData.filter((z) => z.activo));
       setCargas(cargasData.filter((c) => c.activo));
       setAdicionalesDb(adicionalesData.filter((a) => a.activo && !a.esGlobal));
@@ -361,7 +363,7 @@ export const FormCrearTarifa: React.FC = () => {
         titulo="Confirmar baja de tarifa"
         descripcion="¿Estás seguro de que deseas dar de baja esta tarifa?"
       />
-       <ModalHistorialTarifa
+      <ModalHistorialTarifa
         open={!!historialTarifaId}
         onClose={handleCerrarHistorial}
         tarifaId={historialTarifaId}

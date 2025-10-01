@@ -1,6 +1,9 @@
+// Archivo: src/components/hook/useCrud.ts
 import { useState, useEffect, useCallback } from 'react';
 import { CrudService } from '../../services/crudService';
 import { getHumanReadableError } from '../../utils/errorUtils';
+import { Transportista } from '../../services/transportistaService'; // Importa el tipo Transportista
+
 export type MessageState = {
   text: string;
   severity: 'success' | 'error';
@@ -20,7 +23,26 @@ export const useCrud = <T extends { id: number; activo?: boolean }>(service: Cru
   const loadItems = useCallback(async () => {
     try {
       const data = await service.getAll();
-      setItems(data.filter(item => item.activo !== false));
+      
+      // --- INICIO DE LA MODIFICACIÓN ---
+      // Verificamos si los datos son transportistas y los aplanamos
+      const processedData = data.map(item => {
+        if ('contacto' in item && 'nombreEmpresa' in item) {
+          const transportista = item as unknown as any;
+          return {
+            ...transportista,
+            nombreEmpresa: transportista.nombreComercial,
+            contactoNombre: transportista.contacto?.nombre,
+            contactoEmail: transportista.contacto?.email,
+            contactoTelefono: transportista.contacto?.telefono?.numero,
+          } as T;
+        }
+        return item;
+      });
+
+      setItems(processedData.filter(item => item.activo !== false));
+      // --- FIN DE LA MODIFICACIÓN ---
+
     } catch (error) {
       console.error('Error al cargar los items:', error);
       setMessage({ text: 'Error al cargar los datos.', severity: 'error' });
@@ -48,16 +70,14 @@ export const useCrud = <T extends { id: number; activo?: boolean }>(service: Cru
       setHighlightedId(changedItem.id);
       setTimeout(() => setHighlightedId(null), 4000);
 
-   } catch (err: any) {
-    console.error("Error completo recibido:", err); // Mantenemos esto para depuración.
+    } catch (err: any) {
+      console.error("Error completo recibido:", err);
+      const cleanError = getHumanReadableError(err);
+      setMessage({ text: cleanError, severity: 'error' });
+      setTimeout(() => setMessage(null), 8000);
+    }
+  };
 
-    // 👇 Usamos la función para obtener el mensaje limpio.
-    const cleanError = getHumanReadableError(err);
-    
-    setMessage({ text: cleanError, severity: 'error' });
-    setTimeout(() => setMessage(null), 8000); // Mensaje de error por 8 seg.
-  }
-};
   const handleEdit = (item: T) => {
     setEditingItem(item);
     setShowForm(true);
