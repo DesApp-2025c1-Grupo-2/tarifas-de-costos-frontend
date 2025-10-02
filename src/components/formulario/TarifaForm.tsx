@@ -140,8 +140,8 @@ export const FormCrearTarifa: React.FC = () => {
 
     const payload = {
       nombreTarifa: formValues.nombreTarifa,
-      transportista: { id: Number(formValues.transportistaId) },
-      tipoVehiculo: { id: Number(formValues.tipoVehiculoId) },
+      transportista: { id: formValues.transportistaId },
+      tipoVehiculo: { id: formValues.tipoVehiculoId },
       zonaViaje: { id: Number(formValues.zonaId) },
       tipoCargaTarifa: { id: Number(formValues.tipoCargaId) },
       valorBase: parseFloat(formValues.valorBase || "0"),

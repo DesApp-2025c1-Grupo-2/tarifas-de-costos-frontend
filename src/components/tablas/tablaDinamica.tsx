@@ -186,89 +186,101 @@ export default function DataTable({
       });
     }
 
-    if (entidad === "tarifa" || entidad === "adicional" || entidad === "zona") cols.push({
-      field: "acciones",
-      headerName: "Acciones",
-      width: 280,
-      sortable: false,
-      align: "right",
-      headerAlign: "right",
-      renderCell: (params) => (
-        <Box
-          sx={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 1,
-          }}
-        >
-          {entidad === "tarifa" && handleMostrarHistorial && (
-            <Tooltip title="Ver Historial">
-              <IconButton
-                onClick={() => handleMostrarHistorial(params.row.id)}
+    if (
+      entidad === "tarifa" ||
+      entidad === "adicional" ||
+      entidad === "zona" ||
+      entidad === "tipoDeCarga"
+    ) {
+      cols.push({
+        field: "acciones",
+        headerName: "Acciones",
+        width: 280,
+        sortable: false,
+        align: "right",
+        headerAlign: "right",
+        renderCell: (params) => (
+          <Box
+            sx={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 1,
+            }}
+          >
+            {entidad === "tarifa" && handleMostrarHistorial && (
+              <Tooltip title="Ver Historial">
+                <IconButton
+                  onClick={() => handleMostrarHistorial(params.row.id)}
+                  size="small"
+                >
+                  <HistoryIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {handleView && (
+              <Button
+                variant="outlined"
                 size="small"
+                onClick={() => handleView(params.row)}
+                sx={{
+                  backgroundColor: (theme.palette as any).actionButtons.details
+                    .background,
+                  borderColor: (theme.palette as any).actionButtons.details
+                    .border,
+                  color: (theme.palette as any).actionButtons.details.text,
+                  "&:hover": {
+                    backgroundColor: "#e0e0e0",
+                    borderColor: "#bdbdbd",
+                  },
+                }}
               >
-                <HistoryIcon />
-              </IconButton>
-            </Tooltip>
-          )}
-          {handleView && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => handleView(params.row)}
-              sx={{
-                backgroundColor: (theme.palette as any).actionButtons.details.background,
-                borderColor: (theme.palette as any).actionButtons.details.border,
-                color: (theme.palette as any).actionButtons.details.text,
-                '&:hover': {
-                  backgroundColor: '#e0e0e0',
-                  borderColor: '#bdbdbd',
-                }
-              }}
-            >
-              Ver
-            </Button>
-          )}
-          {handleEdit && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => handleEdit(params.row)}
-              sx={{
-                backgroundColor: (theme.palette as any).actionButtons.edit.background,
-                borderColor: (theme.palette as any).actionButtons.edit.border,
-                color: (theme.palette as any).actionButtons.edit.text,
-                 '&:hover': {
-                  backgroundColor: '#c7dcfc',
-                }
-              }}
-            >
-              Editar
-            </Button>
-          )}
-          {handleDelete && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => handleDelete(params.row)}
-               sx={{
-                backgroundColor: (theme.palette as any).actionButtons.delete.background,
-                borderColor: (theme.palette as any).actionButtons.delete.border,
-                color: (theme.palette as any).actionButtons.delete.text,
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 53, 53, 0.4)',
-                }
-              }}
-            >
-              Eliminar
-            </Button>
-          )}
-        </Box>
-      ),
-    });
+                Ver
+              </Button>
+            )}
+            {handleEdit && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => handleEdit(params.row)}
+                sx={{
+                  backgroundColor: (theme.palette as any).actionButtons.edit
+                    .background,
+                  borderColor: (theme.palette as any).actionButtons.edit.border,
+                  color: (theme.palette as any).actionButtons.edit.text,
+                  "&:hover": {
+                    backgroundColor: "#c7dcfc",
+                  },
+                }}
+              >
+                Editar
+              </Button>
+            )}
+            {handleDelete && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => handleDelete(params.row)}
+                sx={{
+                  backgroundColor: (theme.palette as any).actionButtons.delete
+                    .background,
+                  borderColor: (theme.palette as any).actionButtons.delete
+                    .border,
+                  color: (theme.palette as any).actionButtons.delete.text,
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 53, 53, 0.4)",
+                  },
+                }}
+              >
+                Eliminar
+              </Button>
+            )}
+          </Box>
+        ),
+      });
+    }
     return cols;
   }, [
     columnasBase,

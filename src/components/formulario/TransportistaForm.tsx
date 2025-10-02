@@ -14,18 +14,15 @@ const servicioAdaptado: CrudService<Transportista> = {
 };
 
 export const FormCrearTransportista: React.FC = () => {
-  const {
-    items,
-    message,
-    highlightedId,
-  } = useCrud<Transportista>(servicioAdaptado);
+  const { items, message, highlightedId } =
+    useCrud<Transportista>(servicioAdaptado);
 
   return (
     <div>
       <DataTable
         entidad="transportista"
         rows={items}
-        highlightedId={highlightedId}
+        highlightedId={typeof highlightedId === "number" ? highlightedId : null}
       />
 
       {message && (

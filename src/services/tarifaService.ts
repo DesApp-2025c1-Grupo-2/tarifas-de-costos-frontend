@@ -5,9 +5,9 @@ export type Tarifa = {
   nombreTarifa: string;
   valorBase: number;
   esVigente?: boolean;
-  transportistaId: number;
+  transportistaId: string;
   transportistaNombre: string;
-  tipoVehiculoId: number;
+  tipoVehiculoId: string;
   tipoVehiculoNombre: string;
   zonaId: number;
   zonaNombre: string;
@@ -23,8 +23,8 @@ export type Tarifa = {
 const TARIFAS_URL = '/api/tarifas';
 
 export async function obtenerTarifas(): Promise<Tarifa[]> {
-  const data = await apiClient.get<any[]>(TARIFAS_URL);
-  return data.map((t) => ({ ...t, nombreTarifa: t.nombre })); // mapeo como ya hacías
+  const data = await apiClient.get<Tarifa[]>(TARIFAS_URL);
+  return data;
 }
 
 export const crearTarifa = (tarifa: any) =>

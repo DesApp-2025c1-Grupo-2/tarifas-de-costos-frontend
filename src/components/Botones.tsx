@@ -1,4 +1,3 @@
-
 import React, { ReactNode } from "react";
 import Button, { ButtonProps } from "@mui/material/Button";
 import { useTheme } from "@mui/material/styles";
@@ -19,16 +18,16 @@ export function BotonPrimario({
       color="primary"
       onClick={onClick}
       sx={{
-                textTransform: "none",
-                "&:hover": {
-                    backgroundColor: "#C94715",
-                    boxShadow: "none",
-                },
-                boxShadow: "none",
-                borderRadius: "8px",
-                padding: "8px 16px"
-            }}
-            className="w-full sm:max-w-max"
+        textTransform: "none",
+        "&:hover": {
+          backgroundColor: "#C94715",
+          boxShadow: "none",
+        },
+        boxShadow: "none",
+        borderRadius: "8px",
+        padding: "8px 16px",
+      }}
+      className="w-full sm:max-w-max"
       {...props}
     >
       {children}
@@ -36,11 +35,13 @@ export function BotonPrimario({
   );
 }
 
-
-
 export function BotonGuardar() {
   return (
-    <Button type="submit" variant="contained">
+    <Button
+      type="submit"
+      variant="contained"
+      sx={{ mt: 3, alignSelf: "center", minWidth: "120px" }}
+    >
       Guardar
     </Button>
   );
