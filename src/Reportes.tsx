@@ -1,7 +1,17 @@
 import React, { useState } from "react";
-import { Tabs, Tab, Box, Typography, Toolbar } from "@mui/material";
 import Sidebar from "./components/Sidebar/Sidebar";
-import Header from "./components/Header";
+import {
+  Box,
+  Paper,
+  Typography,
+  useMediaQuery,
+  useTheme,
+  IconButton,
+  Tabs,
+  Tab,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import CatalogoAdicionales from "./components/reportes/CatalogoAdicionales";
 import ComparativaZonasCostos from "./components/reportes/ComparativaZonasCostos";
 import { TransportistasMasUtilizadosReporte } from "./components/reportes/TransportistasMasUtilizadosReporte";
@@ -10,54 +20,123 @@ import ComparativaAumentosReporte from "./components/reportes/ComparativaAumento
 import ReporteHistorialServicios from "./components/reportes/ReporteHistorialServicios";
 
 const Reportes: React.FC = () => {
-  const [sidebarAbierta, setSidebarAbierta] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [tabIndex, setTabIndex] = useState(0);
 
-  const toggleSidebar = () => {
-    setSidebarAbierta((prev) => !prev);
+  const handleToggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
 
+  const drawerWidth = 256;
+  const collapsedDrawerWidth = 80;
+
   return (
-    <Box sx={{ display: "flex", backgroundColor: "#f5f7fa", height: "100vh" }}>
-      {/* <Header onMenuClick={toggleSidebar} /> */}
-      <Sidebar open={sidebarAbierta} onClose={toggleSidebar} />
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        backgroundColor: "#F6F7FB",
+        position: "relative",
+      }}
+    >
+      <Sidebar
+        isVisible={sidebarVisible}
+        setIsVisible={setSidebarVisible}
+        isCollapsed={isCollapsed}
+      />
 
-      <Box component="main" sx={{ flexGrow: 1, p: "2rem", overflow: "auto" }}>
-        <Toolbar />
-        <Typography variant="h4" component="h1" gutterBottom>
-          Reportes Generales
-        </Typography>
+      {!isMobile && (
+        <IconButton
+          onClick={handleToggleCollapse}
+          sx={{
+            position: "absolute",
+            top: "28px",
+            left: isCollapsed
+              ? `${collapsedDrawerWidth}px`
+              : `${drawerWidth}px`,
+            transform: "translateX(-50%)",
+            zIndex: 1301,
+            backgroundColor: "white",
+            border: `1px solid ${theme.palette.divider}`,
+            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+            transition: "left 0.2s ease-in-out",
+            "&:hover": {
+              backgroundColor: theme.palette.grey[100],
+            },
+          }}
+        >
+          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </IconButton>
+      )}
 
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs
-            value={tabIndex}
-            onChange={handleTabChange}
-            aria-label="tabs reportes"
-            variant="scrollable"
-            scrollButtons="auto"
-            allowScrollButtonsMobile
-          >
-            <Tab label="Comparativa Zonas y Costos" />
-            <Tab label="Catálogo de Adicionales" />
-            <Tab label="Transportistas Más Utilizados" />
-            <Tab label="Comparativa por Transportista" />
-            <Tab label="Análisis de Aumentos" />
-            <Tab label="Historial de Servicios" />
-          </Tabs>
-        </Box>
+      {isMobile && !sidebarVisible && (
+        <IconButton
+          aria-label="open drawer"
+          onClick={() => setSidebarVisible(true)}
+          sx={{
+            position: "absolute",
+            top: 16,
+            left: 16,
+            zIndex: 1300,
+            border: `1px solid ${theme.palette.grey[400]}`,
+            borderRadius: "8px",
+            "&:hover": {
+              backgroundColor: "rgba(0, 0, 0, 0.04)",
+            },
+          }}
+        >
+          <MenuIcon sx={{ color: "text.primary" }} />
+        </IconButton>
+      )}
 
-        <Box sx={{ mt: 2 }}>
-          {tabIndex === 0 && <ComparativaZonasCostos />}
-          {tabIndex === 1 && <CatalogoAdicionales />}
-          {tabIndex === 2 && <TransportistasMasUtilizadosReporte />}
-          {tabIndex === 3 && <ComparativaCostosTransportistas />}
-          {tabIndex === 4 && <ComparativaAumentosReporte />}
-          {tabIndex === 5 && <ReporteHistorialServicios />}
-        </Box>
+      <Box
+        component="main"
+        sx={{ flexGrow: 1, p: 3, width: "100%", overflowX: "hidden" }}
+      >
+        <Paper
+          sx={{
+            p: { xs: 2, md: 4 },
+            pt: { xs: 8, md: 4 },
+            borderRadius: "8px",
+            boxShadow: "none",
+          }}
+        >
+          <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 3 }}>
+            Reportes Generales
+          </Typography>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <Tabs
+              value={tabIndex}
+              onChange={handleTabChange}
+              aria-label="tabs reportes"
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
+            >
+              <Tab label="Comparativa Zonas y Costos" />
+              <Tab label="Catálogo de Adicionales" />
+              <Tab label="Transportistas Más Utilizados" />
+              <Tab label="Comparativa por Transportista" />
+              <Tab label="Análisis de Aumentos" />
+              <Tab label="Historial de Servicios" />
+            </Tabs>
+          </Box>
+          <Box sx={{ mt: 2 }}>
+            {tabIndex === 0 && <ComparativaZonasCostos />}
+            {tabIndex === 1 && <CatalogoAdicionales />}
+            {tabIndex === 2 && <TransportistasMasUtilizadosReporte />}
+            {tabIndex === 3 && <ComparativaCostosTransportistas />}
+            {tabIndex === 4 && <ComparativaAumentosReporte />}
+            {tabIndex === 5 && <ReporteHistorialServicios />}
+          </Box>
+        </Paper>
       </Box>
     </Box>
   );

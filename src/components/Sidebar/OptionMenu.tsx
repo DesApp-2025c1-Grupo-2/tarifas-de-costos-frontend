@@ -1,77 +1,116 @@
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { ListItem, ListItemButton, ListItemIcon, ListItemText, Tooltip } from "@mui/material";
+import {
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Tooltip,
+  Link,
+} from "@mui/material";
 
 interface OptionMenuProps {
   isCollapsed: boolean;
   onClick: () => void;
   title: string;
   link?: string;
-  IconComponent: React.FC<{ color?: string }>;
+  isExternal?: boolean;
+  IconComponent: React.ElementType;
 }
 
-export default function OptionMenu({ isCollapsed, onClick, IconComponent, title, link = "" }: OptionMenuProps) {
+export default function OptionMenu({
+  isCollapsed,
+  onClick,
+  IconComponent,
+  title,
+  link = "",
+  isExternal = false,
+}: OptionMenuProps) {
   const location = useLocation();
   const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
+    if (isExternal) {
+      setIsActive(false);
+      return;
+    }
     const currentPathname = location.pathname;
     const targetPath = `/${link}`;
+    setIsActive(
+      link ? currentPathname.startsWith(targetPath) : currentPathname === "/"
+    );
+  }, [location, link, isExternal]);
 
-    if (link === "") {
-      setIsActive(currentPathname === "/");
-    } else {
-      setIsActive(currentPathname.startsWith(targetPath));
-    }
-  }, [location, link]);
-
-  const activeColor = "#E65F2B";
+  const activeColor = "white";
   const inactiveColor = "#5A5A65";
 
-  return (
-    <ListItem disablePadding sx={{ display: 'block' }}>
-      <Tooltip title={isCollapsed ? title : ""} placement="right">
-        <ListItemButton
-          component={RouterLink}
-          to={`/${link}`}
-          onClick={onClick}
-          selected={isActive}
-          sx={{
-            borderRadius: 2,
-            minHeight: 48,
-            justifyContent: isCollapsed ? 'center' : 'initial',
-            px: 2.5,
-            '&.Mui-selected': {
-              backgroundColor: '#FFEBE2',
-              color: activeColor,
-              '&:hover': {
-                backgroundColor: '#FADFD1',
-              },
-            },
-            color: inactiveColor,
+  const buttonContent = (
+    // El onClick para cerrar el menú ahora está en el ListItemButton
+    <ListItemButton
+      onClick={onClick}
+      selected={isActive}
+      sx={{
+        borderRadius: 2,
+        minHeight: 48,
+        justifyContent: isCollapsed ? "center" : "initial",
+        px: 2.5,
+        mb: 1,
+        color: "text.secondary",
+        "&.Mui-selected": {
+          backgroundColor: "primary.main",
+          color: "white",
+          "&:hover": {
+            backgroundColor: "primary.dark",
+          },
+        },
+        "&:hover": {
+          backgroundColor: "action.hover",
+        },
+      }}
+    >
+      <ListItemIcon
+        sx={{
+          minWidth: 0,
+          mr: isCollapsed ? "auto" : 3,
+          justifyContent: "center",
+          color: isActive ? activeColor : inactiveColor,
+        }}
+      >
+        <IconComponent color={isActive ? activeColor : inactiveColor} />
+      </ListItemIcon>
+      <ListItemText
+        primary={title}
+        sx={{
+          opacity: isCollapsed ? 0 : 1,
+          "& .MuiTypography-root": {
+            fontWeight: isActive ? 500 : 400,
+          },
+        }}
+      />
+    </ListItemButton>
+  );
 
-            '&:hover': {
-              backgroundColor: '#FFEBE2',
-              color: activeColor,
-              '& .MuiListItemIcon-root svg': {
-                 fill: activeColor, 
-              }
-            },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 0, mr: isCollapsed ? 0 : 3, justifyContent: 'center' }}>
-            <IconComponent color={isActive ? activeColor : inactiveColor} />
-          </ListItemIcon>
-          <ListItemText
-            primary={title}
-            sx={{
-              opacity: isCollapsed ? 0 : 1,
-              '& .MuiTypography-root': {
-                fontWeight: isActive ? 600 : 500,
-              }
-            }}
-          />
-        </ListItemButton>
+  return (
+    <ListItem disablePadding sx={{ display: "block" }}>
+      <Tooltip title={isCollapsed ? title : ""} placement="right">
+        {isExternal ? (
+          <Link
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            underline="none"
+            color="inherit"
+          >
+            {buttonContent}
+          </Link>
+        ) : (
+          <RouterLink
+            to={`/${link}`}
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            {buttonContent}
+          </RouterLink>
+        )}
       </Tooltip>
     </ListItem>
   );
