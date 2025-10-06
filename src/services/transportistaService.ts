@@ -2,7 +2,7 @@ import { apiClient } from './apiClient';
 
 export type Transportista = {
   activo: boolean;
-  id: number;
+  id: string;
   cuit: string;
   nombreEmpresa: string;
   contactoNombre: string;
@@ -11,13 +11,13 @@ export type Transportista = {
 };
 
 export interface TransportistaProfile {
-  id: number;
+  id: string;
   nombreEmpresa: string;
   cuit: string;
   contactoNombre: string;
   contactoEmail: string;
   contactoTelefono: string;
-  vehiculos: { id: number; nombre: string }[];
+  vehiculos: { id: string; nombre: string }[];
   zonasOperacion: { id: number; nombre: string }[];
   historialServicios: {
     id: number;
@@ -36,11 +36,11 @@ export const obtenerTransportistas = () =>
 export const crearTransportista = (data: Omit<Transportista, 'id'>) =>
   apiClient.post<Transportista>(TRANSPORTISTAS_URL, data);
 
-export const actualizarTransportista = (id: number, data: Omit<Transportista, 'id'>) =>
+export const actualizarTransportista = (id: number | string, data: Omit<Transportista, 'id'>) =>
   apiClient.put<Transportista>(`${TRANSPORTISTAS_URL}/${id}`, data);
 
-export const eliminarTransportista = (id: number) =>
+export const eliminarTransportista = (id: number | string) =>
   apiClient.baja(`${TRANSPORTISTAS_URL}/${id}/baja`);
 
-export const getTransportistaProfile = (id: number) =>
+export const getTransportistaProfile = (id: number | string) =>
   apiClient.get<TransportistaProfile>(`${TRANSPORTISTAS_URL}/${id}/profile`);

@@ -2,14 +2,14 @@ import { apiClient } from './apiClient';
 
 export type TipoVehiculo = {
   activo: boolean;
-  id: number;
+  id: string; // Cambiado de number a string
   nombre: string;
   capacidadPesoKG: number;
   capacidadVolumenM3: number;
   descripcion: string;
 };
 
-const TIPOS_VEHICULO_URL = '/api/tipos-vehiculo'; // ojo: incluye /api
+const TIPOS_VEHICULO_URL = '/api/tipos-vehiculo';
 
 export const obtenerTiposVehiculo = () =>
   apiClient.get<TipoVehiculo[]>(TIPOS_VEHICULO_URL);

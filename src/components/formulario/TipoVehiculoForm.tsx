@@ -6,29 +6,23 @@ import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
 import { Box, Alert } from "@mui/material";
 
-
-
 const servicioAdaptado: CrudService<TipoVehiculo> = {
   getAll: tipoVehiculoService.obtenerTiposVehiculo,
   create: tipoVehiculoService.crearTipoVehiculo,
-  update: (id, data) =>
-    tipoVehiculoService.actualizarTipoVehiculo(id.toString(), data),
-  remove: (id) => tipoVehiculoService.eliminarTipoVehiculo(id.toString()),
+  update: (id, data) => tipoVehiculoService.actualizarTipoVehiculo(id, data),
+  remove: (id) => tipoVehiculoService.eliminarTipoVehiculo(id),
 };
 
 export const FormCrearTipoVehiculo: React.FC = () => {
-  const {
-    items,
-    message,
-    highlightedId,
-  } = useCrud<TipoVehiculo>(servicioAdaptado);
+  const { items, message, highlightedId } =
+    useCrud<TipoVehiculo>(servicioAdaptado);
 
   return (
     <div>
       <DataTable
         entidad="tipoDeVehiculo"
         rows={items}
-        highlightedId={highlightedId}
+        highlightedId={typeof highlightedId === "number" ? highlightedId : null}
       />
 
       {message && (

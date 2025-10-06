@@ -1,21 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CrudService } from '../../services/crudService';
 import { getHumanReadableError } from '../../utils/errorUtils';
+
 export type MessageState = {
   text: string;
   severity: 'success' | 'error';
 };
 
-export const useCrud = <T extends { id: number; activo?: boolean }>(service: CrudService<T>) => {
+export const useCrud = <T extends { id: number | string; activo?: boolean }>(service: CrudService<T>) => {
   const [items, setItems] = useState<T[]>([]);
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState<MessageState | null>(null);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [idToDelete, setIdToDelete] = useState<number | null>(null);
+  const [idToDelete, setIdToDelete] = useState<number | string | null>(null);
 
-  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const [highlightedId, setHighlightedId] = useState<number | string | null>(null);
 
   const loadItems = useCallback(async () => {
     try {
@@ -48,16 +49,14 @@ export const useCrud = <T extends { id: number; activo?: boolean }>(service: Cru
       setHighlightedId(changedItem.id);
       setTimeout(() => setHighlightedId(null), 4000);
 
-   } catch (err: any) {
-    console.error("Error completo recibido:", err); // Mantenemos esto para depuración.
+    } catch (err: any) {
+      console.error("Error completo recibido:", err);
+      const cleanError = getHumanReadableError(err);
+      setMessage({ text: cleanError, severity: 'error' });
+      setTimeout(() => setMessage(null), 8000);
+    }
+  };
 
-    // 👇 Usamos la función para obtener el mensaje limpio.
-    const cleanError = getHumanReadableError(err);
-    
-    setMessage({ text: cleanError, severity: 'error' });
-    setTimeout(() => setMessage(null), 8000); // Mensaje de error por 8 seg.
-  }
-};
   const handleEdit = (item: T) => {
     setEditingItem(item);
     setShowForm(true);

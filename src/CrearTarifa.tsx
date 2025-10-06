@@ -1,18 +1,102 @@
 import React, { useState } from "react";
 import Sidebar from "./components/Sidebar/Sidebar";
 import { FormCrearTarifa } from "./components/formulario/TarifaForm";
-import { Box, Toolbar, Paper, Typography } from "@mui/material";
+import {
+  Box,
+  Paper,
+  Typography,
+  useMediaQuery,
+  useTheme,
+  IconButton,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const CrearTarifa: React.FC = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const handleToggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
+  const drawerWidth = 256;
+  const collapsedDrawerWidth = 80;
 
   return (
-    <Box sx={{ display: "flex", height: "100vh" }}>
-      <Sidebar isVisible={sidebarVisible} setIsVisible={setSidebarVisible} />
-      <Box component="main" sx={{ flexGrow: 1, p: 3, overflow: "auto" }}>
-        <Toolbar />
-        <Paper sx={{ p: { xs: 2, md: 4 }, borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-           <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 3 }}>
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        backgroundColor: "#F6F7FB",
+        position: "relative",
+      }}
+    >
+      <Sidebar
+        isVisible={sidebarVisible}
+        setIsVisible={setSidebarVisible}
+        isCollapsed={isCollapsed}
+      />
+
+      {!isMobile && (
+        <IconButton
+          onClick={handleToggleCollapse}
+          sx={{
+            position: "absolute",
+            top: "28px",
+            left: isCollapsed
+              ? `${collapsedDrawerWidth}px`
+              : `${drawerWidth}px`,
+            transform: "translateX(-50%)",
+            zIndex: 1301,
+            backgroundColor: "white",
+            border: `1px solid ${theme.palette.divider}`,
+            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+            transition: "left 0.2s ease-in-out",
+            "&:hover": {
+              backgroundColor: theme.palette.grey[100],
+            },
+          }}
+        >
+          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </IconButton>
+      )}
+
+      {isMobile && !sidebarVisible && (
+        <IconButton
+          aria-label="open drawer"
+          onClick={() => setSidebarVisible(true)}
+          sx={{
+            position: "absolute",
+            top: 16,
+            left: 16,
+            zIndex: 1300,
+            border: `1px solid ${theme.palette.grey[400]}`,
+            borderRadius: "8px",
+            "&:hover": {
+              backgroundColor: "rgba(0, 0, 0, 0.04)",
+            },
+          }}
+        >
+          <MenuIcon sx={{ color: "text.primary" }} />
+        </IconButton>
+      )}
+
+      <Box
+        component="main"
+        sx={{ flexGrow: 1, p: 3, width: "100%", overflowX: "hidden" }}
+      >
+        <Paper
+          sx={{
+            p: { xs: 2, md: 4 },
+            pt: { xs: 8, md: 4 },
+            borderRadius: "8px",
+            boxShadow: "none",
+          }}
+        >
+          <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 3 }}>
             Gestionar Tarifas
           </Typography>
           <FormCrearTarifa />
