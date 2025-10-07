@@ -1,219 +1,399 @@
 import React, { useEffect, useState, useMemo } from "react";
+import {
+  Link,
+  CircularProgress,
+  Box,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+} from "@mui/material";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
+import { Resultado } from "./Campos";
 import { BotonPrimario } from "../Botones";
 import DataTable from "../tablas/tablaDinamica";
-import { useCrud } from "../hook/useCrud";
-import { CrudService } from "../../services/crudService";
-import { CircularProgress, Box, Alert } from "@mui/material";
-import { MessageState } from "../hook/useCrud";
-import DialogoConfirmacion from "../DialogoConfirmacion";
 import * as cargaDeCombustibleService from "../../services/cargaDeCombustibleService";
 import { CargaDeCombustible } from "../../services/cargaDeCombustibleService";
+import { obtenerVehiculo, Vehiculo } from "../../services/vehiculoService";
+import { MessageState } from "../hook/useCrud";
+import DialogoConfirmacion from "../DialogoConfirmacion";
 import {
-  obtenerVehiculo,
-  Vehiculo,
-} from "../../services/vehiculoService";
+  VehiculoDetalle,
+  obtenerDetallePorVehiculoId,
+  guardarDetalleVehiculo,
+} from "../../services/vehiculoDetalleService";
 
-export const FormCargaDeCombustible: React.FC = () => {
-    const [cargasDeCombustible, setCargasDeCombustible] = useState<CargaDeCombustible[]>([]);
-    const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
-    const [editingItem, setEditingItem] = useState<CargaDeCombustible | null>(null);
-    const [idAEliminar, setIdAEliminar] = useState<number | null>(null);
-    const [showForm, setShowForm] = useState(false);
-    const [message, setMessage] = useState<MessageState | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [loadingError, setLoadingError] = useState<string | null>(null);
-    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-    const [highlightedId, setHighlightedId] = useState<number | null>(null);
+// --- Sub-componente para el Modal de "Actualizar Datos de Vehículo" ---
+interface GestionarDetallesProps {
+  open: boolean;
+  onClose: () => void;
+  vehiculos: Vehiculo[];
+  onSave: () => void;
+}
 
-    const camposCombustible: Campo[] = useMemo(
-        () => [
-        {
-            tipo: "select",
-            nombre: "Vehiculo",
-            clave: "vehiculoId",
-            opciones: vehiculos.map((t) => ({
-            id: t.id,
-            nombre: `${t.nombreEmpresa} - ${t.contactoNombre} (${t.cuit})`,
-            })),
-            requerido: true,
-        },
-        {
-            tipo: "costoBase",
-            nombre: "Costo Base",
-            clave: "valorBase",
-            requerido: true,
-        }
-        ],
-        vehiculos
-    );
+const GestionarDetallesVehiculo: React.FC<GestionarDetallesProps> = ({
+  open,
+  onClose,
+  vehiculos,
+  onSave,
+}) => {
+  const [formValues, setFormValues] = useState<any>({});
+  const [selectedVehiculoId, setSelectedVehiculoId] = useState("");
 
-    const cargarCombustible = async () => {
-      setIsLoading(true);
-      try {
-        const data = await cargaDeCombustibleService.obtenerCargasDeCombustible();
-        setCargasDeCombustible(
-          data.filter((CargaDeCombustible) => CargaDeCombustible.esVigente !== false)
-        );
-      } catch (error) {
-        setLoadingError("No se pudieron cargar los datos.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  useEffect(() => {
+    if (selectedVehiculoId) {
+      obtenerDetallePorVehiculoId(selectedVehiculoId)
+        .then((data) => setFormValues(data))
+        .catch(() => setFormValues({ vehiculoId: selectedVehiculoId }));
+    }
+  }, [selectedVehiculoId]);
 
-  const cargarDependencias = async () => {
-      try {
-        const [
-          vehiculosData
-        ] = await Promise.all([
-          obtenerVehiculo(),
-        ]);
-        obtenerVehiculo(vehiculosData.filter((v) => v.activo !== false));
-        return true;
-      } catch (error) {
-        alert("Error al cargar datos para el formulario. Intente de nuevo.");
-        return false;
-      }
-    };
+  const campos: Campo[] = useMemo(
+    () => [
+      {
+        tipo: "select",
+        nombre: "Seleccionar Vehículo",
+        clave: "vehiculoId",
+        opciones: vehiculos.map((v) => ({
+          id: v.id,
+          nombre: `${v.patente} - ${v.marca} ${v.modelo}`,
+        })),
+        requerido: true,
+      },
+      {
+        tipo: "number",
+        nombre: "Litros por Tanque",
+        clave: "litrosPorTanque",
+        requerido: true,
+      },
+      {
+        tipo: "number",
+        nombre: "Kilómetros por Tanque",
+        clave: "kmPorTanque",
+        requerido: true,
+      },
+      {
+        tipo: "text",
+        nombre: "Tipo de Combustible (Ej: Diesel)",
+        clave: "tipoCombustible",
+        requerido: true,
+      },
+    ],
+    [vehiculos]
+  );
 
-    const handleCrearClick = async () => {
-        const exito = await cargarDependencias();
-        if (exito) {
-        setEditingItem(null);
-        setShowForm(true);
-        }
-    };
+  const handleSubmit = async (values: Record<string, any>) => {
+    try {
+      await guardarDetalleVehiculo(values as VehiculoDetalle);
+      alert("Datos del vehículo actualizados con éxito");
+      onSave();
+      onClose();
+    } catch (error) {
+      alert("Error al guardar los datos");
+    }
+  };
 
-    const handleEdit = async (cargaDeCombustible: CargaDeCombustible) => {
-      const exito = await cargarDependencias();
-      if (exito) {
-        setEditingItem(cargaDeCombustible);
-        setShowForm(true);
-      }
-    };
-    
-    useEffect(() => {
-      cargarCombustible();
-    }, []);
+  const handleValuesChange = (values: Record<string, any>) => {
+    setFormValues(values);
+    if (values.vehiculoId !== selectedVehiculoId) {
+      setSelectedVehiculoId(values.vehiculoId);
+    }
+  };
 
-    const handleSubmit = async (formValues: Record<string, any>) => {
-        const payload = {
-          nombreTarifa: formValues.nombreTarifa,
-          transportista: { id: formValues.transportistaId },
-          tipoVehiculo: { id: formValues.tipoVehiculoId },
-          zonaViaje: { id: Number(formValues.zonaId) },
-          tipoCargaTarifa: { id: Number(formValues.tipoCargaId) },
-          valorBase: parseFloat(formValues.valorBase || "0"),
-        };
-    
-        try {
-          let changedItem: CargaDeCombustible;
-          if (editingItem && editingItem.id) {
-            changedItem = await cargaDeCombustibleService.actualizarCargaDeCombustible(
-              editingItem.id,
-              payload
-            );
-            setMessage({
-              text: "Carga actualizada con éxito",
-              severity: "success",
-            });
-          } else {
-            changedItem = await cargaDeCombustibleService.crearCargaDeCombustible(payload);
-            setMessage({ text: "Carga creada con éxito", severity: "success" });
-          }
-          setShowForm(false);
-          setEditingItem(null);
-          await cargarCombustible();
-          await cargarDependencias();
-          setHighlightedId(changedItem.id);
-          setTimeout(() => setHighlightedId(null), 4000);
-        } catch (err) {
-          const error = err as Error;
-          setMessage({
-            text: `Error al guardar la tarifa: ${error.message}`,
-            severity: "error",
-          });
-        } finally {
-          setTimeout(() => setMessage(null), 5000);
-        }
-    };
-
-    const handleDelete = (item: CargaDeCombustible) => {
-        setIdAEliminar(item.id);
-        setConfirmDialogOpen(true);
-      };
-
-    const confirmarEliminacion = async () => {
-        if (idAEliminar !== null) {
-          try {
-            await cargaDeCombustibleService.eliminarCargaDeCombustible(idAEliminar);
-            setMessage({
-              text: "Carga dada de baja con éxito",
-              severity: "success",
-            });
-            await cargarCombustible();
-          } catch (err) {
-            setMessage({
-              text: "Error al dar de baja la tarifa",
-              severity: "error",
-            });
-          } finally {
-            setConfirmDialogOpen(false);
-            setIdAEliminar(null);
-            setTimeout(() => setMessage(null), 3000);
-          }
-        }
-      };
-
-    const handleCancel = () => {
-        setShowForm(false);
-        setEditingItem(null);
-    };
-
-    const initialFormValues = editingItem
-    ? {
-        id: editingItem.id,
-        vehiculoId: editingItem.vehiculoId?.toString(),
-        valorBase: editingItem.valorBase,
-      }
-    : null;
-
-    return (
-    <div>
-      {!showForm && !isLoading && !loadingError && (
-        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-          <BotonPrimario onClick={handleCrearClick}>
-            Crear nueva carga de combustible
-          </BotonPrimario>
-        </Box>
-      )}
-      {showForm && (
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Gestionar Datos de Combustible por Vehículo</DialogTitle>
+      <DialogContent>
         <FormularioDinamico
-          titulo={editingItem ? "Editar Carga" : "Registrar nueva Carga de Combustible"}
-          campos={camposCombustible}
+          campos={campos}
+          initialValues={formValues}
           onSubmit={handleSubmit}
-          modal
-          open={showForm}
-          onClose={handleCancel}
-          initialValues={initialFormValues}
+          onValuesChange={handleValuesChange}
+        >
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{ mt: 3, alignSelf: "center" }}
+          >
+            Guardar Datos
+          </Button>
+        </FormularioDinamico>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cerrar</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+// --- Sub-componente para el Modal de "Crear Carga de Combustible" ---
+interface CrearCargaProps {
+  open: boolean;
+  onClose: () => void;
+  vehiculos: Vehiculo[];
+  onSave: () => void;
+}
+
+const CrearCargaCombustibleModal: React.FC<CrearCargaProps> = ({
+  open,
+  onClose,
+  vehiculos,
+  onSave,
+}) => {
+  const [formValues, setFormValues] = useState<any>({});
+  const [vehiculoDetalle, setVehiculoDetalle] =
+    useState<VehiculoDetalle | null>(null);
+  const [kmEstimados, setKmEstimados] = useState(0);
+  const [costoCalculado, setCostoCalculado] = useState(0);
+
+  useEffect(() => {
+    const fetchDetalle = async () => {
+      if (formValues.vehiculoId) {
+        try {
+          const detalle = await obtenerDetallePorVehiculoId(
+            formValues.vehiculoId
+          );
+          setVehiculoDetalle(detalle);
+        } catch (error) {
+          console.warn(
+            "Este vehículo no tiene detalles de combustible cargados."
+          );
+          setVehiculoDetalle(null);
+        }
+      } else {
+        setVehiculoDetalle(null);
+      }
+    };
+    fetchDetalle();
+  }, [formValues.vehiculoId]);
+
+  useEffect(() => {
+    if (
+      vehiculoDetalle &&
+      formValues.cantidadTanques > 0 &&
+      formValues.precioPorLitro > 0
+    ) {
+      const litrosTotales =
+        formValues.cantidadTanques * vehiculoDetalle.litrosPorTanque;
+      const km = formValues.cantidadTanques * vehiculoDetalle.kmPorTanque;
+      const costo = litrosTotales * formValues.precioPorLitro;
+      setKmEstimados(km);
+      setCostoCalculado(costo);
+    } else {
+      setKmEstimados(0);
+      setCostoCalculado(0);
+    }
+  }, [formValues.cantidadTanques, formValues.precioPorLitro, vehiculoDetalle]);
+
+  const campos: Campo[] = useMemo(
+    () => [
+      {
+        tipo: "select",
+        nombre: "Seleccionar Vehículo",
+        clave: "vehiculoId",
+        opciones: vehiculos.map((v) => ({
+          id: v.id,
+          nombre: `${v.patente} - ${v.marca} ${v.modelo}`,
+        })),
+        requerido: true,
+      },
+      {
+        tipo: "number",
+        nombre: "Cantidad de Tanques",
+        clave: "cantidadTanques",
+        requerido: true,
+      },
+      {
+        tipo: "number",
+        nombre: "Precio por Litro",
+        clave: "precioPorLitro",
+        requerido: true,
+      },
+    ],
+    [vehiculos]
+  );
+
+  const handleSubmit = async (values: Record<string, any>) => {
+    const payload = {
+      esVigente: true,
+      vehiculoId: values.vehiculoId,
+      cantidadTanques: parseInt(values.cantidadTanques, 10),
+      precioPorLitro: parseFloat(values.precioPorLitro),
+      costoTotal: costoCalculado,
+      fecha: new Date().toISOString(),
+    };
+    try {
+      await cargaDeCombustibleService.crearCargaDeCombustible(
+        payload as Omit<CargaDeCombustible, "id">
+      );
+      alert("Carga de combustible registrada con éxito");
+      onSave();
+      onClose();
+    } catch (error) {
+      alert("Error al registrar la carga");
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Registrar Nueva Carga de Combustible</DialogTitle>
+      <DialogContent>
+        <Box sx={{ mb: 2, display: "flex", justifyContent: "center" }}>
+          <Link href="https://naftas.com.ar/" target="_blank" rel="noopener">
+            <BotonPrimario>Consultar Precios de Combustible</BotonPrimario>
+          </Link>
+        </Box>
+        <FormularioDinamico
+          campos={campos}
+          initialValues={formValues}
+          onSubmit={handleSubmit}
+          onValuesChange={setFormValues}
+        >
+          <Resultado
+            nombre="KM a realizar (Estimado):"
+            value={kmEstimados.toFixed(2)}
+          />
+          <Resultado
+            nombre="Costo Total (Calculado):"
+            value={costoCalculado.toFixed(2)}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{ mt: 3, alignSelf: "center" }}
+          >
+            Registrar Carga
+          </Button>
+        </FormularioDinamico>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cerrar</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+// --- Componente Principal ---
+export const FormCargaDeCombustible: React.FC = () => {
+  const [cargas, setCargas] = useState<CargaDeCombustible[]>([]);
+  const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState<MessageState | null>(null);
+
+  const [modalDetallesAbierto, setModalDetallesAbierto] = useState(false);
+  const [modalCargaAbierto, setModalCargaAbierto] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [idAEliminar, setIdAEliminar] = useState<number | null>(null);
+
+  const cargarDatos = async () => {
+    setIsLoading(true);
+    try {
+      const [cargasData, vehiculosData] = await Promise.all([
+        cargaDeCombustibleService.obtenerCargasDeCombustible(),
+        obtenerVehiculo(),
+      ]);
+      setCargas(cargasData.filter((c) => c.esVigente));
+      setVehiculos(vehiculosData.filter((v) => !v.deletedAt));
+    } catch (error) {
+      console.error("Error al cargar datos", error);
+      setMessage({ text: "Error al cargar los datos", severity: "error" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const handleDelete = (item: any) => {
+    setIdAEliminar(item.id);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmarEliminacion = async () => {
+    if (idAEliminar !== null) {
+      try {
+        await cargaDeCombustibleService.eliminarCargaDeCombustible(idAEliminar);
+        setMessage({
+          text: "Carga dada de baja con éxito",
+          severity: "success",
+        });
+        await cargarDatos();
+      } catch (err) {
+        setMessage({
+          text: "Error al dar de baja la carga",
+          severity: "error",
+        });
+      } finally {
+        setConfirmDialogOpen(false);
+        setIdAEliminar(null);
+        setTimeout(() => setMessage(null), 3000);
+      }
+    }
+  };
+
+  const enrichedRows = useMemo(() => {
+    const vehiculosMap = new Map(
+      vehiculos.map((v) => [v.id, `${v.patente} - ${v.marca} ${v.modelo}`])
+    );
+    return cargas.map((carga) => ({
+      ...carga,
+      vehiculoNombre:
+        vehiculosMap.get(carga.vehiculoId) || `ID: ${carga.vehiculoId}`,
+      fecha: new Date(carga.fecha).toLocaleString("es-AR"),
+    }));
+  }, [cargas, vehiculos]);
+
+  return (
+    <div>
+      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
+        <BotonPrimario
+          onClick={() => setModalDetallesAbierto(true)}
+          disabled={isLoading}
+        >
+          Actualizar Datos de Vehículo
+        </BotonPrimario>
+        <BotonPrimario
+          onClick={() => setModalCargaAbierto(true)}
+          disabled={isLoading}
+        >
+          Crear Carga de Combustible
+        </BotonPrimario>
+      </Box>
+
+      {modalDetallesAbierto && (
+        <GestionarDetallesVehiculo
+          open={modalDetallesAbierto}
+          onClose={() => setModalDetallesAbierto(false)}
+          vehiculos={vehiculos}
+          onSave={cargarDatos}
         />
       )}
+
+      {modalCargaAbierto && (
+        <CrearCargaCombustibleModal
+          open={modalCargaAbierto}
+          onClose={() => setModalCargaAbierto(false)}
+          vehiculos={vehiculos}
+          onSave={cargarDatos}
+        />
+      )}
+
       {isLoading ? (
         <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
           <CircularProgress />
         </Box>
-      ) : loadingError ? (
-        <Alert severity="error">{loadingError}</Alert>
       ) : (
         <DataTable
-          entidad="tarifa"
-          rows={cargasDeCombustible}
-          handleEdit={handleEdit}
+          entidad="combustible"
+          rows={enrichedRows}
           handleDelete={handleDelete}
-          highlightedId={highlightedId}
         />
       )}
+
       <DialogoConfirmacion
         open={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
@@ -221,6 +401,7 @@ export const FormCargaDeCombustible: React.FC = () => {
         titulo="Confirmar baja de Carga"
         descripcion="¿Estás seguro de que deseas dar de baja esta carga?"
       />
+
       {message && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
           <Alert
@@ -233,5 +414,4 @@ export const FormCargaDeCombustible: React.FC = () => {
       )}
     </div>
   );
-
-}
+};

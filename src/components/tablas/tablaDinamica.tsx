@@ -31,7 +31,7 @@ interface DataTableProps {
   handleView?: (row: any) => void;
   handleMostrarAdicionales?: (adicionales: any[]) => void;
   handleMostrarHistorial?: (tarifaId: number) => void;
-  highlightedId?: number | null;
+  highlightedId?: number | string | null;
 }
 
 const cardConfigs: Record<Entidad, CardConfig> = {
@@ -90,6 +90,17 @@ const cardConfigs: Record<Entidad, CardConfig> = {
       descripcion: "Descripción",
     },
   },
+  // --- INICIO DE LA MODIFICACIÓN ---
+  combustible: {
+    titleField: "vehiculoNombre",
+    subtitleField: "costoTotal",
+    detailFields: ["fecha"],
+    fieldLabels: {
+      costoTotal: "Costo Total",
+      fecha: "Fecha de Carga",
+    },
+  },
+  // --- FIN DE LA MODIFICACIÓN ---
 };
 
 const titulosEntidad: Record<Entidad, string> = {
@@ -99,6 +110,7 @@ const titulosEntidad: Record<Entidad, string> = {
   tipoDeCarga: "Tipos de Carga",
   zona: "Zonas",
   adicional: "Adicionales",
+  combustible: "Cargas de Combustible", // <-- AÑADIDO
 };
 
 const highlightAnimation = keyframes`
@@ -186,12 +198,16 @@ export default function DataTable({
       });
     }
 
+    // --- INICIO DE LA MODIFICACIÓN ---
+    // Se ajusta la lógica para incluir acciones en la tabla de combustible
     if (
       entidad === "tarifa" ||
       entidad === "adicional" ||
       entidad === "zona" ||
-      entidad === "tipoDeCarga"
+      entidad === "tipoDeCarga" ||
+      entidad === "combustible"
     ) {
+      // --- FIN DE LA MODIFICACIÓN ---
       cols.push({
         field: "acciones",
         headerName: "Acciones",

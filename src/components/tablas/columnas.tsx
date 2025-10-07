@@ -7,7 +7,8 @@ export type Entidad =
   | "tipoDeVehiculo"
   | "tipoDeCarga"
   | "zona"
-  | "adicional";
+  | "adicional"
+  | "combustible";
 
 export const columnas: Record<Entidad, GridColDef[]> = {
   tarifa: [
@@ -114,5 +115,18 @@ export const columnas: Record<Entidad, GridColDef[]> = {
     { field: "nombre", headerName: "Nombre", flex: 1 },
     { field: "descripcion", headerName: "Descripción", flex: 1 },
     { field: "costoDefault", headerName: "Costo", type: "number", flex: 0 },
+  ],
+
+  combustible: [
+    { field: "id", headerName: "ID", flex: 0.5 },
+    { field: "fecha", headerName: "Fecha de Carga", flex: 1 },
+    { field: "vehiculoNombre", headerName: "Vehículo", flex: 1.5 },
+    {
+      field: "costoTotal",
+      headerName: "Costo Total",
+      type: "number",
+      flex: 1,
+      valueFormatter: (value) => `$${((value as number) || 0).toFixed(2)}`,
+    },
   ],
 };

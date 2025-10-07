@@ -6,12 +6,13 @@ import FormControl from "@mui/material/FormControl";
 import Autocomplete from "@mui/material/Autocomplete";
 import { Input, InputAdornment } from "@mui/material";
 
-
 type TextProps = {
   label: string;
   value: string;
   onChange: (val: string) => void;
-  type?: "text" | "email" | "tel"; 
+  // --- INICIO DE LA MODIFICACIÓN ---
+  type?: "text" | "email" | "tel" | "input" | "datetime-local" | "number"; // Se añade 'number'
+  // --- FIN DE LA MODIFICACIÓN ---
   error?: boolean;
   helperText?: string;
 };
@@ -31,9 +32,10 @@ export const BasicTextFields: React.FC<TextProps> = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       margin="normal"
-      type={type} 
+      type={type}
       error={error}
       helperText={helperText}
+      InputLabelProps={type === "datetime-local" ? { shrink: true } : undefined}
     />
   </Box>
 );
@@ -83,11 +85,14 @@ export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({
             helperText={helperText}
           />
         )}
-        renderOption={(props, option) => (
-          <li {...props} key={option.id}>
-            {option.nombre}
-          </li>
-        )}
+        renderOption={(props, option) => {
+          const { key, ...restProps } = props as any;
+          return (
+            <li key={key} {...restProps}>
+              {option.nombre}
+            </li>
+          );
+        }}
       />
     </Box>
   );
