@@ -173,22 +173,33 @@ const CrearCargaCombustibleModal: React.FC<CrearCargaProps> = ({
   }, [formValues.vehiculoId]);
 
   useEffect(() => {
-    if (
-      vehiculoDetalle &&
-      formValues.cantidadTanques > 0 &&
-      formValues.precioPorLitro > 0
-    ) {
-      const litrosTotales =
-        formValues.cantidadTanques * vehiculoDetalle.litrosPorTanque;
-      const km = formValues.cantidadTanques * vehiculoDetalle.kmPorTanque;
-      const costo = litrosTotales * formValues.precioPorLitro;
+    // Conversión a número para los valores de entrada
+    const cantidadTanques = Number(formValues.cantidadTanques);
+    const precioPorLitro = Number(formValues.precioPorLitro);
+
+    if (vehiculoDetalle && cantidadTanques > 0 && precioPorLitro > 0) {
+      // FIX: Conversión a Number() de las propiedades del detalle para asegurar que no sean null/undefined
+      const litrosPorTanque = Number(vehiculoDetalle.litrosPorTanque) || 0;
+      const kmPorTanque = Number(vehiculoDetalle.kmPorTanque) || 0;
+
+      // Si los detalles existen pero sus valores son cero (mal configurados), no calculamos
+      if (litrosPorTanque === 0 || kmPorTanque === 0) {
+        setKmEstimados(0);
+        setCostoCalculado(0);
+        return;
+      }
+
+      const litrosTotales = cantidadTanques * litrosPorTanque;
+      const km = cantidadTanques * kmPorTanque;
+      const costo = litrosTotales * precioPorLitro;
+
       setKmEstimados(km);
       setCostoCalculado(costo);
     } else {
       setKmEstimados(0);
       setCostoCalculado(0);
     }
-  }, [formValues.cantidadTanques, formValues.precioPorLitro, vehiculoDetalle]);
+  }, [formValues.cantidadTanques, formValues.precioPorLitro, vehiculoDetalle]); // Dependencias correctas
 
   const campos: Campo[] = useMemo(
     () => [
@@ -219,11 +230,29 @@ const CrearCargaCombustibleModal: React.FC<CrearCargaProps> = ({
   );
 
   const handleSubmit = async (values: Record<string, any>) => {
+    // Validación Crítica (Asegura que el detalle exista y los valores sean válidos)
+    if (!vehiculoDetalle) {
+      alert(
+        "Error: El vehículo seleccionado NO tiene datos de combustible cargados. Por favor, use 'Actualizar Datos de Vehículo' primero."
+      );
+      return;
+    }
+
+    const cantidadTanques = parseInt(values.cantidadTanques, 10);
+    const precioPorLitro = parseFloat(values.precioPorLitro);
+
+    if (cantidadTanques <= 0 || precioPorLitro <= 0 || costoCalculado <= 0) {
+      alert(
+        "Error: Por favor, ingrese valores válidos mayores a cero para Cantidad y Precio."
+      );
+      return;
+    }
+
     const payload = {
       esVigente: true,
       vehiculoId: values.vehiculoId,
-      cantidadTanques: parseInt(values.cantidadTanques, 10),
-      precioPorLitro: parseFloat(values.precioPorLitro),
+      cantidadTanques: cantidadTanques,
+      precioPorLitro: precioPorLitro,
       costoTotal: costoCalculado,
       fecha: new Date().toISOString(),
     };
@@ -248,6 +277,12 @@ const CrearCargaCombustibleModal: React.FC<CrearCargaProps> = ({
             <BotonPrimario>Consultar Precios de Combustible</BotonPrimario>
           </Link>
         </Box>
+        {!vehiculoDetalle && formValues.vehiculoId && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Advertencia: El vehículo seleccionado NO tiene datos de consumo
+            cargados.
+          </Alert>
+        )}
         <FormularioDinamico
           campos={campos}
           initialValues={formValues}
@@ -266,6 +301,7 @@ const CrearCargaCombustibleModal: React.FC<CrearCargaProps> = ({
             type="submit"
             variant="contained"
             sx={{ mt: 3, alignSelf: "center" }}
+            disabled={!vehiculoDetalle || costoCalculado <= 0} // Deshabilitamos si no hay detalle o el costo es 0
           >
             Registrar Carga
           </Button>
@@ -281,6 +317,9 @@ const CrearCargaCombustibleModal: React.FC<CrearCargaProps> = ({
 export const FormCargaDeCombustible: React.FC = () => {
   const [cargas, setCargas] = useState<CargaDeCombustible[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [detallesMap, setDetallesMap] = useState<Map<string, VehiculoDetalle>>(
+    new Map()
+  ); // <-- Mapa de detalles
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<MessageState | null>(null);
 
@@ -298,6 +337,24 @@ export const FormCargaDeCombustible: React.FC = () => {
       ]);
       setCargas(cargasData.filter((c) => c.esVigente));
       setVehiculos(vehiculosData.filter((v) => !v.deletedAt));
+
+      // -------------------------------------------------------------------------------------------------------
+      // Cargar los detalles de combustible para obtener el tipoCombustible (para la tabla)
+      // -------------------------------------------------------------------------------------------------------
+      const vehiculoIds = new Set(vehiculosData.map((v) => v.id));
+      const detallesPromises = Array.from(vehiculoIds).map((id) =>
+        obtenerDetallePorVehiculoId(id).catch(() => null)
+      );
+
+      const detalles = await Promise.all(detallesPromises);
+      const newDetallesMap = new Map<string, VehiculoDetalle>();
+      detalles
+        .filter((d): d is VehiculoDetalle => d !== null)
+        .forEach((d) => {
+          newDetallesMap.set(d.vehiculoId, d);
+        });
+      setDetallesMap(newDetallesMap);
+      // -------------------------------------------------------------------------------------------------------
     } catch (error) {
       console.error("Error al cargar datos", error);
       setMessage({ text: "Error al cargar los datos", severity: "error" });
@@ -341,13 +398,21 @@ export const FormCargaDeCombustible: React.FC = () => {
     const vehiculosMap = new Map(
       vehiculos.map((v) => [v.id, `${v.patente} - ${v.marca} ${v.modelo}`])
     );
-    return cargas.map((carga) => ({
-      ...carga,
-      vehiculoNombre:
-        vehiculosMap.get(carga.vehiculoId) || `ID: ${carga.vehiculoId}`,
-      fecha: new Date(carga.fecha).toLocaleString("es-AR"),
-    }));
-  }, [cargas, vehiculos]);
+
+    // Enriquecimiento de filas para la tabla
+    return cargas.map((carga) => {
+      const detalle = detallesMap.get(carga.vehiculoId);
+
+      return {
+        ...carga,
+        vehiculoNombre:
+          vehiculosMap.get(carga.vehiculoId) || `ID: ${carga.vehiculoId}`,
+        fecha: new Date(carga.fecha).toLocaleString("es-AR"),
+        precioPorLitro: carga.precioPorLitro,
+        tipoCombustible: detalle?.tipoCombustible || "N/D",
+      };
+    });
+  }, [cargas, vehiculos, detallesMap]);
 
   return (
     <div>

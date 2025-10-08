@@ -6,7 +6,7 @@ import DataTable from "../tablas/tablaDinamica";
 import { ZonaViaje } from "../../services/zonaService";
 import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
-import { Box, Alert } from "@mui/material";
+import { Box, Alert, Button, Paper } from "@mui/material";
 import DialogoConfirmacion from "../DialogoConfirmacion";
 import { Provincia, obtenerProvincias } from "../../services/provinciaService";
 import { MapaArgentina } from "./provincias/MapaArgentina";
@@ -113,6 +113,9 @@ export const FormCrearZona: React.FC = () => {
       )
       .filter(Boolean) as Provincia[];
 
+    // Actualiza el mapa al cargar la edición
+    setSelectedProvincesForMap(provinciasSeleccionadas);
+
     return {
       ...editingItem,
       provincias: provinciasSeleccionadas,
@@ -129,6 +132,7 @@ export const FormCrearZona: React.FC = () => {
         </Box>
       )}
 
+      {/* FIX: Se revierte el contenedor externo a BOX y se envuelve cada columna en PAPER. */}
       {showForm && (
         <Box
           sx={{
@@ -137,24 +141,56 @@ export const FormCrearZona: React.FC = () => {
             gap: 4,
           }}
         >
-          <Box>
+          {/* Columna 1: Formulario (Envuelto en Paper) */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: "8px",
+              // Se elimina la altura fija para que el formulario se ajuste al contenido.
+            }}
+          >
             <FormularioDinamico
               titulo={editingItem ? "Editar Zona" : "Registrar nueva zona"}
               campos={camposFormulario}
               onSubmit={handleFormSubmit}
               initialValues={initialValuesForForm}
               onValuesChange={handleValuesChange}
-              modal
-              open={showForm}
-              onClose={actions.handleCancel}
-            />
-          </Box>
-          <Box sx={{ mt: { xs: 2, md: 0 } }}>
+            >
+              {/* Botones de acción del formulario */}
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  justifyContent: "center",
+                  mt: 3,
+                }}
+              >
+                <Button onClick={actions.handleCancel} variant="outlined">
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="contained">
+                  Guardar
+                </Button>
+              </Box>
+            </FormularioDinamico>
+          </Paper>
+
+          {/* Columna 2: Mapa (Envuelto en Paper para igualar el fondo y el p:4, y altura al 100%) */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 4,
+              borderRadius: "8px",
+              height: "100%", // Hace que el Paper ocupe toda la altura disponible (igualando el formulario)
+            }}
+          >
             <MapaArgentina provinciasSeleccionadas={selectedProvincesForMap} />
-          </Box>
+          </Paper>
         </Box>
       )}
 
+      {/* La tabla se muestra cuando no estamos en modo formulario */}
       {!showForm && (
         <DataTable
           entidad="zona"
