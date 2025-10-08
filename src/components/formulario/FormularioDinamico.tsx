@@ -15,6 +15,7 @@ import {
   FormControlLabel,
   Switch,
   Button,
+  DialogActions, // Importar DialogActions
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AdicionalSelector } from "./adicionales/AdicionalSelector";
@@ -45,7 +46,7 @@ export type Campo = {
 };
 
 type Props = {
-  titulo?: string; // Título ahora es opcional
+  titulo?: string;
   campos: Campo[];
   onSubmit: (valores: Record<string, any>) => void;
   initialValues?: Record<string, any> | null;
@@ -110,12 +111,24 @@ const FormularioDinamico: React.FC<Props> = ({
   };
 
   const handleCrearAdicional = async (nuevo: NuevoAdicional) => {
-    // ... (código existente)
+    const adicionalParaFormulario = {
+      id: -Math.floor(Math.random() * 100000),
+      nombre: nuevo.nombre,
+      descripcion: nuevo.descripcion,
+      precio: nuevo.precio,
+      costoEspecifico: nuevo.precio,
+      activo: true,
+      esGlobal: false,
+    };
+    const actuales = valores["adicionales"] || [];
+    handleChange("adicionales", [...actuales, adicionalParaFormulario]);
+    setModalNuevoAdicional(false);
   };
 
   const contenidoFormulario = (
     <Box
       component="form"
+      id="formulario-dinamico" // ID para asociar botones externos
       onSubmit={handleInternalSubmit}
       sx={{
         display: "flex",
@@ -164,12 +177,48 @@ const FormularioDinamico: React.FC<Props> = ({
                 onChange={(val) => handleChange(campo.clave, val)}
               />
             );
+          case "adicionales":
+            return (
+              <AdicionalSelector
+                key={campo.clave}
+                adicionales={campo.opciones || []}
+                seleccionados={valores[campo.clave] || []}
+                onChange={(val) => handleChange(campo.clave, val)}
+                onCrearNuevo={() => setModalNuevoAdicional(true)}
+              />
+            );
+          case "provincias":
+            return (
+              <ProvinciaSelector
+                key={campo.clave}
+                provincias={campo.opciones || []}
+                seleccionados={valores[campo.clave] || []}
+                onChange={(val) => handleChange(campo.clave, val)}
+              />
+            );
+          case "switch":
+            return (
+              <FormControlLabel
+                key={campo.clave}
+                control={
+                  <Switch
+                    checked={!!valores[campo.clave]}
+                    onChange={(e) =>
+                      handleChange(campo.clave, e.target.checked)
+                    }
+                    name={campo.clave}
+                  />
+                }
+                label={campo.nombre}
+                sx={{ mt: 1, mb: 1, alignSelf: "flex-start" }}
+              />
+            );
           default:
             return null;
         }
       })}
+      {/* Si se pasan 'children', se renderizan aquí. Ideal para botones personalizados. */}
       {children}
-      {!modal && <BotonGuardar />}
     </Box>
   );
 
@@ -189,6 +238,18 @@ const FormularioDinamico: React.FC<Props> = ({
           </DialogTitle>
         )}
         <DialogContent dividers>{contenidoFormulario}</DialogContent>
+        {!children && (
+          <DialogActions>
+            <Button onClick={onClose}>Cancelar</Button>
+            <Button
+              type="submit"
+              form="formulario-dinamico"
+              variant="contained"
+            >
+              Guardar
+            </Button>
+          </DialogActions>
+        )}
       </Dialog>
     );
   }

@@ -25,7 +25,6 @@ import {
   guardarDetalleVehiculo,
 } from "../../services/vehiculoDetalleService";
 
-// --- Sub-componente para el Modal de "Actualizar Datos de Vehículo" ---
 interface GestionarDetallesProps {
   open: boolean;
   onClose: () => void;
@@ -75,9 +74,14 @@ const GestionarDetallesVehiculo: React.FC<GestionarDetallesProps> = ({
         requerido: true,
       },
       {
-        tipo: "text",
-        nombre: "Tipo de Combustible (Ej: Diesel)",
+        tipo: "select",
+        nombre: "Tipo de Combustible",
         clave: "tipoCombustible",
+        opciones: [
+          { id: "Nafta", nombre: "Nafta" },
+          { id: "Diesel", nombre: "Diesel" },
+          { id: "GNC", nombre: "GNC" },
+        ],
         requerido: true,
       },
     ],
@@ -128,7 +132,6 @@ const GestionarDetallesVehiculo: React.FC<GestionarDetallesProps> = ({
   );
 };
 
-// --- Sub-componente para el Modal de "Crear Carga de Combustible" ---
 interface CrearCargaProps {
   open: boolean;
   onClose: () => void;
@@ -275,7 +278,6 @@ const CrearCargaCombustibleModal: React.FC<CrearCargaProps> = ({
   );
 };
 
-// --- Componente Principal ---
 export const FormCargaDeCombustible: React.FC = () => {
   const [cargas, setCargas] = useState<CargaDeCombustible[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);

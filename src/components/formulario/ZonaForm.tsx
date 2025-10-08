@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
 import * as zonaService from "../../services/zonaService";
@@ -9,6 +9,7 @@ import { CrudService } from "../../services/crudService";
 import { Box, Alert } from "@mui/material";
 import DialogoConfirmacion from "../DialogoConfirmacion";
 import { Provincia, obtenerProvincias } from "../../services/provinciaService";
+import { MapaArgentina } from "./provincias/MapaArgentina";
 
 const camposZona: Campo[] = [
   { tipo: "text", nombre: "Nombre", clave: "nombre", requerido: true },
@@ -47,40 +48,29 @@ export const FormCrearZona: React.FC = () => {
     setMessage,
     actions,
   } = useCrud<ZonaViaje>(servicioAdaptado);
+
   const [provincias, setProvincias] = useState<Provincia[]>([]);
+  const [selectedProvincesForMap, setSelectedProvincesForMap] = useState<
+    Provincia[]
+  >([]);
 
   useEffect(() => {
-    let estaActivo = true;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
     const cargarProvincias = async () => {
       try {
         const data = await obtenerProvincias();
-        if (!estaActivo) return;
-        const activas = data.filter((provincia) => provincia.activo !== false);
-        setProvincias(activas);
+        setProvincias(data.filter((p) => p.activo !== false));
       } catch (error) {
         console.error("Error al obtener las provincias:", error);
-        if (!estaActivo) return;
         setMessage({
           text: "Error al cargar las provincias.",
           severity: "error",
         });
-        timeoutId = setTimeout(() => setMessage(null), 8000);
       }
     };
-
     cargarProvincias();
-
-    return () => {
-      estaActivo = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
   }, [setMessage]);
 
-  const camposFormulario = React.useMemo(
+  const camposFormulario = useMemo(
     () =>
       camposZona.map((campo) =>
         campo.clave === "provincias"
@@ -91,16 +81,43 @@ export const FormCrearZona: React.FC = () => {
   );
 
   const handleFormSubmit = (formValues: Record<string, any>) => {
-    const data: Omit<ZonaViaje, "id"> = {
-      ...(editingItem ?? {}),
+    const data = {
       activo: true,
       nombre: formValues.nombre,
       descripcion: formValues.descripcion,
       regionMapa: formValues.regionMapa,
-      provincias: formValues.provincias,
+      provinciasNombres: (formValues.provincias || []).map(
+        (p: Provincia) => p.nombre
+      ),
     };
-    actions.handleSubmit(data);
+    actions.handleSubmit(data as Omit<ZonaViaje, "id">);
   };
+
+  const handleValuesChange = (formValues: Record<string, any>) => {
+    if (formValues.provincias) {
+      setSelectedProvincesForMap(formValues.provincias);
+    } else {
+      setSelectedProvincesForMap([]);
+    }
+  };
+
+  const initialValuesForForm = useMemo(() => {
+    if (!editingItem) return null;
+
+    // Cuando se edita, se reconstruyen los objetos de provincia completos a partir de los nombres
+    const provinciasSeleccionadas = (editingItem.provincias || [])
+      .map((provinciaDeZona: any) =>
+        provincias.find(
+          (p) => p.nombre === (provinciaDeZona.nombre || provinciaDeZona)
+        )
+      )
+      .filter(Boolean) as Provincia[];
+
+    return {
+      ...editingItem,
+      provincias: provinciasSeleccionadas,
+    };
+  }, [editingItem, provincias]);
 
   return (
     <div>
@@ -113,24 +130,40 @@ export const FormCrearZona: React.FC = () => {
       )}
 
       {showForm && (
-        <FormularioDinamico
-          titulo={editingItem ? "Editar Zona" : "Registrar nueva zona"}
-          campos={camposFormulario}
-          onSubmit={handleFormSubmit}
-          initialValues={editingItem}
-          modal
-          open={showForm}
-          onClose={actions.handleCancel}
-        />
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+            gap: 4,
+          }}
+        >
+          <Box>
+            <FormularioDinamico
+              titulo={editingItem ? "Editar Zona" : "Registrar nueva zona"}
+              campos={camposFormulario}
+              onSubmit={handleFormSubmit}
+              initialValues={initialValuesForForm}
+              onValuesChange={handleValuesChange}
+              modal
+              open={showForm}
+              onClose={actions.handleCancel}
+            />
+          </Box>
+          <Box sx={{ mt: { xs: 2, md: 0 } }}>
+            <MapaArgentina provinciasSeleccionadas={selectedProvincesForMap} />
+          </Box>
+        </Box>
       )}
 
-      <DataTable
-        entidad="zona"
-        rows={items}
-        handleEdit={actions.handleEdit}
-        handleDelete={actions.handleDelete}
-        highlightedId={highlightedId}
-      />
+      {!showForm && (
+        <DataTable
+          entidad="zona"
+          rows={items}
+          handleEdit={actions.handleEdit}
+          handleDelete={actions.handleDelete}
+          highlightedId={highlightedId}
+        />
+      )}
 
       <DialogoConfirmacion
         open={confirmOpen}
