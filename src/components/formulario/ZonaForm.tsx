@@ -1,15 +1,14 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
 import * as zonaService from "../../services/zonaService";
 import DataTable from "../tablas/tablaDinamica";
 import { ZonaViaje } from "../../services/zonaService";
-import { useCrud } from "../hook/useCrud";
-import { CrudService } from "../../services/crudService";
 import { Box, Alert, Button, Paper } from "@mui/material";
 import DialogoConfirmacion from "../DialogoConfirmacion";
 import { Provincia, obtenerProvincias } from "../../services/provinciaService";
 import { MapaArgentina } from "./provincias/MapaArgentina";
+import { MessageState } from "../hook/useCrud";
 
 const camposZona: Campo[] = [
   { tipo: "text", nombre: "Nombre", clave: "nombre", requerido: true },
@@ -28,39 +27,36 @@ const camposZona: Campo[] = [
   },
 ];
 
-const servicioAdaptado: CrudService<ZonaViaje> = {
-  getAll: zonaService.obtenerZonas,
-  create: zonaService.crearZona,
-  update: zonaService.actualizarZona,
-  remove: zonaService.eliminarZona,
-};
-
 export const FormCrearZona: React.FC = () => {
-  const {
-    items,
-    editingItem,
-    showForm,
-    message,
-    confirmOpen,
-    setConfirmOpen,
-    confirmDelete,
-    highlightedId,
-    setMessage,
-    actions,
-  } = useCrud<ZonaViaje>(servicioAdaptado);
+  const [items, setItems] = useState<ZonaViaje[]>([]);
+  const [editingItem, setEditingItem] = useState<ZonaViaje | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [message, setMessage] = useState<MessageState | null>(null);
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [idToDelete, setIdToDelete] = useState<number | string | null>(null);
 
   const [provincias, setProvincias] = useState<Provincia[]>([]);
   const [selectedProvincesForMap, setSelectedProvincesForMap] = useState<
     Provincia[]
   >([]);
 
+  const loadItems = useCallback(async () => {
+    try {
+      const data = await zonaService.obtenerZonas();
+      setItems(data.filter((item) => item.activo !== false));
+    } catch (error) {
+      setMessage({ text: "Error al cargar las zonas.", severity: "error" });
+    }
+  }, []);
+
   useEffect(() => {
+    loadItems();
     const cargarProvincias = async () => {
       try {
         const data = await obtenerProvincias();
         setProvincias(data.filter((p) => p.activo !== false));
       } catch (error) {
-        console.error("Error al obtener las provincias:", error);
         setMessage({
           text: "Error al cargar las provincias.",
           severity: "error",
@@ -68,7 +64,42 @@ export const FormCrearZona: React.FC = () => {
       }
     };
     cargarProvincias();
-  }, [setMessage]);
+  }, [loadItems]);
+
+  const handleCreateNew = () => {
+    setEditingItem(null);
+    setShowForm(true);
+  };
+
+  const handleEdit = (zona: ZonaViaje) => {
+    setEditingItem(zona);
+    setShowForm(true);
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingItem(null);
+  };
+
+  const handleDelete = (zona: ZonaViaje) => {
+    setIdToDelete(zona.id);
+    setConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (idToDelete === null) return;
+    try {
+      await zonaService.eliminarZona(idToDelete);
+      setMessage({ text: "Zona eliminada con éxito.", severity: "success" });
+      loadItems();
+    } catch (err) {
+      setMessage({ text: "Error al eliminar la zona.", severity: "error" });
+    } finally {
+      setConfirmOpen(false);
+      setIdToDelete(null);
+      setTimeout(() => setMessage(null), 3000);
+    }
+  };
 
   const camposFormulario = useMemo(
     () =>
@@ -80,7 +111,7 @@ export const FormCrearZona: React.FC = () => {
     [provincias]
   );
 
-  const handleFormSubmit = (formValues: Record<string, any>) => {
+  const handleFormSubmit = async (formValues: Record<string, any>) => {
     const data = {
       activo: true,
       nombre: formValues.nombre,
@@ -90,7 +121,33 @@ export const FormCrearZona: React.FC = () => {
         (p: Provincia) => p.nombre
       ),
     };
-    actions.handleSubmit(data as Omit<ZonaViaje, "id">);
+
+    try {
+      let changedItem: ZonaViaje;
+      if (editingItem) {
+        changedItem = await zonaService.actualizarZona(
+          editingItem.id,
+          data as Omit<ZonaViaje, "id">
+        );
+        setMessage({
+          text: "Zona actualizada con éxito.",
+          severity: "success",
+        });
+      } else {
+        changedItem = await zonaService.crearZona(
+          data as Omit<ZonaViaje, "id">
+        );
+        setMessage({ text: "Zona creada con éxito.", severity: "success" });
+      }
+      handleCancel();
+      await loadItems();
+      setHighlightedId(changedItem.id);
+      setTimeout(() => setHighlightedId(null), 4000);
+    } catch (err) {
+      setMessage({ text: `Error al guardar la zona.`, severity: "error" });
+    } finally {
+      setTimeout(() => setMessage(null), 5000);
+    }
   };
 
   const handleValuesChange = (formValues: Record<string, any>) => {
@@ -104,7 +161,6 @@ export const FormCrearZona: React.FC = () => {
   const initialValuesForForm = useMemo(() => {
     if (!editingItem) return null;
 
-    // Cuando se edita, se reconstruyen los objetos de provincia completos a partir de los nombres
     const provinciasSeleccionadas = (editingItem.provincias || [])
       .map((provinciaDeZona: any) =>
         provincias.find(
@@ -113,26 +169,30 @@ export const FormCrearZona: React.FC = () => {
       )
       .filter(Boolean) as Provincia[];
 
-    // Actualiza el mapa al cargar la edición
-    setSelectedProvincesForMap(provinciasSeleccionadas);
-
     return {
       ...editingItem,
       provincias: provinciasSeleccionadas,
     };
   }, [editingItem, provincias]);
 
+  useEffect(() => {
+    if (initialValuesForForm?.provincias) {
+      setSelectedProvincesForMap(initialValuesForForm.provincias);
+    } else if (!editingItem) {
+      setSelectedProvincesForMap([]);
+    }
+  }, [initialValuesForForm, editingItem]);
+
   return (
     <div>
       {!showForm && (
         <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-          <BotonPrimario onClick={actions.handleCreateNew}>
+          <BotonPrimario onClick={handleCreateNew}>
             Crear nueva zona
           </BotonPrimario>
         </Box>
       )}
 
-      {/* FIX: Se revierte el contenedor externo a BOX y se envuelve cada columna en PAPER. */}
       {showForm && (
         <Box
           sx={{
@@ -141,13 +201,11 @@ export const FormCrearZona: React.FC = () => {
             gap: 4,
           }}
         >
-          {/* Columna 1: Formulario (Envuelto en Paper) */}
           <Paper
             elevation={0}
             sx={{
               p: 4,
               borderRadius: "8px",
-              // Se elimina la altura fija para que el formulario se ajuste al contenido.
             }}
           >
             <FormularioDinamico
@@ -157,7 +215,6 @@ export const FormCrearZona: React.FC = () => {
               initialValues={initialValuesForForm}
               onValuesChange={handleValuesChange}
             >
-              {/* Botones de acción del formulario */}
               <Box
                 sx={{
                   display: "flex",
@@ -166,7 +223,7 @@ export const FormCrearZona: React.FC = () => {
                   mt: 3,
                 }}
               >
-                <Button onClick={actions.handleCancel} variant="outlined">
+                <Button onClick={handleCancel} variant="outlined">
                   Cancelar
                 </Button>
                 <Button type="submit" variant="contained">
@@ -176,13 +233,12 @@ export const FormCrearZona: React.FC = () => {
             </FormularioDinamico>
           </Paper>
 
-          {/* Columna 2: Mapa (Envuelto en Paper para igualar el fondo y el p:4, y altura al 100%) */}
           <Paper
             elevation={0}
             sx={{
               p: 4,
               borderRadius: "8px",
-              height: "100%", // Hace que el Paper ocupe toda la altura disponible (igualando el formulario)
+              height: "100%",
             }}
           >
             <MapaArgentina provinciasSeleccionadas={selectedProvincesForMap} />
@@ -190,13 +246,12 @@ export const FormCrearZona: React.FC = () => {
         </Box>
       )}
 
-      {/* La tabla se muestra cuando no estamos en modo formulario */}
       {!showForm && (
         <DataTable
           entidad="zona"
           rows={items}
-          handleEdit={actions.handleEdit}
-          handleDelete={actions.handleDelete}
+          handleEdit={handleEdit}
+          handleDelete={handleDelete}
           highlightedId={highlightedId}
         />
       )}

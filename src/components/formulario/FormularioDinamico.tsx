@@ -71,17 +71,9 @@ const FormularioDinamico: React.FC<Props> = ({
   const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
   const [errores, setErrores] = useState<Record<string, string>>({});
 
-  // --- INICIO DE LA CORRECCIÓN ---
-  // Esta lógica asegura que el formulario se llene con los datos correctos al abrirse
-  // y se vacíe al cerrarse, solucionando el problema de la edición.
   useEffect(() => {
-    if (open) {
-      setValores(initialValues || {});
-    } else {
-      setValores({});
-    }
-  }, [open, initialValues]);
-  // --- FIN DE LA CORRECCIÓN ---
+    setValores(initialValues || {});
+  }, [initialValues]);
 
   useEffect(() => {
     if (campos.some((c) => c.tipo === "resultado")) {
@@ -288,25 +280,11 @@ const FormularioDinamico: React.FC<Props> = ({
       </>
     );
   }
-
   return (
-    <Box
-      sx={{
-        margin: { xs: "0 auto", md: "0 auto" },
-        width: { xs: "95%", md: "80%" },
-        maxWidth: "800px",
-        border: "1px solid black",
-        borderRadius: "8px",
-        padding: { xs: "20px", md: "40px 60px" },
-        boxSizing: "border-box",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
+    <>
       {titulo && <h2>{titulo}</h2>}
       {contenidoFormulario}
-    </Box>
+    </>
   );
 };
 

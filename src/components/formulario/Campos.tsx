@@ -10,9 +10,7 @@ type TextProps = {
   label: string;
   value: string;
   onChange: (val: string) => void;
-  // --- INICIO DE LA MODIFICACIÓN ---
-  type?: "text" | "email" | "tel" | "input" | "datetime-local" | "number"; // Se añade 'number'
-  // --- FIN DE LA MODIFICACIÓN ---
+  type?: "text" | "email" | "tel" | "input" | "datetime-local" | "number";
   error?: boolean;
   helperText?: string;
 };
@@ -126,9 +124,10 @@ export const NumberField: React.FC<NumberFieldProps> = ({
 type Res = {
   nombre: string;
   value: string;
+  unidad?: string;
 };
 
-export const Resultado: React.FC<Res> = ({ nombre, value }) => {
+export const Resultado: React.FC<Res> = ({ nombre, value, unidad }) => {
   return (
     <Box sx={{ mb: 2 }}>
       <FormControl fullWidth sx={{ m: 1, my: 2 }} variant="standard">
@@ -139,7 +138,11 @@ export const Resultado: React.FC<Res> = ({ nombre, value }) => {
           id={`resultado-${nombre.toLowerCase()}`}
           value={value}
           readOnly
-          startAdornment={<InputAdornment position="start">$</InputAdornment>}
+          startAdornment={
+            unidad ? (
+              <InputAdornment position="start">{unidad}</InputAdornment>
+            ) : null
+          }
         />
       </FormControl>
     </Box>
