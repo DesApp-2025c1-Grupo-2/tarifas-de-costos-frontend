@@ -5,6 +5,16 @@ import { obtenerAdicionales } from "../../services/adicionalService";
 import { getFrecuenciaAdicionales } from "../../services/reporteService";
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
 
+// --- INICIO DE LA CORRECCIÓN ---
+const formatCurrency = (value: number | any) => {
+  const number = Number(value) || 0;
+  return `$${number.toLocaleString("es-AR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+};
+// --- FIN DE LA CORRECCIÓN ---
+
 const columns: GridColDef[] = [
   { field: "id", headerName: "ID", width: 90 },
   { field: "nombre", headerName: "Nombre Adicional", flex: 1 },
@@ -16,11 +26,11 @@ const columns: GridColDef[] = [
     flex: 0,
   },
   {
-    field: 'costoDefault',
-    headerName: 'Costo Base',
-    type: 'number',
+    field: "costoDefault",
+    headerName: "Costo Base",
+    type: "number",
     width: 150,
-    valueFormatter: (value) => `$${((value as number) ?? 0).toFixed(2)}`
+    valueFormatter: (value) => formatCurrency(value),
   },
 ];
 
@@ -37,7 +47,6 @@ const CatalogoAdicionales: React.FC = () => {
           getFrecuenciaAdicionales(),
         ]);
 
-        // CORRECCIÓN: Se simplifica el filtro de activos.
         const activos = adicionales.filter((a) => a.activo);
 
         const frecuenciaMap = new Map(

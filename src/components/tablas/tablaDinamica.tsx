@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { Card, CardHeader, CardContent } from "@mui/material";
+import { Card, CardHeader, CardContent, Alert } from "@mui/material";
 import { columnas, Entidad } from "./columnas";
 import {
   Box,
@@ -34,6 +34,8 @@ interface DataTableProps {
   highlightedId?: number | string | null;
 }
 
+// --- INICIO DE LA CORRECCIÓN ---
+// Se añade la configuración faltante para la entidad "vehiculo".
 const cardConfigs: Record<Entidad, CardConfig> = {
   tarifa: {
     titleField: "transportistaNombre",
@@ -55,6 +57,17 @@ const cardConfigs: Record<Entidad, CardConfig> = {
       contactoNombre: "Contacto",
       contactoEmail: "Email",
       contactoTelefono: "Teléfono",
+    },
+  },
+  vehiculo: {
+    titleField: "patente",
+    subtitleField: "marca",
+    detailFields: ["modelo", "anio", "tipoVehiculoNombre"],
+    fieldLabels: {
+      marca: "Marca",
+      modelo: "Modelo",
+      anio: "Año",
+      tipoVehiculoNombre: "Tipo",
     },
   },
   tipoDeVehiculo: {
@@ -90,7 +103,6 @@ const cardConfigs: Record<Entidad, CardConfig> = {
       descripcion: "Descripción",
     },
   },
-  // --- INICIO DE LA MODIFICACIÓN ---
   combustible: {
     titleField: "vehiculoNombre",
     subtitleField: "costoTotal",
@@ -100,18 +112,19 @@ const cardConfigs: Record<Entidad, CardConfig> = {
       fecha: "Fecha de Carga",
     },
   },
-  // --- FIN DE LA MODIFICACIÓN ---
 };
 
 const titulosEntidad: Record<Entidad, string> = {
   tarifa: "Tarifas",
   transportista: "Transportistas",
+  vehiculo: "Vehículos",
   tipoDeVehiculo: "Tipos de Vehículo",
   tipoDeCarga: "Tipos de Carga",
   zona: "Zonas",
   adicional: "Adicionales",
-  combustible: "Cargas de Combustible", // <-- AÑADIDO
+  combustible: "Cargas de Combustible",
 };
+// --- FIN DE LA CORRECCIÓN ---
 
 const highlightAnimation = keyframes`
   0% { background-color: rgba(124, 179, 66, 0.4); }
@@ -134,6 +147,7 @@ export default function DataTable({
   const [filtros, setFiltros] = useState<{ [key: string]: string }>({});
 
   const rowsFiltrados = useMemo(() => {
+    if (!rows) return [];
     const filteredRows =
       entidad === "tarifa"
         ? rows.filter((row) => row.esVigente !== false)
@@ -152,6 +166,7 @@ export default function DataTable({
 
   const valoresUnicosPorColumna = useMemo(() => {
     const valores: { [key: string]: (string | number)[] } = {};
+    if (!columnasBase) return valores;
     columnasBase.forEach((col) => {
       const field = col.field;
       const unicos = Array.from(
@@ -169,6 +184,7 @@ export default function DataTable({
   const limpiarFiltros = () => setFiltros({});
 
   const columnasConAcciones: GridColDef[] = useMemo(() => {
+    if (!columnasBase) return [];
     let cols = [...columnasBase];
 
     if (entidad === "tarifa" && handleMostrarAdicionales) {
@@ -198,16 +214,14 @@ export default function DataTable({
       });
     }
 
-    // --- INICIO DE LA MODIFICACIÓN ---
-    // Se ajusta la lógica para incluir acciones en la tabla de combustible
     if (
       entidad === "tarifa" ||
       entidad === "adicional" ||
       entidad === "zona" ||
       entidad === "tipoDeCarga" ||
-      entidad === "combustible"
+      entidad === "combustible" ||
+      entidad === "tipoDeVehiculo"
     ) {
-      // --- FIN DE LA MODIFICACIÓN ---
       cols.push({
         field: "acciones",
         headerName: "Acciones",
@@ -308,6 +322,14 @@ export default function DataTable({
     handleMostrarHistorial,
     theme,
   ]);
+
+  if (!columnasBase) {
+    return (
+      <Alert severity="warning">
+        No hay una configuración de columnas para la entidad: '{entidad}'.
+      </Alert>
+    );
+  }
 
   return (
     <Box sx={{ width: "100%" }}>

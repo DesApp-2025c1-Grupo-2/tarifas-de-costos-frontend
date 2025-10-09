@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Box, Alert } from "@mui/material";
 import FormularioDinamico, { Campo } from "../FormularioDinamico";
 import { BotonPrimario, BotonSecundario } from "../../Botones";
 import * as adicionalService from "../../../services/adicionalService";
+import * as reporteService from "../../../services/reporteService";
 import DataTable from "../../tablas/tablaDinamica";
 import { Adicional } from "../../../services/adicionalService";
-import { useCrud } from "../../hook/useCrud";
-import { CrudService } from "../../../services/crudService";
 import { ModalPromoverAdicional } from "./ModalPromoverAdicional";
 import DialogoConfirmacion from "../../DialogoConfirmacion";
+import { MessageState, useCrud } from "../../hook/useCrud";
+import { CrudService } from "../../../services/crudService";
 
 const camposAdicional: Campo[] = [
   {
@@ -37,15 +38,19 @@ const camposAdicional: Campo[] = [
 ];
 
 const servicioAdaptado: CrudService<Adicional> = {
+  // La obtención de datos se manejará localmente
   getAll: adicionalService.obtenerAdicionales,
   create: adicionalService.crearAdicional,
   update: (id, data) => adicionalService.actualizarAdicional(id, data),
   remove: (id) => adicionalService.eliminarAdicional(id),
 };
 
+// Se crea un nuevo tipo que incluye la cantidad
+type AdicionalConFrecuencia = Adicional & { cantidad: number };
+
 export const AdicionalForm: React.FC = () => {
+  // Se mantiene el hook 'useCrud' principalmente para las acciones (crear, editar, etc.)
   const {
-    items,
     editingItem,
     showForm,
     message,
@@ -53,14 +58,46 @@ export const AdicionalForm: React.FC = () => {
     setConfirmOpen,
     confirmDelete,
     highlightedId,
-    fetchItems,
     setMessage,
     actions,
   } = useCrud<Adicional>(servicioAdaptado);
 
+  const [items, setItems] = useState<AdicionalConFrecuencia[]>([]);
   const [modalPromoverAbierto, setModalPromoverAbierto] = useState(false);
 
-  const handleFormSubmit = (formValues: Record<string, any>) => {
+  // Función para cargar y combinar los datos
+  const fetchItems = useCallback(async () => {
+    try {
+      const [adicionales, frecuencia] = await Promise.all([
+        adicionalService.obtenerAdicionales(),
+        reporteService.getFrecuenciaAdicionales(),
+      ]);
+
+      const frecuenciaMap = new Map(
+        frecuencia.map((f) => [f.nombreAdicional, f.cantidad])
+      );
+
+      const combinados = adicionales.map((a) => ({
+        ...a,
+        cantidad: frecuenciaMap.get(a.nombre) ?? 0,
+      }));
+
+      setItems(combinados);
+    } catch (error) {
+      console.error("Error al cargar los adicionales con frecuencia:", error);
+      setMessage({
+        text: "Error al cargar los datos.",
+        severity: "error",
+      });
+    }
+  }, [setMessage]);
+
+  // Se llama a la carga de datos al montar el componente
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
+
+  const handleFormSubmit = async (formValues: Record<string, any>) => {
     const data: Omit<Adicional, "id"> = {
       ...(editingItem ?? {}),
       activo: true,
@@ -69,7 +106,9 @@ export const AdicionalForm: React.FC = () => {
       costoDefault: Number(formValues.costoDefault),
       esGlobal: !!formValues.esGlobal,
     };
-    actions.handleSubmit(data);
+    // Se usa la acción del hook, y luego se recargan los datos
+    await actions.handleSubmit(data);
+    fetchItems();
   };
 
   const handlePromoverSubmit = async (adicional: Adicional) => {
@@ -81,7 +120,7 @@ export const AdicionalForm: React.FC = () => {
         text: "Adicional promovido con éxito.",
         severity: "success",
       });
-      fetchItems();
+      fetchItems(); // Recargar datos
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.message || "Error al promover el adicional.";
@@ -91,7 +130,9 @@ export const AdicionalForm: React.FC = () => {
     }
   };
 
-  const adicionalesConstantes = items.filter((item) => !item.esGlobal);
+  const adicionalesConstantes = items.filter(
+    (item) => !item.esGlobal && item.activo
+  );
 
   return (
     <div>
@@ -135,7 +176,10 @@ export const AdicionalForm: React.FC = () => {
       <DialogoConfirmacion
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
-        onConfirm={confirmDelete}
+        onConfirm={async () => {
+          await confirmDelete();
+          fetchItems();
+        }}
         titulo="Confirmar eliminación"
         descripcion="¿Estás seguro de que deseas eliminar este elemento?"
       />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Autocomplete,
   TextField,
@@ -40,8 +40,6 @@ export const ProvinciaSelector: React.FC<Props> = ({
         onChange={(_, newValue) => {
           onChange(newValue);
         }}
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Se corrige el renderizado de los tags (las etiquetas de las provincias seleccionadas)
         renderTags={(value: Provincia[], getTagProps) =>
           value.map((option: Provincia, index: number) => {
             const { key, ...chipProps } = getTagProps({ index });
@@ -50,7 +48,6 @@ export const ProvinciaSelector: React.FC<Props> = ({
             );
           })
         }
-        // --- FIN DE LA CORRECCIÓN ---
         isOptionEqualToValue={(option, value) => option.id === value.id}
         renderInput={(params) => (
           <TextField {...params} label="Seleccionar provincias" />

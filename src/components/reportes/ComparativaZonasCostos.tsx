@@ -15,7 +15,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination, 
+  TablePagination,
 } from "@mui/material";
 import {
   getComparativaGeneralPorZona,
@@ -28,8 +28,11 @@ interface MinMaxZonaData {
 }
 
 const formatCurrency = (value: number) => {
-  if (typeof value !== "number") return "$0.00";
-  return `$${value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;
+  if (typeof value !== "number") return "$0";
+  return `$${value.toLocaleString("es-AR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
 };
 
 const ComparativaZonasCostos: React.FC = () => {
@@ -63,10 +66,11 @@ const ComparativaZonasCostos: React.FC = () => {
       .filter(([zona]) =>
         zona.toLowerCase().includes(busquedaZona.toLowerCase())
       )
-     
-      .sort(([, statsA], [, statsB]) => (statsB.count ?? 0) - (statsA.count ?? 0));
+
+      .sort(
+        ([, statsA], [, statsB]) => (statsB.count ?? 0) - (statsA.count ?? 0)
+      );
   }, [comparativaData, busquedaZona]);
-  
 
   const zonasConPromedioValido: MinMaxZonaData[] = Object.entries(
     comparativaData
@@ -89,16 +93,16 @@ const ComparativaZonasCostos: React.FC = () => {
     );
   }
 
-  
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
- 
 
   if (loading) {
     return (
@@ -178,7 +182,6 @@ const ComparativaZonasCostos: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-  
             {datosProcesados
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map(([nombreZona, stats]) => (
@@ -188,20 +191,26 @@ const ComparativaZonasCostos: React.FC = () => {
                   </TableCell>
                   <TableCell align="right">{stats.count ?? 0}</TableCell>
                   <TableCell align="right">
-                    {stats.count > 0 ? formatCurrency(stats.min as number) : "-"}
+                    {stats.count > 0
+                      ? formatCurrency(stats.min as number)
+                      : "-"}
                   </TableCell>
                   <TableCell align="right">
-                    {stats.count > 0 ? formatCurrency(stats.average as number) : "-"}
+                    {stats.count > 0
+                      ? formatCurrency(stats.average as number)
+                      : "-"}
                   </TableCell>
                   <TableCell align="right">
-                    {stats.count > 0 ? formatCurrency(stats.max as number) : "-"}
+                    {stats.count > 0
+                      ? formatCurrency(stats.max as number)
+                      : "-"}
                   </TableCell>
                 </TableRow>
               ))}
           </TableBody>
         </Table>
       </TableContainer>
-    
+
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
@@ -212,7 +221,6 @@ const ComparativaZonasCostos: React.FC = () => {
         onRowsPerPageChange={handleChangeRowsPerPage}
         labelRowsPerPage="Filas por página:"
       />
-
     </Paper>
   );
 };

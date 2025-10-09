@@ -5,7 +5,6 @@ import {
   Resultado,
   NumberField,
 } from "./Campos";
-import { BotonGuardar } from "../Botones";
 import {
   Dialog,
   DialogTitle,
@@ -15,7 +14,7 @@ import {
   FormControlLabel,
   Switch,
   Button,
-  DialogActions, // Importar DialogActions
+  DialogActions,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AdicionalSelector } from "./adicionales/AdicionalSelector";
@@ -72,11 +71,33 @@ const FormularioDinamico: React.FC<Props> = ({
   const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
   const [errores, setErrores] = useState<Record<string, string>>({});
 
+  // --- INICIO DE LA CORRECCIÓN ---
+  // Esta lógica asegura que el formulario se llene con los datos correctos al abrirse
+  // y se vacíe al cerrarse, solucionando el problema de la edición.
   useEffect(() => {
-    if (open || initialValues) {
+    if (open) {
       setValores(initialValues || {});
+    } else {
+      setValores({});
     }
-  }, [initialValues, open]);
+  }, [open, initialValues]);
+  // --- FIN DE LA CORRECCIÓN ---
+
+  useEffect(() => {
+    if (campos.some((c) => c.tipo === "resultado")) {
+      const costoBase = parseFloat(valores["valorBase"] || "0");
+      const costoAdicionales = (valores["adicionales"] || []).reduce(
+        (total: number, ad: any) =>
+          total + parseFloat(ad.costoEspecifico ?? ad.precio ?? "0"),
+        0
+      );
+      const total = costoBase + costoAdicionales;
+
+      if (valores["total"] !== total.toFixed(2)) {
+        handleChange("total", total.toFixed(2));
+      }
+    }
+  }, [valores, campos]);
 
   const handleChange = (clave: string, valor: any) => {
     const nuevosValores = { ...valores, [clave]: valor };
@@ -118,7 +139,7 @@ const FormularioDinamico: React.FC<Props> = ({
       precio: nuevo.precio,
       costoEspecifico: nuevo.precio,
       activo: true,
-      esGlobal: false,
+      esGlobal: nuevo.esGlobal,
     };
     const actuales = valores["adicionales"] || [];
     handleChange("adicionales", [...actuales, adicionalParaFormulario]);
@@ -128,7 +149,7 @@ const FormularioDinamico: React.FC<Props> = ({
   const contenidoFormulario = (
     <Box
       component="form"
-      id="formulario-dinamico" // ID para asociar botones externos
+      id="formulario-dinamico"
       onSubmit={handleInternalSubmit}
       sx={{
         display: "flex",
@@ -213,46 +234,61 @@ const FormularioDinamico: React.FC<Props> = ({
                 sx={{ mt: 1, mb: 1, alignSelf: "flex-start" }}
               />
             );
+          case "resultado":
+            return (
+              <Resultado
+                key={campo.clave}
+                nombre={campo.nombre}
+                value={valores[campo.clave] || "0.00"}
+              />
+            );
           default:
             return null;
         }
       })}
-      {/* Si se pasan 'children', se renderizan aquí. Ideal para botones personalizados. */}
       {children}
     </Box>
   );
 
   if (modal) {
     return (
-      <Dialog open={open!} onClose={onClose} fullWidth maxWidth="sm">
-        {titulo && (
-          <DialogTitle>
-            {titulo}
-            <IconButton
-              aria-label="close"
-              onClick={onClose}
-              sx={{ position: "absolute", right: 8, top: 8 }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </DialogTitle>
-        )}
-        <DialogContent dividers>{contenidoFormulario}</DialogContent>
-        {!children && (
-          <DialogActions>
-            <Button onClick={onClose}>Cancelar</Button>
-            <Button
-              type="submit"
-              form="formulario-dinamico"
-              variant="contained"
-            >
-              Guardar
-            </Button>
-          </DialogActions>
-        )}
-      </Dialog>
+      <>
+        <Dialog open={open!} onClose={onClose} fullWidth maxWidth="sm">
+          {titulo && (
+            <DialogTitle>
+              {titulo}
+              <IconButton
+                aria-label="close"
+                onClick={onClose}
+                sx={{ position: "absolute", right: 8, top: 8 }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+          )}
+          <DialogContent dividers>{contenidoFormulario}</DialogContent>
+          {!children && (
+            <DialogActions>
+              <Button onClick={onClose}>Cancelar</Button>
+              <Button
+                type="submit"
+                form="formulario-dinamico"
+                variant="contained"
+              >
+                Guardar
+              </Button>
+            </DialogActions>
+          )}
+        </Dialog>
+        <ModalCrearAdicional
+          open={modalNuevoAdicional}
+          onClose={() => setModalNuevoAdicional(false)}
+          onCrear={handleCrearAdicional}
+        />
+      </>
     );
   }
+
   return (
     <Box
       sx={{

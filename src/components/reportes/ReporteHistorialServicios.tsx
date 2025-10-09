@@ -122,7 +122,15 @@ const ReporteHistorialServicios: React.FC = () => {
     });
   };
 
-  const formatCurrency = (value: number) => `$${(value || 0).toFixed(2)}`;
+  // --- INICIO DE LA CORRECCIÓN ---
+  const formatCurrency = (value: number) => {
+    const number = Number(value) || 0;
+    return `$${number.toLocaleString("es-AR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+  // --- FIN DE LA CORRECCIÓN ---
 
   return (
     <Paper sx={{ padding: 3, marginTop: 2 }}>

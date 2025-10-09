@@ -2,17 +2,25 @@
 
 import { GridColDef } from "@mui/x-data-grid";
 
-export type EntityName =
+export type Entidad =
   | "vehiculo"
   | "transportista"
   | "zona"
-  | "carga"
+  | "tipoDeCarga"
   | "combustible"
   | "tarifa"
   | "adicional"
-  | "tipoVehiculo";
+  | "tipoDeVehiculo";
 
-type Columnas = Record<EntityName, GridColDef[]>;
+type Columnas = Record<Entidad, GridColDef[]>;
+
+const formatCurrency = (value: number | any) => {
+  const number = Number(value) || 0;
+  return `$${number.toLocaleString("es-AR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+};
 
 export const columnas: Columnas = {
   vehiculo: [
@@ -31,38 +39,36 @@ export const columnas: Columnas = {
   ],
   transportista: [
     { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "cuit", headerName: "CUIT", flex: 1.5 },
-    { field: "razonSocial", headerName: "Razón Social", flex: 2 },
-    { field: "nombre", headerName: "Nombre", flex: 1.5 },
-    { field: "apellido", headerName: "Apellido", flex: 1.5 },
+    { field: "cuit", headerName: "CUIT", flex: 1 },
+    { field: "nombreEmpresa", headerName: "Nombre de Empresa", flex: 1.5 },
+    { field: "contactoNombre", headerName: "Nombre de Contacto", flex: 1.5 },
+    { field: "contactoEmail", headerName: "Email", flex: 1.5 },
+    { field: "contactoTelefono", headerName: "Teléfono", flex: 1 },
   ],
   zona: [
     { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "nombre", headerName: "Nombre", flex: 2 },
-    { field: "provincia", headerName: "Provincia", flex: 1.5 },
+    { field: "nombre", headerName: "Nombre", flex: 1.5 },
+    { field: "descripcion", headerName: "Descripción", flex: 2 },
+    {
+      field: "provincias",
+      headerName: "Provincias",
+      flex: 2.5,
+      sortable: false,
+      renderCell: (params) => {
+        if (Array.isArray(params.value) && params.value.length > 0) {
+          return params.value
+            .map((p: { nombre: string }) => p.nombre)
+            .join(", ");
+        }
+        return "Sin provincias asignadas";
+      },
+    },
   ],
-  carga: [
+  tipoDeCarga: [
     { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "fecha", headerName: "Fecha", flex: 1.5 },
-    { field: "tipo", headerName: "Tipo", flex: 1.5 },
-    { field: "vehiculo", headerName: "Vehículo", flex: 2 },
-    {
-      field: "cantidad",
-      headerName: "Cantidad (kg/m³)",
-      flex: 1.5,
-      type: "number",
-    },
-    {
-      field: "costoTotal",
-      headerName: "Costo Total",
-      type: "number",
-      flex: 1.5,
-      valueFormatter: (value) => `$${((value as number) || 0).toFixed(2)}`,
-    },
+    { field: "nombre", headerName: "Nombre", flex: 2 },
+    { field: "descripcion", headerName: "Descripción", flex: 3 },
   ],
-  // ------------------------------------------------------------------
-  // CAMBIOS APLICADOS AQUÍ (Se añaden precioPorLitro y tipoCombustible)
-  // ------------------------------------------------------------------
   combustible: [
     { field: "id", headerName: "ID", flex: 0.5 },
     {
@@ -78,7 +84,7 @@ export const columnas: Columnas = {
       headerName: "Precio/Litro",
       type: "number",
       flex: 1,
-      valueFormatter: (value) => `$${((value as number) || 0).toFixed(2)}`,
+      valueFormatter: (value) => formatCurrency(value),
     },
     {
       field: "tipoCombustible",
@@ -90,43 +96,64 @@ export const columnas: Columnas = {
       headerName: "Costo Total",
       type: "number",
       flex: 1,
-      valueFormatter: (value) => `$${((value as number) || 0).toFixed(2)}`,
+      valueFormatter: (value) => formatCurrency(value),
     },
   ],
-  // ------------------------------------------------------------------
-
   tarifa: [
     { field: "id", headerName: "ID", flex: 0.5 },
+    { field: "nombreTarifa", headerName: "Tarifa", flex: 1.5 },
+    { field: "transportistaNombre", headerName: "Transportista", flex: 1.5 },
+    { field: "tipoVehiculoNombre", headerName: "Tipo de vehículo", flex: 1.5 },
     { field: "zonaNombre", headerName: "Zona", flex: 1 },
-    { field: "tipoVehiculoNombre", headerName: "Tipo Vehículo", flex: 1 },
-    { field: "tipoCargaTarifaNombre", headerName: "Tipo Carga", flex: 1 },
+    { field: "tipoCargaNombre", headerName: "Carga", flex: 1 },
     {
-      field: "tipoCargaEspecificaNombre",
-      headerName: "Carga Específica",
-      flex: 1.5,
-    },
-    {
-      field: "costoKm",
-      headerName: "Costo/Km",
+      field: "valorBase",
+      headerName: "Costo Base",
       type: "number",
       flex: 1,
-      valueFormatter: (value) => `$${((value as number) || 0).toFixed(2)}`,
+      valueFormatter: (value) => formatCurrency(value),
+    },
+    {
+      field: "total",
+      headerName: "Costo Total",
+      type: "number",
+      flex: 1,
+      valueFormatter: (value) => formatCurrency(value),
     },
   ],
   adicional: [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombre", headerName: "Nombre", flex: 1.5 },
-    { field: "frecuencia", headerName: "Frecuencia", flex: 1.5 },
+    { field: "descripcion", headerName: "Descripción", flex: 2 },
     {
-      field: "valor",
-      headerName: "Valor",
+      field: "costoDefault",
+      headerName: "Costo Base",
       type: "number",
       flex: 1,
-      valueFormatter: (value) => `$${((value as number) || 0).toFixed(2)}`,
+      valueFormatter: (value) => formatCurrency(value),
+    },
+    {
+      field: "cantidad",
+      headerName: "Veces Utilizado",
+      type: "number",
+      flex: 1,
     },
   ],
-  tipoVehiculo: [
+  tipoDeVehiculo: [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombre", headerName: "Nombre", flex: 1.5 },
+    { field: "descripcion", headerName: "Descripción", flex: 2 },
+    {
+      field: "capacidadPesoKG",
+      headerName: "Capacidad (KG)",
+      flex: 1,
+      type: "number",
+    },
+    {
+      field: "capacidadVolumenM3",
+      headerName: "Capacidad (M³)",
+      flex: 1,
+      type: "number",
+    },
   ],
 };
