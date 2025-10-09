@@ -7,7 +7,6 @@ export type Carga = {
   descripcion: string;
 };
 
-// Todas las rutas con el prefijo /api
 const CARGAS_URL = '/api/tipo-carga-tarifa';
 
 export function obtenerCargas() {
@@ -22,6 +21,6 @@ export function actualizarCarga(id: number | string, data: Omit<Carga, 'id'>) {
   return apiClient.put<Carga>(`${CARGAS_URL}/${id}`, data);
 }
 
-export function eliminarCarga(id: number) {
+export function eliminarCarga(id: number | string) {
   return apiClient.baja(`${CARGAS_URL}/${id}/baja`);
 }

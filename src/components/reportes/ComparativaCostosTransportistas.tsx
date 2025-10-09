@@ -33,7 +33,6 @@ import {
 import { obtenerCargas, Carga } from "../../services/cargaService";
 import { obtenerZonas, ZonaViaje } from "../../services/zonaService";
 
-// --- MODIFICACIÓN 1: Se crea un tipo local para el reporte enriquecido ---
 interface ReporteEnriquecido {
   id: number;
   displayName: string;
@@ -116,9 +115,8 @@ const ComparativaCostosTransportistas: React.FC = () => {
     try {
       const data = await getComparativaCostos(params);
 
-      // --- MODIFICACIÓN 2: Se enriquece la data del reporte para el display ---
       const transportistasSeleccionados = transportistas.filter((t) =>
-        selectedTransportistaIds.includes(t.id)
+        selectedTransportistaIds.map(Number).includes(Number(t.id))
       );
 
       const reporteFinal = transportistasSeleccionados
@@ -132,7 +130,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
             costo: infoCosto ? infoCosto.costo : null,
           };
         })
-        .filter((item) => item.costo !== null) as ReporteEnriquecido[];
+        .filter((item) => item.costo !== null) as unknown as ReporteEnriquecido[];
 
       if (reporteFinal.length === 0) {
         setError(
@@ -192,7 +190,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
               input={<OutlinedInput label="Transportistas a Comparar" />}
               renderValue={(selectedIds) => {
                 return transportistas
-                  .filter((t) => selectedIds.includes(t.id))
+                  .filter((t) => selectedIds.map(Number).includes(Number(t.id)))
                   .map((t) => `${t.nombreEmpresa} (${t.contactoNombre})`)
                   .join(", ");
               }}
@@ -200,7 +198,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
               {transportistas.map((t) => (
                 <MenuItem key={t.id} value={t.id}>
                   <Checkbox
-                    checked={selectedTransportistaIds.indexOf(t.id) > -1}
+                    checked={selectedTransportistaIds.indexOf(Number(t.id)) > -1}
                   />
                   <ListItemText
                     primary={`${t.nombreEmpresa} (${t.contactoNombre})`}
@@ -276,7 +274,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
         </Alert>
       )}
 
-      {/* --- MODIFICACIÓN 3: La tabla ahora consume el reporte enriquecido --- */}
       {reporte && reporte.length > 0 && (
         <TableContainer component={Paper}>
           <Table>
@@ -293,11 +290,12 @@ const ComparativaCostosTransportistas: React.FC = () => {
                     {item.displayName}
                   </TableCell>
                   <TableCell align="right">
-                    $
+                    {/* --- INICIO DE LA CORRECCIÓN --- */}$
                     {item.costo.toLocaleString("es-AR", {
-                      minimumFractionDigits: 2,
+                      minimumFractionDigits: 0,
                       maximumFractionDigits: 2,
                     })}
+                    {/* --- FIN DE LA CORRECCIÓN --- */}
                   </TableCell>
                 </TableRow>
               ))}

@@ -9,6 +9,7 @@ import {
   IconButton,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import { FormCargaDeCombustible } from "./components/formulario/CombustibleForm";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const CargaCombustible: React.FC = () => {
@@ -98,6 +99,7 @@ const CargaCombustible: React.FC = () => {
           <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 3 }}>
             Gestionar Cargas de Combustible
           </Typography>
+          <FormCargaDeCombustible />
         </Paper>
       </Box>
     </Box>

@@ -52,8 +52,10 @@ export const apiClient = {
     }
   },
 
+  // --- INICIO DE LA CORRECCIÓN ---
   async post<T>(path: string, data: unknown, options?: RequestInit): Promise<T> {
     const url = joinUrl(BASE, path);
+    // Se elimina la verificación del caché de errores para las peticiones POST
     const res = await fetch(url, {
       method: 'POST',
       credentials: 'omit',
@@ -61,8 +63,13 @@ export const apiClient = {
       body: JSON.stringify(data),
       ...options,
     });
+    // Si la petición es exitosa, se limpia cualquier error cacheado para esa URL
+    if (res.ok && errorCache.has(url)) {
+      errorCache.delete(url);
+    }
     return handleResponse<T>(res);
   },
+  // --- FIN DE LA CORRECCIÓN ---
 
   async put<T>(path: string, data: unknown, options?: RequestInit): Promise<T> {
     const url = joinUrl(BASE, path);

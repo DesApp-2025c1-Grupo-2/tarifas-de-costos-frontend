@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -6,13 +6,16 @@ import {
   DialogActions,
   TextField,
   Button,
-  Stack
-} from '@mui/material';
+  Stack,
+  FormControlLabel,
+  Switch,
+} from "@mui/material";
 
 export type NuevoAdicional = {
   nombre: string;
   descripcion: string;
   precio: number;
+  esGlobal: boolean; // Se añade el campo para saber si es flotante
 };
 
 type Props = {
@@ -24,19 +27,24 @@ type Props = {
 export const ModalCrearAdicional: React.FC<Props> = ({
   open,
   onClose,
-  onCrear
+  onCrear,
 }) => {
-  const [nombre, setNombre] = useState('');
-  const [descripcion, setDescripcion] = useState('');
+  const [nombre, setNombre] = useState("");
+  const [descripcion, setDescripcion] = useState("");
   const [precio, setPrecio] = useState<number>(0);
+  // --- INICIO DE LA CORRECCIÓN ---
+  const [esGlobal, setEsGlobal] = useState(true); // Por defecto es flotante
+  // --- FIN DE LA CORRECCIÓN ---
 
   const handleSubmit = () => {
     if (nombre.trim() && descripcion.trim() && precio > 0) {
-      onCrear({ nombre, descripcion, precio });
+      onCrear({ nombre, descripcion, precio, esGlobal }); // Se envía el nuevo valor
       onClose();
-      setNombre('');
-      setDescripcion('');
+      // Limpiar el formulario
+      setNombre("");
+      setDescripcion("");
       setPrecio(0);
+      setEsGlobal(true);
     }
   };
 
@@ -66,6 +74,17 @@ export const ModalCrearAdicional: React.FC<Props> = ({
             onChange={(e) => setPrecio(Number(e.target.value))}
             fullWidth
           />
+          {/* --- INICIO DE LA CORRECCIÓN --- */}
+          <FormControlLabel
+            control={
+              <Switch
+                checked={esGlobal}
+                onChange={(e) => setEsGlobal(e.target.checked)}
+              />
+            }
+            label="Es Adicional Flotante (Global)"
+          />
+          {/* --- FIN DE LA CORRECCIÓN --- */}
         </Stack>
       </DialogContent>
       <DialogActions>

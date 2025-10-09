@@ -90,32 +90,34 @@ export const FormCrearTarifa: React.FC = () => {
       setZonas(zonasData.filter((z) => z.activo));
       setCargas(cargasData.filter((c) => c.activo));
       setAdicionalesDb(adicionalesData.filter((a) => a.activo && !a.esGlobal));
-      return true;
     } catch (error) {
       alert("Error al cargar datos para el formulario. Intente de nuevo.");
-      return false;
     }
   };
 
-  const handleCrearClick = async () => {
-    const exito = await cargarDependencias();
-    if (exito) {
-      setEditingItem(null);
-      setShowForm(true);
-    }
-  };
-
-  const handleEdit = async (tarifa: Tarifa) => {
-    const exito = await cargarDependencias();
-    if (exito) {
-      setEditingItem(tarifa);
-      setShowForm(true);
-    }
-  };
-
+  // --- INICIO DE LA CORRECCIÓN ---
+  // Se cargan todas las dependencias una sola vez al montar el componente para mejorar el rendimiento.
   useEffect(() => {
     cargarTarifas();
+    cargarDependencias();
   }, []);
+
+  // Funciones simplificadas para abrir y cerrar el formulario de forma directa y síncrona.
+  const handleCrearClick = () => {
+    setEditingItem(null); // Asegura que el formulario esté vacío para crear.
+    setShowForm(true);
+  };
+
+  const handleEdit = (tarifa: Tarifa) => {
+    setEditingItem(tarifa); // Establece la tarifa a editar.
+    setShowForm(true); // Abre el formulario inmediatamente.
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingItem(null); // Limpia el estado al cerrar.
+  };
+  // --- FIN DE LA CORRECCIÓN ---
 
   const handleSubmit = async (formValues: Record<string, any>) => {
     const adicionalesPayload = (formValues["adicionales"] || []).map(
@@ -140,10 +142,10 @@ export const FormCrearTarifa: React.FC = () => {
 
     const payload = {
       nombreTarifa: formValues.nombreTarifa,
-      transportista: { id: formValues.transportistaId },
-      tipoVehiculo: { id: formValues.tipoVehiculoId },
-      zonaViaje: { id: Number(formValues.zonaId) },
-      tipoCargaTarifa: { id: Number(formValues.tipoCargaId) },
+      transportistaId: formValues.transportistaId,
+      tipoVehiculoId: formValues.tipoVehiculoId,
+      zonaId: Number(formValues.zonaId || 0),
+      tipoCargaId: Number(formValues.tipoCargaId || 0),
       valorBase: parseFloat(formValues.valorBase || "0"),
       adicionales: adicionalesPayload,
     };
@@ -163,10 +165,8 @@ export const FormCrearTarifa: React.FC = () => {
         changedItem = await tarifaService.crearTarifa(payload);
         setMessage({ text: "Tarifa creada con éxito", severity: "success" });
       }
-      setShowForm(false);
-      setEditingItem(null);
-      await cargarTarifas();
-      await cargarDependencias();
+      handleCancel(); // Se usa la nueva función para cerrar y limpiar el formulario.
+      await cargarTarifas(); // Se recarga la tabla.
       setHighlightedId(changedItem.id);
       setTimeout(() => setHighlightedId(null), 4000);
     } catch (err) {
@@ -178,11 +178,6 @@ export const FormCrearTarifa: React.FC = () => {
     } finally {
       setTimeout(() => setMessage(null), 5000);
     }
-  };
-
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingItem(null);
   };
 
   const handleView = (tarifa: Tarifa) =>

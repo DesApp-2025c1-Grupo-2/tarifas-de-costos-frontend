@@ -6,7 +6,8 @@ export type ZonaViaje = {
   nombre: string;
   descripcion: string;
   regionMapa: string;
-  provincias: string[];
+  provincias?: any[]; // Para recibir datos del backend
+  provinciasNombres?: string[]; // Para enviar datos al backend
 };
 
 export type ZonaComparativa = {
@@ -17,15 +18,19 @@ export type ZonaComparativa = {
   sum?: number;
 };
 
-// En dev pedimos '/api/...'; en prod, apiClient antepone el host
 const ZONAS_URL = '/api/zonas';
 const REPORTES_ZONAS_COMPARATIVA_URL = '/api/zonas/comparativa-costos';
 
 export const obtenerZonas = () => apiClient.get<ZonaViaje[]>(ZONAS_URL);
 export const crearZona = (data: Omit<ZonaViaje, 'id'>) => apiClient.post<ZonaViaje>(ZONAS_URL, data);
-export const actualizarZona = (id: number, data: Omit<ZonaViaje, 'id'>) =>
+
+// --- CORRECCIÓN ---
+// Se ajusta el tipo del 'id' para que sea compatible con el hook useCrud
+export const actualizarZona = (id: number | string, data: Omit<ZonaViaje, 'id'>) =>
   apiClient.put<ZonaViaje>(`${ZONAS_URL}/${id}`, data);
-export const eliminarZona = (id: number) => apiClient.baja(`${ZONAS_URL}/${id}/baja`);
+
+export const eliminarZona = (id: number | string) => apiClient.baja(`${ZONAS_URL}/${id}/baja`);
+// --- FIN ---
 
 export async function obtenerComparativaCostosPorZona(): Promise<Record<string, ZonaComparativa>> {
   const raw = await apiClient.get<Record<string, ZonaComparativa | string>>(REPORTES_ZONAS_COMPARATIVA_URL);

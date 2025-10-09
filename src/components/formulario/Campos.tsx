@@ -6,12 +6,11 @@ import FormControl from "@mui/material/FormControl";
 import Autocomplete from "@mui/material/Autocomplete";
 import { Input, InputAdornment } from "@mui/material";
 
-
 type TextProps = {
   label: string;
   value: string;
   onChange: (val: string) => void;
-  type?: "text" | "email" | "tel"; 
+  type?: "text" | "email" | "tel" | "input" | "datetime-local" | "number";
   error?: boolean;
   helperText?: string;
 };
@@ -31,9 +30,10 @@ export const BasicTextFields: React.FC<TextProps> = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       margin="normal"
-      type={type} 
+      type={type}
       error={error}
       helperText={helperText}
+      InputLabelProps={type === "datetime-local" ? { shrink: true } : undefined}
     />
   </Box>
 );
@@ -83,11 +83,14 @@ export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({
             helperText={helperText}
           />
         )}
-        renderOption={(props, option) => (
-          <li {...props} key={option.id}>
-            {option.nombre}
-          </li>
-        )}
+        renderOption={(props, option) => {
+          const { key, ...restProps } = props as any;
+          return (
+            <li key={key} {...restProps}>
+              {option.nombre}
+            </li>
+          );
+        }}
       />
     </Box>
   );
@@ -121,9 +124,10 @@ export const NumberField: React.FC<NumberFieldProps> = ({
 type Res = {
   nombre: string;
   value: string;
+  unidad?: string;
 };
 
-export const Resultado: React.FC<Res> = ({ nombre, value }) => {
+export const Resultado: React.FC<Res> = ({ nombre, value, unidad }) => {
   return (
     <Box sx={{ mb: 2 }}>
       <FormControl fullWidth sx={{ m: 1, my: 2 }} variant="standard">
@@ -134,7 +138,11 @@ export const Resultado: React.FC<Res> = ({ nombre, value }) => {
           id={`resultado-${nombre.toLowerCase()}`}
           value={value}
           readOnly
-          startAdornment={<InputAdornment position="start">$</InputAdornment>}
+          startAdornment={
+            unidad ? (
+              <InputAdornment position="start">{unidad}</InputAdornment>
+            ) : null
+          }
         />
       </FormControl>
     </Box>
