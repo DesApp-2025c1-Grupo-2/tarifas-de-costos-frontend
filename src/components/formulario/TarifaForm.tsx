@@ -91,33 +91,36 @@ export const FormCrearTarifa: React.FC = () => {
       setCargas(cargasData.filter((c) => c.activo));
       setAdicionalesDb(adicionalesData.filter((a) => a.activo && !a.esGlobal));
     } catch (error) {
-      alert("Error al cargar datos para el formulario. Intente de nuevo.");
+ 
+      setMessage({
+        text: "Error al cargar datos para el formulario. Intente de nuevo.",
+        severity: "error",
+      });
     }
   };
 
-  // --- INICIO DE LA CORRECCIÓN ---
-  // Se cargan todas las dependencias una sola vez al montar el componente para mejorar el rendimiento.
+
   useEffect(() => {
     cargarTarifas();
     cargarDependencias();
   }, []);
 
-  // Funciones simplificadas para abrir y cerrar el formulario de forma directa y síncrona.
+
   const handleCrearClick = () => {
-    setEditingItem(null); // Asegura que el formulario esté vacío para crear.
+    setEditingItem(null); 
     setShowForm(true);
   };
 
   const handleEdit = (tarifa: Tarifa) => {
-    setEditingItem(tarifa); // Establece la tarifa a editar.
-    setShowForm(true); // Abre el formulario inmediatamente.
+    setEditingItem(tarifa); 
+    setShowForm(true); 
   };
 
   const handleCancel = () => {
     setShowForm(false);
-    setEditingItem(null); // Limpia el estado al cerrar.
+    setEditingItem(null); 
   };
-  // --- FIN DE LA CORRECCIÓN ---
+ 
 
   const handleSubmit = async (formValues: Record<string, any>) => {
     const adicionalesPayload = (formValues["adicionales"] || []).map(
@@ -165,8 +168,8 @@ export const FormCrearTarifa: React.FC = () => {
         changedItem = await tarifaService.crearTarifa(payload);
         setMessage({ text: "Tarifa creada con éxito", severity: "success" });
       }
-      handleCancel(); // Se usa la nueva función para cerrar y limpiar el formulario.
-      await cargarTarifas(); // Se recarga la tabla.
+      handleCancel(); 
+      await cargarTarifas(); 
       setHighlightedId(changedItem.id);
       setTimeout(() => setHighlightedId(null), 4000);
     } catch (err) {
