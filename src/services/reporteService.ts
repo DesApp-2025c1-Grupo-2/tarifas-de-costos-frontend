@@ -11,6 +11,16 @@ export interface ComparativaAumento {
   valorFinal: number; fechaFinal: string;
   variacionAbsoluta: number; variacionPorcentual: number;
 }
+// [NUEVA INTERFAZ]
+export interface ReporteVehiculoCombustible { 
+  vehiculoPatente: string;
+  cantidadViajes: number;
+  cantidadCargasCombustible: number;
+  costoTotalCombustible: number;
+  fechaInicio: string;
+  fechaFin: string;
+  viajesPorCarga: number;
+}
 
 const REPORTES_URL = '/api/reportes';
 const ZONAS_URL = '/api/zonas';
@@ -32,4 +42,9 @@ export const getComparativaGeneralPorZona = () =>
 export const getComparativaAumentos = (fechaInicio: string, fechaFin: string) => {
   const qs = new URLSearchParams({ fechaInicio, fechaFin }).toString();
   return apiClient.get<ComparativaAumento[]>(`${REPORTES_URL}/comparativa-aumentos?${qs}`);
+};
+
+export const getReporteUsoCombustible = (vehiculoId: string, fechaInicio: string, fechaFin: string) => {
+  const qs = new URLSearchParams({ vehiculoId, fechaInicio, fechaFin }).toString();
+  return apiClient.get<ReporteVehiculoCombustible>(`${REPORTES_URL}/uso-combustible?${qs}`);
 };
