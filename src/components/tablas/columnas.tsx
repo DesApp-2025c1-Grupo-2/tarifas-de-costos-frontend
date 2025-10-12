@@ -40,11 +40,29 @@ export const columnas: Columnas = {
   transportista: [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "cuit", headerName: "CUIT", flex: 1 },
-    { field: "nombreEmpresa", headerName: "Nombre de Empresa", flex: 1.5 },
-    { field: "contactoNombre", headerName: "Nombre de Contacto", flex: 1.5 },
-    { field: "contactoEmail", headerName: "Email", flex: 1.5 },
-    { field: "contactoTelefono", headerName: "Teléfono", flex: 1 },
+    
+    { field: "nombre_comercial", headerName: "Nombre Comercial", flex: 1.5 },
+    {
+      field: "contactoNombre",
+      headerName: "Nombre de Contacto",
+      flex: 1.5,
+      valueGetter: (value, row) => row.contacto?.nombre || "N/A",
+    },
+    {
+      field: "contactoEmail",
+      headerName: "Email",
+      flex: 1.5,
+      valueGetter: (value, row) => row.contacto?.email || "N/A",
+    },
+    {
+      field: "contactoTelefono",
+      headerName: "Teléfono",
+      flex: 1,
+      valueGetter: (value, row) => row.contacto?.telefono?.numero || "N/A",
+    },
   ],
+
+
   zona: [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombre", headerName: "Nombre", flex: 1.5 },

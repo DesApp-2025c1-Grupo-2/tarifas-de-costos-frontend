@@ -1,14 +1,21 @@
 import { apiClient } from './apiClient';
 
+
+
 export type Transportista = {
-  activo: boolean;
   id: string;
+  nombreComercial: string; // Se cambia 'nombreEmpresa' por 'nombreComercial'
   cuit: string;
-  nombreEmpresa: string;
-  contactoNombre: string;
-  contactoEmail: string;
-  contactoTelefono: string;
+  contacto: {
+    nombre: string;
+    email: string;
+    telefono: {
+      numero: string;
+    };
+  };
+  activo?: boolean; // Se mantiene como opcional si no siempre viene
 };
+
 
 export interface TransportistaProfile {
   id: string;

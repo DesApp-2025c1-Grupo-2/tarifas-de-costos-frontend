@@ -144,14 +144,14 @@ export const FormCrearTarifa: React.FC = () => {
     );
 
     const payload = {
-      nombreTarifa: formValues.nombreTarifa,
-      transportistaId: formValues.transportistaId,
-      tipoVehiculoId: formValues.tipoVehiculoId,
-      zonaId: Number(formValues.zonaId || 0),
-      tipoCargaId: Number(formValues.tipoCargaId || 0),
-      valorBase: parseFloat(formValues.valorBase || "0"),
-      adicionales: adicionalesPayload,
-    };
+  nombreTarifa: formValues.nombreTarifa,
+  transportistaId: formValues.transportistaId,
+  tipoVehiculoId: formValues.tipoVehiculoId,
+  zonaViaje: { id: Number(formValues.zonaId || 0) },
+  tipoCargaTarifa: { id: Number(formValues.tipoCargaId || 0) },
+  valorBase: parseFloat(formValues.valorBase || "0"),
+  adicionales: adicionalesPayload,
+};
 
     try {
       let changedItem: Tarifa;
