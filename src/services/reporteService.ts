@@ -1,3 +1,5 @@
+
+
 import { apiClient } from './apiClient';
 
 export interface FrecuenciaAdicional { nombreAdicional: string; cantidad: number; }
@@ -11,7 +13,7 @@ export interface ComparativaAumento {
   valorFinal: number; fechaFinal: string;
   variacionAbsoluta: number; variacionPorcentual: number;
 }
-// [NUEVA INTERFAZ]
+
 export interface ReporteVehiculoCombustible { 
   vehiculoPatente: string;
   cantidadViajes: number;
@@ -22,11 +24,20 @@ export interface ReporteVehiculoCombustible {
   viajesPorCarga: number;
 }
 
+
+export type FrecuenciaAdicionalesParams = {
+  fechaInicio?: string; // Formato YYYY-MM-DD
+  fechaFin?: string; // Formato YYYY-MM-DD
+};
+
+
 const REPORTES_URL = '/api/reportes';
 const ZONAS_URL = '/api/zonas';
 
-export const getFrecuenciaAdicionales = () =>
-  apiClient.get<FrecuenciaAdicional[]>(`${REPORTES_URL}/frecuencia-adicionales`);
+export const getFrecuenciaAdicionales = (params: FrecuenciaAdicionalesParams = {}) => {
+  const qs = new URLSearchParams(params as any).toString();
+  return apiClient.get<FrecuenciaAdicional[]>(`${REPORTES_URL}/frecuencia-adicionales?${qs}`);
+};
 
 export const getTransportistasMasUtilizados = () =>
   apiClient.get<TransportistaMasUtilizado[]>(`${REPORTES_URL}/transportistas-mas-utilizados`);
