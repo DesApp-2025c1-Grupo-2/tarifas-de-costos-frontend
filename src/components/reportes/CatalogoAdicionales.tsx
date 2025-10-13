@@ -1,14 +1,12 @@
-
 import React, { useEffect, useState } from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Paper, Typography, Box, CircularProgress, Alert, TextField, Button } from "@mui/material";
 import { obtenerAdicionales } from "../../services/adicionalService";
 import { 
   getFrecuenciaAdicionales,
-  FrecuenciaAdicionalesParams
+  FrecuenciaAdicionalesParams // <-- Importación de tipo corregida
 } from "../../services/reporteService";
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
-
 
 const formatCurrency = (value: number | any) => {
   const number = Number(value) || 0;
@@ -17,7 +15,6 @@ const formatCurrency = (value: number | any) => {
     maximumFractionDigits: 2,
   })}`;
 };
-
 
 const columns: GridColDef[] = [
   { field: "id", headerName: "ID", width: 90 },
@@ -43,19 +40,17 @@ const CatalogoAdicionales: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
- 
   const [fechaInicio, setFechaInicio] = useState<string>('');
   const [fechaFin, setFechaFin] = useState<string>('');
- 
 
 
-  const fetchData = async (params: FrecuenciaAdicionalesParams = {}) => { 
+  const fetchData = async (params: FrecuenciaAdicionalesParams = {}) => { // <-- Uso del tipo para el parámetro
     setLoading(true);
     setError(null);
     try {
       const [adicionales, frecuencia] = await Promise.all([
         obtenerAdicionales(),
-        getFrecuenciaAdicionales(params), 
+        getFrecuenciaAdicionales(params), // <-- Se pasan los parámetros
       ]);
 
       const activos = adicionales.filter((a) => a.activo);
@@ -65,8 +60,8 @@ const CatalogoAdicionales: React.FC = () => {
       );
 
       const combinados = activos.map((a) => ({
-        ...a,
-        cantidad: frecuenciaMap.get(a.nombre) ?? 0,
+          ...a,
+          cantidad: frecuenciaMap.get(a.nombre) ?? 0,
       }));
 
       setAdicionalesCombinados(combinados);
@@ -83,16 +78,13 @@ const CatalogoAdicionales: React.FC = () => {
     }
   };
   
-
   const handleGenerarReporte = () => {
     if ((fechaInicio && !fechaFin) || (!fechaInicio && fechaFin)) {
       setError("Debe seleccionar ambas fechas (inicio y fin) para el filtro.");
       return;
     }
-
     fetchData({ fechaInicio, fechaFin });
   }
-
 
   useEffect(() => {
     fetchData(); 
@@ -104,7 +96,6 @@ const CatalogoAdicionales: React.FC = () => {
       <Typography variant="h6" gutterBottom>
         Catálogo de Adicionales con Frecuencia de Uso
       </Typography>
-      
       
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3, flexWrap: 'wrap' }}>
         <TextField
@@ -132,7 +123,6 @@ const CatalogoAdicionales: React.FC = () => {
           {loading ? <CircularProgress size={24} /> : "Filtrar por Fecha"}
         </Button>
       </Box>
-     
 
       {loading ? (
         <Box
