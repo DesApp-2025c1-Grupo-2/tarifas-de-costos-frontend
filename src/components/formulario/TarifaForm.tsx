@@ -143,11 +143,12 @@ export const FormCrearTarifa: React.FC = () => {
       }
     );
 
+
     const payload = {
       nombreTarifa: formValues.nombreTarifa,
       transportistaId: formValues.transportistaId,
       tipoVehiculoId: formValues.tipoVehiculoId,
-      zonaViaje: { id: Number(formValues.zonaId || 0) }, 
+      zonaViaje: { id: Number(formValues.zonaId || 0) },
       tipoCargaTarifa: { id: Number(formValues.tipoCargaId || 0) },
       valorBase: parseFloat(formValues.valorBase || "0"),
       adicionales: adicionalesPayload,
@@ -286,14 +287,15 @@ export const FormCrearTarifa: React.FC = () => {
     [transportistas, tipoVehiculos, zonas, cargas, adicionalesDb]
   );
 
+
   const initialFormValues = editingItem
     ? {
         id: editingItem.id,
         nombreTarifa: editingItem.nombreTarifa,
-        transportistaId: editingItem.transportistaId?.toString(),
-        tipoVehiculoId: editingItem.tipoVehiculoId?.toString(),
-        zonaId: editingItem.zonaId?.toString(),
-        tipoCargaId: editingItem.tipoCargaId?.toString(),
+        transportistaId: String(editingItem.transportistaId || ''),
+        tipoVehiculoId: String(editingItem.tipoVehiculoId || ''),
+        zonaId: String(editingItem.zonaId || ''),
+        tipoCargaId: String(editingItem.tipoCargaId || ''),
         valorBase: editingItem.valorBase,
         adicionales:
           editingItem.adicionales?.map((ad) => ({
