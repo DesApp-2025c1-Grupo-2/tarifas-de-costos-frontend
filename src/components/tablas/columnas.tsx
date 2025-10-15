@@ -74,29 +74,22 @@ export const columnas: Columnas = {
     {
       field: "fecha",
       headerName: "Fecha de Carga",
-      flex: 1,
+      flex: 1.5,
       valueFormatter: (value) =>
-        new Date(value as string).toLocaleDateString("es-AR"),
+        new Date(value as string).toLocaleString("es-AR"),
     },
     { field: "vehiculoNombre", headerName: "Vehículo", flex: 1.5 },
     {
-      field: "precioPorLitro",
-      headerName: "Precio/Litro",
+      field: "litrosCargados",
+      headerName: "Litros Cargados",
       type: "number",
-      flex: 1,
-      valueFormatter: (value) => formatCurrency(value),
-    },
-    {
-      field: "tipoCombustible",
-      headerName: "Tipo Combustible",
       flex: 1,
     },
     {
-      field: "costoTotal",
-      headerName: "Costo Total",
+      field: "kilometrosRecorridos",
+      headerName: "KM Recorridos",
       type: "number",
       flex: 1,
-      valueFormatter: (value) => formatCurrency(value),
     },
   ],
   tarifa: [

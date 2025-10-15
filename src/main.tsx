@@ -21,7 +21,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/" element={<Navigate to="/tarifas" />} />
           <Route path="/tarifas" element={<CrearTarifa />} />
           <Route path="/reportes" element={<Reportes />} />
-          <Route path="/combustible" element={<CargaCombustible />} />
+          <Route path="/combustible" element={<CargaCombustible />} />{" "}
           <Route path="/tipos-de-carga" element={<CrearCarga />} />
           <Route path="/zonas" element={<CrearZona />} />
           <Route path="/adicionales" element={<CrearAdicional />} />
