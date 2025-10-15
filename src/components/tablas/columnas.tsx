@@ -144,16 +144,9 @@ export const columnas: Columnas = {
     { field: "nombre", headerName: "Nombre", flex: 1.5 },
     { field: "descripcion", headerName: "Descripción", flex: 2 },
     {
-      field: "capacidadPesoKG",
-      headerName: "Capacidad (KG)",
+      field: "licencia_permitida",
+      headerName: "Licencia Permitida",
       flex: 1,
-      type: "number",
-    },
-    {
-      field: "capacidadVolumenM3",
-      headerName: "Capacidad (M³)",
-      flex: 1,
-      type: "number",
     },
   ],
 };

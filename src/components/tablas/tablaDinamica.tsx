@@ -32,6 +32,7 @@ interface DataTableProps {
   handleMostrarAdicionales?: (adicionales: any[]) => void;
   handleMostrarHistorial?: (tarifaId: number) => void;
   highlightedId?: number | string | null;
+  actionsDisabled?: boolean;
 }
 
 // --- INICIO DE LA CORRECCIÓN ---
@@ -72,10 +73,8 @@ const cardConfigs: Record<Entidad, CardConfig> = {
   },
   tipoDeVehiculo: {
     titleField: "nombre",
-    detailFields: ["capacidadPesoKG", "capacidadVolumenM3", "descripcion"],
+    detailFields: ["descripcion"],
     fieldLabels: {
-      capacidadPesoKG: "Peso (KG)",
-      capacidadVolumenM3: "Volumen (M³)",
       descripcion: "Descripción",
     },
   },
@@ -140,6 +139,7 @@ export default function DataTable({
   handleMostrarAdicionales,
   handleMostrarHistorial,
   highlightedId,
+  actionsDisabled = false,
 }: DataTableProps) {
   const theme = useTheme();
   const esMovil = useMediaQuery(theme.breakpoints.down("md"));
@@ -219,8 +219,7 @@ export default function DataTable({
       entidad === "adicional" ||
       entidad === "zona" ||
       entidad === "tipoDeCarga" ||
-      entidad === "combustible" ||
-      entidad === "tipoDeVehiculo"
+      entidad === "combustible"
     ) {
       cols.push({
         field: "acciones",
@@ -245,6 +244,7 @@ export default function DataTable({
                 <IconButton
                   onClick={() => handleMostrarHistorial(params.row.id)}
                   size="small"
+                  disabled={actionsDisabled}
                 >
                   <HistoryIcon />
                 </IconButton>
@@ -255,6 +255,7 @@ export default function DataTable({
                 variant="outlined"
                 size="small"
                 onClick={() => handleView(params.row)}
+                disabled={actionsDisabled}
                 sx={{
                   backgroundColor: (theme.palette as any).actionButtons.details
                     .background,
@@ -275,6 +276,7 @@ export default function DataTable({
                 variant="outlined"
                 size="small"
                 onClick={() => handleEdit(params.row)}
+                disabled={actionsDisabled}
                 sx={{
                   backgroundColor: (theme.palette as any).actionButtons.edit
                     .background,
@@ -293,6 +295,7 @@ export default function DataTable({
                 variant="outlined"
                 size="small"
                 onClick={() => handleDelete(params.row)}
+                disabled={actionsDisabled}
                 sx={{
                   backgroundColor: (theme.palette as any).actionButtons.delete
                     .background,
@@ -321,6 +324,7 @@ export default function DataTable({
     handleMostrarAdicionales,
     handleMostrarHistorial,
     theme,
+    actionsDisabled,
   ]);
 
   if (!columnasBase) {

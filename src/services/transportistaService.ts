@@ -4,10 +4,14 @@ export type Transportista = {
   activo: boolean;
   id: string;
   cuit: string;
-  nombreEmpresa: string;
-  contactoNombre: string;
-  contactoEmail: string;
-  contactoTelefono: string;
+  nombre_comercial: string;
+  contacto: {
+    nombre: string;
+    email: string;
+    telefono: any;
+  };
+  nombreEmpresa?: string;
+  contactoNombre?: string;
 };
 
 export interface TransportistaProfile {
