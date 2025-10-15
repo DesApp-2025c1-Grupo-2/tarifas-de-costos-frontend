@@ -35,8 +35,6 @@ interface DataTableProps {
   actionsDisabled?: boolean;
 }
 
-// --- INICIO DE LA CORRECCIÓN ---
-// Se añade la configuración faltante para la entidad "vehiculo".
 const cardConfigs: Record<Entidad, CardConfig> = {
   tarifa: {
     titleField: "transportistaNombre",
@@ -104,10 +102,11 @@ const cardConfigs: Record<Entidad, CardConfig> = {
   },
   combustible: {
     titleField: "vehiculoNombre",
-    subtitleField: "costoTotal",
-    detailFields: ["fecha"],
+    subtitleField: "litrosCargados",
+    detailFields: ["kilometrosRecorridos", "fecha"],
     fieldLabels: {
-      costoTotal: "Costo Total",
+      litrosCargados: "Litros Cargados",
+      kilometrosRecorridos: "KM Recorridos",
       fecha: "Fecha de Carga",
     },
   },
@@ -123,7 +122,6 @@ const titulosEntidad: Record<Entidad, string> = {
   adicional: "Adicionales",
   combustible: "Cargas de Combustible",
 };
-// --- FIN DE LA CORRECCIÓN ---
 
 const highlightAnimation = keyframes`
   0% { background-color: rgba(124, 179, 66, 0.4); }
@@ -390,11 +388,13 @@ export default function DataTable({
               key={row.id}
               item={row}
               config={cardConfigs[entidad]}
-              onView={handleView!}
-              onEdit={handleEdit!}
-              onDelete={handleDelete!}
+              onView={handleView ? () => handleView(row) : undefined}
+              onEdit={handleEdit ? () => handleEdit(row) : undefined}
+              onDelete={handleDelete ? () => handleDelete(row) : undefined}
               onHistory={
-                entidad === "tarifa" ? handleMostrarHistorial : undefined
+                entidad === "tarifa" && handleMostrarHistorial
+                  ? () => handleMostrarHistorial(row.id)
+                  : undefined
               }
             />
           ))}

@@ -4,7 +4,6 @@ import {
   CardHeader,
   CardContent,
   CardActions,
-  Box,
   Typography,
   Divider,
   IconButton,
@@ -30,11 +29,44 @@ export interface CardConfig {
 interface EntityCardProps {
   item: EntityItem;
   config: CardConfig;
-  onEdit: (item: EntityItem) => void;
-  onDelete: (id: number) => void;
+  onEdit?: (item: EntityItem) => void;
+  onDelete?: (item: EntityItem) => void;
   onView?: (item: EntityItem) => void;
   onHistory?: (id: number) => void;
 }
+
+const formatValue = (value: any, fieldName: string): string => {
+  if (value === null || value === undefined) return "N/A";
+
+  // Formato específico para litros y kilómetros
+  if (fieldName === "litrosCargados") {
+    return `${value} Lts`;
+  }
+  if (fieldName === "kilometrosRecorridos") {
+    return `${value} Km`;
+  }
+
+  // Formato para valores monetarios
+  if (typeof value === "number") {
+    const currencyFields = ["total", "costoDefault", "valorBase"];
+    if (currencyFields.includes(fieldName)) {
+      return `$${value.toLocaleString("es-AR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    }
+  }
+
+  // Formato para fechas
+  if (fieldName === "fecha" && typeof value === "string") {
+    const date = new Date(value);
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleString("es-AR");
+    }
+  }
+
+  return String(value);
+};
 
 const EntityCard: React.FC<EntityCardProps> = ({
   item,
@@ -47,12 +79,9 @@ const EntityCard: React.FC<EntityCardProps> = ({
   const subtitleValue = config.subtitleField
     ? item[config.subtitleField]
     : undefined;
-  const subheader =
-    subtitleValue !== undefined
-      ? typeof subtitleValue === "number"
-        ? `$${subtitleValue.toFixed(2)}`
-        : String(subtitleValue)
-      : undefined;
+  const subheader = config.subtitleField
+    ? formatValue(subtitleValue, config.subtitleField)
+    : undefined;
 
   return (
     <Card sx={{ mb: 2 }}>
@@ -65,7 +94,7 @@ const EntityCard: React.FC<EntityCardProps> = ({
         {config.detailFields.map((field) => (
           <Typography key={field} variant="body2" sx={{ mb: 0.5 }}>
             <strong>{config.fieldLabels[field] || field}:</strong>{" "}
-            {item[field] || "N/A"}
+            {formatValue(item[field], field)}
           </Typography>
         ))}
       </CardContent>
@@ -85,18 +114,18 @@ const EntityCard: React.FC<EntityCardProps> = ({
           </Tooltip>
         )}
         {onEdit && (
-        <Tooltip title="Editar">
-          <IconButton onClick={() => onEdit(item)} size="small">
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
+          <Tooltip title="Editar">
+            <IconButton onClick={() => onEdit(item)} size="small">
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         )}
         {onDelete && (
-        <Tooltip title="Eliminar">
-          <IconButton onClick={() => onDelete(item.id)} size="small">
-            <DeleteIcon color="error" fontSize="small" />
-          </IconButton>
-        </Tooltip>
+          <Tooltip title="Eliminar">
+            <IconButton onClick={() => onDelete(item)} size="small">
+              <DeleteIcon color="error" fontSize="small" />
+            </IconButton>
+          </Tooltip>
         )}
       </CardActions>
     </Card>
