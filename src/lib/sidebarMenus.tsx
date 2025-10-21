@@ -38,6 +38,7 @@ export const sidebarMenus = {
       title: "Vehículos",
       link: "https://gestion-de-viajes.vercel.app/vehicles",
     },
+    { src: Layers, title: "Tipos de Vehículos", link: "https://gestion-de-viajes.vercel.app/type-vehicle" },
     {
       src: Navigation,
       title: "Viajes",
