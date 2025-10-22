@@ -1,8 +1,10 @@
 import { apiClient } from './apiClient';
 
+
+
 export type Transportista = {
-  activo: boolean;
   id: string;
+  nombreComercial: string; // Se cambia 'nombreEmpresa' por 'nombreComercial'
   cuit: string;
   nombre_comercial: string;
   contacto: {
@@ -13,6 +15,7 @@ export type Transportista = {
   nombreEmpresa?: string;
   contactoNombre?: string;
 };
+
 
 export interface TransportistaProfile {
   id: string;
