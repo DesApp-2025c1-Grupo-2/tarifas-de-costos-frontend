@@ -5,7 +5,8 @@ export type CargaDeCombustible = {
   vehiculoId: string;
   fecha: string;
   litrosCargados: number;
-  kilometrosRecorridos: number;
+  numeroTicket: string;
+  precioTotal: number;   
   esVigente: boolean;
 };
 

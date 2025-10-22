@@ -85,12 +85,15 @@ export const CombustibleForm: React.FC = () => {
   };
 
   const handleSubmit = async (values: Record<string, any>) => {
+    const fechaISO = values.fecha ? new Date(values.fecha).toISOString() : new Date().toISOString();
+
     const payload = {
       esVigente: true,
       vehiculoId: values.vehiculoId,
       litrosCargados: parseFloat(values.litrosCargados),
-      kilometrosRecorridos: parseFloat(values.kilometrosRecorridos),
-      fecha: new Date(values.fecha).toISOString(),
+      numeroTicket: values.numeroTicket,
+      precioTotal: parseFloat(values.precioTotal),
+      fecha: fechaISO,
     };
 
     try {
@@ -109,8 +112,12 @@ export const CombustibleForm: React.FC = () => {
       }
       handleCancel();
       await cargarDatos();
-    } catch (error) {
-      alert("Error al guardar la carga");
+    } catch (error: any) {
+        console.error("Error al guardar:", error);
+        const errorMessage = error?.message || "Error desconocido al guardar la carga.";
+        setMessage({ text: `Error al guardar la carga: ${errorMessage}`, severity: "error" });
+    } finally {
+        setTimeout(() => setMessage(null), 5000);
     }
   };
 
@@ -127,21 +134,27 @@ export const CombustibleForm: React.FC = () => {
         requerido: true,
       },
       {
+        tipo: "datetime-local",
+        nombre: "Fecha de Carga",
+        clave: "fecha",
+        requerido: true,
+      },
+      {
+        tipo: "text",
+        nombre: "Número de Ticket",
+        clave: "numeroTicket",
+        requerido: true,
+      },
+      {
         tipo: "number",
         nombre: "Litros Cargados",
         clave: "litrosCargados",
         requerido: true,
       },
       {
-        tipo: "number",
-        nombre: "Kilómetros Recorridos",
-        clave: "kilometrosRecorridos",
-        requerido: true,
-      },
-      {
-        tipo: "datetime-local",
-        nombre: "Fecha de Carga",
-        clave: "fecha",
+        tipo: "costoBase",
+        nombre: "Precio Total",
+        clave: "precioTotal",
         requerido: true,
       },
     ],

@@ -101,14 +101,15 @@ const cardConfigs: Record<Entidad, CardConfig> = {
     },
   },
   combustible: {
-    titleField: "vehiculoNombre",
-    subtitleField: "litrosCargados",
-    detailFields: ["kilometrosRecorridos", "fecha"],
-    fieldLabels: {
-      litrosCargados: "Litros Cargados",
-      kilometrosRecorridos: "KM Recorridos",
-      fecha: "Fecha de Carga",
-    },
+        titleField: "vehiculoNombre",
+        subtitleField: "precioTotal", // Cambiado
+        detailFields: ["fecha", "numeroTicket", "litrosCargados"], // Actualizado
+        fieldLabels: {
+          precioTotal: "Precio Total",
+          fecha: "Fecha",
+          numeroTicket: "Ticket Nro.",
+          litrosCargados: "Litros",
+        },
   },
 };
 

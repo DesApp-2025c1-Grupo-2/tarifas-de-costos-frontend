@@ -61,8 +61,6 @@ export const columnas: Columnas = {
       valueGetter: (value, row) => row.contacto?.telefono?.numero || "N/A",
     },
   ],
-
-
   zona: [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombre", headerName: "Nombre", flex: 1.5 },
@@ -97,6 +95,7 @@ export const columnas: Columnas = {
         new Date(value as string).toLocaleString("es-AR"),
     },
     { field: "vehiculoNombre", headerName: "Vehículo", flex: 1.5 },
+    { field: "numeroTicket", headerName: "Nro. Ticket", flex: 1 },
     {
       field: "litrosCargados",
       headerName: "Litros Cargados",
@@ -104,10 +103,11 @@ export const columnas: Columnas = {
       flex: 1,
     },
     {
-      field: "kilometrosRecorridos",
-      headerName: "KM Recorridos",
+      field: "precioTotal",
+      headerName: "Precio Total",
       type: "number",
       flex: 1,
+      valueFormatter: (value) => formatCurrency(value),
     },
   ],
   tarifa: [
