@@ -16,6 +16,7 @@ interface OptionMenuProps {
   link?: string;
   isExternal?: boolean;
   IconComponent: React.ElementType;
+  isSubmenu?: boolean;
 }
 
 export default function OptionMenu({
@@ -25,6 +26,7 @@ export default function OptionMenu({
   title,
   link = "",
   isExternal = false,
+  isSubmenu = false,
 }: OptionMenuProps) {
   const location = useLocation();
   const [isActive, setIsActive] = useState(false);
@@ -35,17 +37,19 @@ export default function OptionMenu({
       return;
     }
     const currentPathname = location.pathname;
+    // Manejo especial para la ruta raíz
+    if (link === "" && currentPathname === "/") {
+      setIsActive(true);
+      return;
+    }
     const targetPath = `/${link}`;
-    setIsActive(
-      link ? currentPathname.startsWith(targetPath) : currentPathname === "/"
-    );
+    setIsActive(link ? currentPathname.startsWith(targetPath) : false);
   }, [location, link, isExternal]);
 
   const activeColor = "white";
   const inactiveColor = "#5A5A65";
 
   const buttonContent = (
-    // El onClick para cerrar el menú ahora está en el ListItemButton
     <ListItemButton
       onClick={onClick}
       selected={isActive}
@@ -54,6 +58,7 @@ export default function OptionMenu({
         minHeight: 48,
         justifyContent: isCollapsed ? "center" : "initial",
         px: 2.5,
+        pl: isSubmenu && !isCollapsed ? 4 : 2.5, // Indentación para submenú
         mb: 1,
         color: "text.secondary",
         "&.Mui-selected": {
@@ -96,7 +101,7 @@ export default function OptionMenu({
         {isExternal ? (
           <Link
             href={link}
-            target="_blank"
+            target="_self" // Cambiado para navegar en la misma pestaña
             rel="noopener noreferrer"
             underline="none"
             color="inherit"

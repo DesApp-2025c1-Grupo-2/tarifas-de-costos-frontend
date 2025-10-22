@@ -4,9 +4,8 @@ export type TipoVehiculo = {
   activo: boolean;
   id: string; // Cambiado de number a string
   nombre: string;
-  capacidadPesoKG: number;
-  capacidadVolumenM3: number;
   descripcion: string;
+  licencia_permitida: string;
 };
 
 const TIPOS_VEHICULO_URL = '/api/tipos-vehiculo';

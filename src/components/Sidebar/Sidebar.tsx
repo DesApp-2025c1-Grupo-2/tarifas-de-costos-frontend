@@ -1,20 +1,17 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
-  List,
   Drawer,
   Toolbar,
   useTheme,
   useMediaQuery,
-  Divider,
+  List,
+  Tooltip,
 } from "@mui/material";
-import HomeIcon from "./icons/HomeIcon";
-import DriverIcon from "./icons/DriverIcon";
-import VehicleIcon from "./icons/VehicleIcon";
-import DepotIcon from "./icons/DepotIcon";
-import TripIcon from "./icons/TripIcon";
-import CompanyIcon from "./icons/CompanyIcon";
-import LocalGasStationOutlinedIcon from "@mui/icons-material/LocalGasStationOutlined";
+import { useNavigate } from "react-router-dom";
+import { Home, Route, ClipboardList, Coins } from "lucide-react";
+import { sidebarMenus } from "../../lib/sidebarMenus";
+import DropdownMenu from "./DropDownMenus";
 import OptionMenu from "./OptionMenu";
 
 interface SidebarProps {
@@ -23,33 +20,10 @@ interface SidebarProps {
   isCollapsed: boolean;
 }
 
-const menuItems = [
-  {
-    IconComponent: HomeIcon,
-    title: "Inicio",
-    link: "https://gestion-de-viajes.vercel.app/",
-    isExternal: true,
-  },
-  { IconComponent: TripIcon, title: "Tarifas", link: "tarifas" },
-  { IconComponent: CompanyIcon, title: "Reportes", link: "reportes" },
-  {
-    IconComponent: LocalGasStationOutlinedIcon,
-    title: "Combustible",
-    link: "combustible",
-  },
-  { IconComponent: DriverIcon, title: "Adicionales", link: "adicionales" },
-  {
-    IconComponent: CompanyIcon,
-    title: "Transportistas",
-    link: "transportistas",
-  },
-  { IconComponent: VehicleIcon, title: "Vehículos", link: "vehiculos" },
-  { IconComponent: DepotIcon, title: "Cargas", link: "tipos-de-carga" },
-  { IconComponent: CompanyIcon, title: "Zonas", link: "zonas" },
-];
-
-const drawerWidth = 256;
+const drawerWidth = 240;
 const collapsedDrawerWidth = 80;
+
+type SidebarMenuKey = keyof typeof sidebarMenus;
 
 export default function Sidebar({
   isVisible,
@@ -58,6 +32,42 @@ export default function Sidebar({
 }: SidebarProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const navigate = useNavigate();
+
+  const [openSection, setOpenSection] = useState<string | null>(
+    "Gestión de Costos"
+  );
+
+  const menuItems = [
+    { key: "inicio", src: Home, title: "Inicio" },
+    { key: "viajes", src: Route, title: "Gestión de Viajes" },
+    { key: "remitos", src: ClipboardList, title: "Gestión de Remitos" },
+    { key: "costos", src: Coins, title: "Gestión de Costos" },
+  ];
+
+  const getItems = (key: SidebarMenuKey) => {
+    return sidebarMenus[key] || [];
+  };
+
+  const handleLogoClick = () => {
+    window.location.href = "https://gestion-de-viajes.vercel.app/";
+  };
+
+  const selectOption = () => {
+    if (isMobile) {
+      setIsVisible(false);
+    }
+  };
+
+  useEffect(() => {
+    // Para asegurar que la sección de costos esté abierta por defecto en esta app
+    const isCostosApp =
+      window.location.host.includes("tarifas-de-costo") ||
+      window.location.port === "8080";
+    if (isCostosApp) {
+      setOpenSection("Gestión de Costos");
+    }
+  }, []);
 
   const drawerContent = (
     <Box
@@ -68,8 +78,18 @@ export default function Sidebar({
         backgroundColor: "#FFFFFF",
       }}
     >
-      <Box sx={{ pt: 2, pb: 1, textAlign: "center" }}>
-        <Toolbar sx={{ justifyContent: "center", minHeight: "80px" }}>
+      <Toolbar
+        sx={{
+          justifyContent: "center",
+          minHeight: "80px",
+          cursor: "pointer",
+        }}
+        onClick={handleLogoClick}
+      >
+        <Tooltip
+          title={isCollapsed ? "Ir a la página de inicio" : ""}
+          placement="right"
+        >
           <Box
             component="img"
             src={"/img/acmelogo.png"}
@@ -79,23 +99,41 @@ export default function Sidebar({
               transition: "width 0.2s ease-in-out",
             }}
           />
-        </Toolbar>
-      </Box>
+        </Tooltip>
+      </Toolbar>
 
-      <Divider sx={{ mx: 2, mb: 2 }} />
-
-      <List sx={{ flexGrow: 1, p: 1, pt: 0 }}>
-        {menuItems.map((item) => (
-          <OptionMenu
-            key={item.title}
-            isCollapsed={isCollapsed}
-            onClick={() => isMobile && setIsVisible(false)}
-            IconComponent={item.IconComponent}
-            title={item.title}
-            link={item.link}
-            isExternal={item.isExternal}
-          />
-        ))}
+      <List sx={{ flexGrow: 1, p: 1, pt: 0, overflowY: "auto" }}>
+        {menuItems.map((item) => {
+          if (item.key === "inicio") {
+            return (
+              <OptionMenu
+                key={item.key}
+                IconComponent={item.src}
+                title={item.title}
+                isCollapsed={isCollapsed}
+                link={"https://gestion-de-viajes.vercel.app/"}
+                isExternal={true}
+                onClick={selectOption}
+              />
+            );
+          }
+          return (
+            <DropdownMenu
+              key={item.key}
+              IconComponent={item.src}
+              isCollapsed={isCollapsed}
+              title={item.title}
+              items={getItems(item.key as SidebarMenuKey)}
+              onClick={selectOption}
+              isOpen={openSection === item.title}
+              onToggle={() =>
+                setOpenSection((prev) =>
+                  prev === item.title ? null : item.title
+                )
+              }
+            />
+          );
+        })}
       </List>
     </Box>
   );

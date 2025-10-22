@@ -5,8 +5,6 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 
 import CrearTarifa from "./CrearTarifa";
 import CargaCombustible from "./CargaCombustible";
-import CrearTransportista from "./CrearTransportista";
-import CrearVehiculo from "./CrearVehiculo";
 import CrearZona from "./CrearZona";
 import CrearCarga from "./CrearCarga";
 import Reportes from "./Reportes";
@@ -23,9 +21,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/" element={<Navigate to="/tarifas" />} />
           <Route path="/tarifas" element={<CrearTarifa />} />
           <Route path="/reportes" element={<Reportes />} />
-          <Route path="/combustible" element={<CargaCombustible />} />
-          <Route path="/transportistas" element={<CrearTransportista />} />
-          <Route path="/vehiculos" element={<CrearVehiculo />} />
+          <Route path="/combustible" element={<CargaCombustible />} />{" "}
           <Route path="/tipos-de-carga" element={<CrearCarga />} />
           <Route path="/zonas" element={<CrearZona />} />
           <Route path="/adicionales" element={<CrearAdicional />} />

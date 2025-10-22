@@ -67,10 +67,13 @@ const FormularioDinamico: React.FC<Props> = ({
   children,
   onValuesChange,
 }) => {
-  const [valores, setValores] = useState<Record<string, any>>({});
+  // CORRECCIÓN: Inicializa el estado con los valores iniciales. 
+  // Esto garantiza que el formulario se pre-llene en la primera renderización (al editar).
+  const [valores, setValores] = useState<Record<string, any>>(initialValues || {});
   const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
   const [errores, setErrores] = useState<Record<string, string>>({});
 
+  // Se mantiene el useEffect para sincronizar el estado si initialValues cambia después del montaje.
   useEffect(() => {
     setValores(initialValues || {});
   }, [initialValues]);

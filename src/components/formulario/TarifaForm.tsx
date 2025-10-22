@@ -46,6 +46,7 @@ export const FormCrearTarifa: React.FC = () => {
   const [historialTarifaId, setHistorialTarifaId] = useState<number | null>(
     null
   );
+  const [dependenciasCargadas, setDependenciasCargadas] = useState(false);
 
   const cargarTarifas = async () => {
     setIsLoading(true);
@@ -90,8 +91,8 @@ export const FormCrearTarifa: React.FC = () => {
       setZonas(zonasData.filter((z) => z.activo));
       setCargas(cargasData.filter((c) => c.activo));
       setAdicionalesDb(adicionalesData.filter((a) => a.activo && !a.esGlobal));
+      setDependenciasCargadas(true);
     } catch (error) {
- 
       setMessage({
         text: "Error al cargar datos para el formulario. Intente de nuevo.",
         severity: "error",
@@ -99,28 +100,25 @@ export const FormCrearTarifa: React.FC = () => {
     }
   };
 
-
   useEffect(() => {
     cargarTarifas();
     cargarDependencias();
   }, []);
 
-
   const handleCrearClick = () => {
-    setEditingItem(null); 
+    setEditingItem(null);
     setShowForm(true);
   };
 
   const handleEdit = (tarifa: Tarifa) => {
-    setEditingItem(tarifa); 
-    setShowForm(true); 
+    setEditingItem(tarifa);
+    setShowForm(true);
   };
 
   const handleCancel = () => {
     setShowForm(false);
-    setEditingItem(null); 
+    setEditingItem(null);
   };
- 
 
   const handleSubmit = async (formValues: Record<string, any>) => {
     const adicionalesPayload = (formValues["adicionales"] || []).map(
@@ -144,14 +142,14 @@ export const FormCrearTarifa: React.FC = () => {
     );
 
     const payload = {
-  nombreTarifa: formValues.nombreTarifa,
-  transportistaId: formValues.transportistaId,
-  tipoVehiculoId: formValues.tipoVehiculoId,
-  zonaViaje: { id: Number(formValues.zonaId || 0) },
-  tipoCargaTarifa: { id: Number(formValues.tipoCargaId || 0) },
-  valorBase: parseFloat(formValues.valorBase || "0"),
-  adicionales: adicionalesPayload,
-};
+      nombreTarifa: formValues.nombreTarifa,
+      transportistaId: formValues.transportistaId,
+      tipoVehiculoId: formValues.tipoVehiculoId,
+      zonaViaje: { id: Number(formValues.zonaId || 0) },
+      tipoCargaTarifa: { id: Number(formValues.tipoCargaId || 0) },
+      valorBase: parseFloat(formValues.valorBase || "0"),
+      adicionales: adicionalesPayload,
+    };
 
     try {
       let changedItem: Tarifa;
@@ -168,8 +166,8 @@ export const FormCrearTarifa: React.FC = () => {
         changedItem = await tarifaService.crearTarifa(payload);
         setMessage({ text: "Tarifa creada con éxito", severity: "success" });
       }
-      handleCancel(); 
-      await cargarTarifas(); 
+      handleCancel();
+      await cargarTarifas();
       setHighlightedId(changedItem.id);
       setTimeout(() => setHighlightedId(null), 4000);
     } catch (err) {
@@ -239,7 +237,7 @@ export const FormCrearTarifa: React.FC = () => {
         clave: "transportistaId",
         opciones: transportistas.map((t) => ({
           id: t.id,
-          nombre: `${t.nombreEmpresa} - ${t.contactoNombre} (${t.cuit})`,
+          nombre: `${t.nombre_comercial} - ${t.contacto.nombre} (${t.cuit})`,
         })),
         requerido: true,
       },
@@ -290,10 +288,10 @@ export const FormCrearTarifa: React.FC = () => {
     ? {
         id: editingItem.id,
         nombreTarifa: editingItem.nombreTarifa,
-        transportistaId: editingItem.transportistaId?.toString(),
-        tipoVehiculoId: editingItem.tipoVehiculoId?.toString(),
-        zonaId: editingItem.zonaId?.toString(),
-        tipoCargaId: editingItem.tipoCargaId?.toString(),
+        transportistaId: String(editingItem.transportistaId || ""),
+        tipoVehiculoId: String(editingItem.tipoVehiculoId || ""),
+        zonaId: String(editingItem.zonaId || ""),
+        tipoCargaId: String(editingItem.tipoCargaId || ""),
         valorBase: editingItem.valorBase,
         adicionales:
           editingItem.adicionales?.map((ad) => ({
@@ -310,7 +308,10 @@ export const FormCrearTarifa: React.FC = () => {
     <div>
       {!showForm && !isLoading && !loadingError && (
         <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-          <BotonPrimario onClick={handleCrearClick}>
+          <BotonPrimario
+            onClick={handleCrearClick}
+            disabled={!dependenciasCargadas}
+          >
             Crear nueva tarifa
           </BotonPrimario>
         </Box>
@@ -342,6 +343,7 @@ export const FormCrearTarifa: React.FC = () => {
           handleMostrarAdicionales={handleMostrarAdicionales}
           handleMostrarHistorial={handleMostrarHistorial}
           highlightedId={highlightedId}
+          actionsDisabled={!dependenciasCargadas}
         />
       )}
       <ModalVerTarifa

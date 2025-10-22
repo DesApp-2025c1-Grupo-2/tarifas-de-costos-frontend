@@ -6,14 +6,14 @@ export type Transportista = {
   id: string;
   nombreComercial: string; // Se cambia 'nombreEmpresa' por 'nombreComercial'
   cuit: string;
+  nombre_comercial: string;
   contacto: {
     nombre: string;
     email: string;
-    telefono: {
-      numero: string;
-    };
+    telefono: any;
   };
-  activo?: boolean; // Se mantiene como opcional si no siempre viene
+  nombreEmpresa?: string;
+  contactoNombre?: string;
 };
 
 

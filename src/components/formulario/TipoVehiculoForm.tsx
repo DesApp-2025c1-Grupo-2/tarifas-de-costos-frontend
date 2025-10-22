@@ -22,7 +22,7 @@ export const FormCrearTipoVehiculo: React.FC = () => {
       <DataTable
         entidad="tipoDeVehiculo"
         rows={items}
-        highlightedId={typeof highlightedId === "number" ? highlightedId : null}
+        highlightedId={typeof highlightedId === "string" ? highlightedId : null}
       />
 
       {message && (
