@@ -74,7 +74,7 @@ export const AdicionalForm: React.FC = () => {
       ]);
 
       const frecuenciaMap = new Map(
-        frecuencia.map((f) => [f.nombreAdicional, f.cantidad])
+        (frecuencia || []).map((f) => [f.nombreAdicional, f.cantidad])
       );
 
       const combinados = adicionales.map((a) => ({
