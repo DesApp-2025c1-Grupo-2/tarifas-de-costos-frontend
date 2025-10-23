@@ -24,7 +24,7 @@ import {
 import { getComparativaCostos } from "../../services/reporteService";
 import {
   obtenerTransportistas,
-  Transportista,
+  Transportista, // <-- Usará la definición actualizada de transportistaService.ts
 } from "../../services/transportistaService";
 import {
   obtenerTiposVehiculo,
@@ -34,9 +34,9 @@ import { obtenerCargas, Carga } from "../../services/cargaService";
 import { obtenerZonas, ZonaViaje } from "../../services/zonaService";
 
 interface ReporteEnriquecido {
-  id: number;
+  id: string; // ID ahora es string para coincidir con Transportista
   displayName: string;
-  costo: number;
+  costo: number; // Costo siempre será number después de filtrar nulls
 }
 
 const ComparativaCostosTransportistas: React.FC = () => {
@@ -46,7 +46,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
   const [zonas, setZonas] = useState<ZonaViaje[]>([]);
 
   const [selectedTransportistaIds, setSelectedTransportistaIds] = useState<
-    number[]
+    string[]
   >([]);
   const [selectedVehiculoId, setSelectedVehiculoId] = useState<string>("");
   const [selectedCargaId, setSelectedCargaId] = useState<string>("");
@@ -60,6 +60,9 @@ const ComparativaCostosTransportistas: React.FC = () => {
   useEffect(() => {
     const cargarDatosFiltros = async () => {
       try {
+        setLoadingFiltros(true);
+        setError(null);
+
         const [transportistasData, vehiculosData, cargasData, zonasData] =
           await Promise.all([
             obtenerTransportistas(),
@@ -67,11 +70,13 @@ const ComparativaCostosTransportistas: React.FC = () => {
             obtenerCargas(),
             obtenerZonas(),
           ]);
-        setTransportistas(transportistasData.filter((t) => t.activo));
-        setTiposVehiculo(vehiculosData.filter((v) => v.activo));
+
+        setTransportistas(transportistasData);
+        setTiposVehiculo(vehiculosData.filter((v) => !v.deletedAt));
         setTiposCarga(cargasData.filter((c) => c.activo));
         setZonas(zonasData.filter((z) => z.activo));
       } catch (err) {
+        console.error("Error al cargar datos para filtros:", err);
         setError("Error al cargar los filtros. Intente recargar la página.");
       } finally {
         setLoadingFiltros(false);
@@ -80,12 +85,12 @@ const ComparativaCostosTransportistas: React.FC = () => {
     cargarDatosFiltros();
   }, []);
 
-  const handleTransportistaChange = (event: SelectChangeEvent<number[]>) => {
+  const handleTransportistaChange = (event: SelectChangeEvent<string[]>) => {
     const {
       target: { value },
     } = event;
     setSelectedTransportistaIds(
-      typeof value === "string" ? value.split(",").map(Number) : value
+      typeof value === "string" ? value.split(",") : value
     );
   };
 
@@ -107,39 +112,57 @@ const ComparativaCostosTransportistas: React.FC = () => {
     setReporte(null);
 
     const params = {
-      tipoVehiculoId: Number(selectedVehiculoId),
-      tipoCargaId: Number(selectedCargaId),
-      zonaId: Number(selectedZonaId),
+      tipoVehiculoId: Number(selectedVehiculoId), // API espera number
+      tipoCargaId: Number(selectedCargaId), // API espera number
+      zonaId: Number(selectedZonaId), // API espera number
     };
 
     try {
       const data = await getComparativaCostos(params);
 
-      const transportistasSeleccionados = transportistas.filter((t) =>
-        selectedTransportistaIds.map(Number).includes(Number(t.id))
-      );
-
-      const reporteFinal = transportistasSeleccionados
+      // Mapeo inicial (costo puede ser null)
+      const reporteConPosibleNull = transportistas
+        .filter((t) => selectedTransportistaIds.includes(String(t.id)))
         .map((transportista) => {
           const infoCosto = data.comparativas.find(
-            (comp) => comp.transportista === transportista.nombreEmpresa
+            // --- CORRECCIÓN FINAL AQUÍ (nombre_comercial) ---
+            (comp) => comp.transportista === transportista.nombre_comercial
+            // --- FIN CORRECCIÓN FINAL ---
           );
           return {
-            id: transportista.id,
-            displayName: `${transportista.nombreEmpresa} (${transportista.contactoNombre})`,
+            id: String(transportista.id),
+            // --- CORRECCIÓN FINAL AQUÍ (nombre_comercial y contacto.nombre) ---
+            displayName: `${transportista.nombre_comercial} (${
+              transportista.contacto?.nombre || "N/A"
+            })`,
+            // --- FIN CORRECCIÓN FINAL ---
             costo: infoCosto ? infoCosto.costo : null,
           };
-        })
-        .filter((item) => item.costo !== null) as unknown as ReporteEnriquecido[];
+        });
+
+      // Filtrar nulls y asegurar el tipo correcto para ReporteEnriquecido[]
+      const reporteFinal: ReporteEnriquecido[] = reporteConPosibleNull
+        .filter(
+          (item): item is { id: string; displayName: string; costo: number } =>
+            item.costo !== null
+        )
+        .sort((a, b) => a.costo - b.costo);
 
       if (reporteFinal.length === 0) {
-        setError(
-          "Ninguno de los transportistas seleccionados ofrece un servicio con las características elegidas."
-        );
+        if (data.comparativas && data.comparativas.length > 0) {
+          setError(
+            "Ninguno de los transportistas seleccionados tiene una tarifa registrada para los criterios elegidos."
+          );
+        } else {
+          setError(
+            "No se encontraron tarifas que coincidan con los criterios seleccionados para ningún transportista."
+          );
+        }
+      } else {
+        setReporte(reporteFinal);
       }
-
-      setReporte(reporteFinal);
     } catch (err: any) {
+      console.error("Error al generar reporte:", err);
       setError(
         err.message.includes("204")
           ? "No se encontraron tarifas para los criterios seleccionados."
@@ -148,6 +171,15 @@ const ComparativaCostosTransportistas: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatCurrency = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return "N/A";
+    const number = Number(value);
+    return `$${number.toLocaleString("es-AR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   return (
@@ -189,19 +221,33 @@ const ComparativaCostosTransportistas: React.FC = () => {
               onChange={handleTransportistaChange}
               input={<OutlinedInput label="Transportistas a Comparar" />}
               renderValue={(selectedIds) => {
-                return transportistas
-                  .filter((t) => selectedIds.map(Number).includes(Number(t.id)))
-                  .map((t) => `${t.nombreEmpresa} (${t.contactoNombre})`)
-                  .join(", ");
+                return (
+                  transportistas
+                    .filter((t) => selectedIds.includes(String(t.id)))
+                    // --- CORRECCIÓN FINAL AQUÍ ---
+                    .map(
+                      (t) =>
+                        `${t.nombre_comercial} (${t.contacto?.nombre || "N/A"})`
+                    )
+                    // --- FIN CORRECCIÓN FINAL ---
+                    .join(", ")
+                );
               }}
+              MenuProps={{ PaperProps: { style: { maxHeight: 300 } } }}
             >
               {transportistas.map((t) => (
-                <MenuItem key={t.id} value={t.id}>
+                <MenuItem key={t.id} value={String(t.id)}>
                   <Checkbox
-                    checked={selectedTransportistaIds.indexOf(Number(t.id)) > -1}
+                    checked={
+                      selectedTransportistaIds.indexOf(String(t.id)) > -1
+                    }
                   />
                   <ListItemText
-                    primary={`${t.nombreEmpresa} (${t.contactoNombre})`}
+                    // --- CORRECCIÓN FINAL AQUÍ ---
+                    primary={`${t.nombre_comercial} (${
+                      t.contacto?.nombre || "N/A"
+                    })`}
+                    // --- FIN CORRECCIÓN FINAL ---
                     secondary={`CUIT: ${t.cuit}`}
                   />
                 </MenuItem>
@@ -234,7 +280,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
               onChange={(e) => setSelectedCargaId(e.target.value)}
             >
               {tiposCarga.map((c) => (
-                <MenuItem key={c.id} value={c.id}>
+                <MenuItem key={c.id} value={String(c.id)}>
                   {c.nombre}
                 </MenuItem>
               ))}
@@ -250,7 +296,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
               onChange={(e) => setSelectedZonaId(e.target.value)}
             >
               {zonas.map((z) => (
-                <MenuItem key={z.id} value={z.id}>
+                <MenuItem key={z.id} value={String(z.id)}>
                   {z.nombre}
                 </MenuItem>
               ))}
@@ -260,7 +306,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
           <Button
             type="submit"
             variant="contained"
-            disabled={loading}
+            disabled={loading || loadingFiltros}
             sx={{ minWidth: "150px", height: "40px" }}
           >
             {loading ? <CircularProgress size={24} /> : "Comparar"}
@@ -275,7 +321,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
       )}
 
       {reporte && reporte.length > 0 && (
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} variant="outlined" sx={{ mt: 2 }}>
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
@@ -285,17 +331,15 @@ const ComparativaCostosTransportistas: React.FC = () => {
             </TableHead>
             <TableBody>
               {reporte.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow
+                  key={item.id}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
                   <TableCell component="th" scope="row">
                     {item.displayName}
                   </TableCell>
                   <TableCell align="right">
-                    {/* --- INICIO DE LA CORRECCIÓN --- */}$
-                    {item.costo.toLocaleString("es-AR", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 2,
-                    })}
-                    {/* --- FIN DE LA CORRECCIÓN --- */}
+                    {formatCurrency(item.costo)}
                   </TableCell>
                 </TableRow>
               ))}
