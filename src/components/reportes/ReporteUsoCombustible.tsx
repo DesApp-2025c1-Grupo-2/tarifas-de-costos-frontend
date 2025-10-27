@@ -20,10 +20,10 @@ import {
 import { obtenerVehiculo, Vehiculo } from "../../services/vehiculoService";
 import {
   getReporteUsoCombustible,
-  ReporteVehiculoCombustible,
+  ReporteVehiculoCombustible, 
 } from "../../services/reporteService";
 
-const formatCurrency = (value: number) => {
+const formatCurrency = (value: number | undefined) => {
   const number = Number(value) || 0;
   return `$${number.toLocaleString("es-AR", {
     minimumFractionDigits: 0,
@@ -47,8 +47,8 @@ const ReporteUsoCombustible: React.FC = () => {
     const cargarVehiculos = async () => {
       try {
         const data = await obtenerVehiculo();
-        // Asumiendo que el campo para baja es 'deletedAt'
-        setVehiculos(data.filter((v) => !v.deletedAt));
+
+        setVehiculos(data.filter((v) => !v.deletedAt && v.activo !== false));
       } catch (err) {
         setError("No se pudieron cargar los vehículos.");
       } finally {
@@ -75,15 +75,28 @@ const ReporteUsoCombustible: React.FC = () => {
       );
       setReporte(data);
     } catch (err: any) {
-      setError(
-        err.message.includes("204")
-          ? "No se encontraron datos en el período seleccionado."
-          : "Ocurrió un error al generar el reporte de combustible."
-      );
+
+      if (err.message.includes("204")) {
+         setError("No se encontraron datos de viajes ni de combustible en el período seleccionado.");
+      } else {
+        setError(err.message || "Ocurrió un error al generar el reporte de combustible.");
+      }
+      console.error("Error al generar reporte:", err);
     } finally {
       setLoading(false);
     }
   };
+
+
+  const formatKilometros = (value: number | undefined) => {
+    const number = Number(value) || 0;
+
+    return `${number.toLocaleString("es-AR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1, 
+    })} Km`;
+  };
+  
 
   return (
     <Paper sx={{ padding: 3, marginTop: 2 }}>
@@ -154,7 +167,7 @@ const ReporteUsoCombustible: React.FC = () => {
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity="info" sx={{ mt: 2 }}> 
           {error}
         </Alert>
       )}
@@ -178,6 +191,14 @@ const ReporteUsoCombustible: React.FC = () => {
                 secondary={reporte.cantidadViajes.toLocaleString()}
               />
             </ListItem>
+           
+             <ListItem>
+              <ListItemText
+                primary="Kilómetros Totales Recorridos"
+                secondary={formatKilometros(reporte.totalKilometros)}
+              />
+            </ListItem>
+           
             <ListItem>
               <ListItemText
                 primary="Total de Cargas de Combustible"
@@ -195,7 +216,8 @@ const ReporteUsoCombustible: React.FC = () => {
                 primary="Métrica: Viajes por Carga (Eficiencia)"
                 secondary={
                   <Typography variant="h6" color="primary">
-                    {reporte.viajesPorCarga.toFixed(2)} Viajes / Carga
+                    
+                    {isFinite(reporte.viajesPorCarga) ? reporte.viajesPorCarga.toFixed(2) : '0.00'} Viajes / Carga
                   </Typography>
                 }
               />
