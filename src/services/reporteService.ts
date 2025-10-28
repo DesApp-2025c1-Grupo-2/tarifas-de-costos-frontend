@@ -50,7 +50,7 @@ export const getFrecuenciaAdicionales = (params: FrecuenciaAdicionalesParams = {
 export const getTransportistasMasUtilizados = () =>
   apiClient.get<TransportistaMasUtilizado[]>(`${REPORTES_URL}/transportistas-mas-utilizados`);
 
-export const getComparativaCostos = (params: { [k: string]: number }) => {
+export const getComparativaCostos = (params: { [k: string]: string | number }) => {
   const qs = new URLSearchParams(params as any).toString();
   return apiClient.get<ComparativaTransportistaDTO>(`${REPORTES_URL}/comparativa-costos?${qs}`);
 };

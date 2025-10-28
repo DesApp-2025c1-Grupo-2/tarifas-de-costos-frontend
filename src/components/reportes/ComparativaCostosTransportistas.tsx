@@ -112,7 +112,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
     setReporte(null);
 
     const params = {
-      tipoVehiculoId: Number(selectedVehiculoId), // API espera number
+      tipoVehiculoId: selectedVehiculoId, // API espera number
       tipoCargaId: Number(selectedCargaId), // API espera number
       zonaId: Number(selectedZonaId), // API espera number
     };
