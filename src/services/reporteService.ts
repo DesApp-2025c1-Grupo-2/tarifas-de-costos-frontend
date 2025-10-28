@@ -1,3 +1,4 @@
+// Archivo: src/services/reporteService.ts
 import { apiClient } from './apiClient';
 
 export interface FrecuenciaAdicional { nombreAdicional: string; cantidad: number; }
@@ -20,7 +21,8 @@ export interface ReporteVehiculoCombustible {
   fechaInicio: string;
   fechaFin: string;
   viajesPorCarga: number;
-  totalKilometros: number; // <-- Campo añadido
+  totalKilometros: number;
+  litrosTotales: number; // <-- NUEVO CAMPO
 }
 
 // [TIPO PARA FILTRO DE ADICIONALES]
