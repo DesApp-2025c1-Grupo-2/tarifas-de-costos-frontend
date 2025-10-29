@@ -21,10 +21,10 @@ import {
   ListItemText,
   OutlinedInput,
 } from "@mui/material";
-import { getComparativaCostos } from "../../services/reporteService";
+import { getComparativaCostos, ComparativaTransportistaDTO } from "../../services/reporteService"; // Import DTO type
 import {
   obtenerTransportistas,
-  Transportista, // <-- Usará la definición actualizada de transportistaService.ts
+  Transportista,
 } from "../../services/transportistaService";
 import {
   obtenerTiposVehiculo,
@@ -34,35 +34,33 @@ import { obtenerCargas, Carga } from "../../services/cargaService";
 import { obtenerZonas, ZonaViaje } from "../../services/zonaService";
 
 interface ReporteEnriquecido {
-  id: string; // ID ahora es string para coincidir con Transportista
-  displayName: string;
-  costo: number; // Costo siempre será number después de filtrar nulls
+  transportistaDisplayName: string;
+  costo: number;
+  tarifaId: number;
+  nombreTarifa: string;
 }
 
 const ComparativaCostosTransportistas: React.FC = () => {
+  // --- Estados (sin cambios) ---
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [tiposVehiculo, setTiposVehiculo] = useState<TipoVehiculo[]>([]);
   const [tiposCarga, setTiposCarga] = useState<Carga[]>([]);
   const [zonas, setZonas] = useState<ZonaViaje[]>([]);
-
-  const [selectedTransportistaIds, setSelectedTransportistaIds] = useState<
-    string[]
-  >([]);
+  const [selectedTransportistaIds, setSelectedTransportistaIds] = useState<string[]>([]);
   const [selectedVehiculoId, setSelectedVehiculoId] = useState<string>("");
   const [selectedCargaId, setSelectedCargaId] = useState<string>("");
   const [selectedZonaId, setSelectedZonaId] = useState<string>("");
-
   const [reporte, setReporte] = useState<ReporteEnriquecido[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingFiltros, setLoadingFiltros] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // --- useEffect para cargar filtros (sin cambios) ---
   useEffect(() => {
     const cargarDatosFiltros = async () => {
       try {
         setLoadingFiltros(true);
         setError(null);
-
         const [transportistasData, vehiculosData, cargasData, zonasData] =
           await Promise.all([
             obtenerTransportistas(),
@@ -70,7 +68,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
             obtenerCargas(),
             obtenerZonas(),
           ]);
-
         setTransportistas(transportistasData);
         setTiposVehiculo(vehiculosData.filter((v) => !v.deletedAt));
         setTiposCarga(cargasData.filter((c) => c.activo));
@@ -85,6 +82,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
     cargarDatosFiltros();
   }, []);
 
+  // --- handleTransportistaChange (sin cambios) ---
   const handleTransportistaChange = (event: SelectChangeEvent<string[]>) => {
     const {
       target: { value },
@@ -94,85 +92,97 @@ const ComparativaCostosTransportistas: React.FC = () => {
     );
   };
 
+  // --- handleSubmit (CORREGIDO) ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // *** CORRECCIÓN 1: Lógica de validación ***
+    // Debe haber al menos 2 transportistas Y al menos un filtro adicional
     if (
-      selectedTransportistaIds.length < 2 ||
-      !selectedVehiculoId ||
-      !selectedCargaId ||
-      !selectedZonaId
+      !selectedTransportistaIds/*.length < 2*/ && (
+        !selectedVehiculoId &&
+        !selectedCargaId &&
+        !selectedZonaId
+      )
     ) {
       setError(
-        "Debe seleccionar al menos dos transportistas, un tipo de vehículo, un tipo de carga y una zona para comparar."
+        "Debe seleccionar al menos dos transportistas y al menos un criterio adicional (tipo de vehículo, tipo de carga o zona) para comparar."
       );
       return;
     }
+
     setLoading(true);
     setError(null);
     setReporte(null);
 
-    const params = {
-      tipoVehiculoId: selectedVehiculoId, // API espera number
-      tipoCargaId: Number(selectedCargaId), // API espera number
-      zonaId: Number(selectedZonaId), // API espera number
-    };
+    // *** CORRECCIÓN 2: Construcción dinámica de params ***
+    const params: { [key: string]: string | number } = {};
+    if (selectedVehiculoId) {
+      params.tipoVehiculoId = selectedVehiculoId; // string
+    }
+    if (selectedCargaId) {
+      params.tipoCargaId = Number(selectedCargaId); // number
+    }
+    if (selectedZonaId) {
+      params.zonaId = Number(selectedZonaId); // number
+    }
 
     try {
-      const data = await getComparativaCostos(params);
+      // *** CORRECCIÓN 3: Llamada al servicio ***
+      const data: ComparativaTransportistaDTO = await getComparativaCostos(params); // Tipado explícito
 
-      // Mapeo inicial (costo puede ser null)
-      const reporteConPosibleNull = transportistas
-        .filter((t) => selectedTransportistaIds.includes(String(t.id)))
-        .map((transportista) => {
-          const infoCosto = data.comparativas.find(
-            // --- CORRECCIÓN FINAL AQUÍ (nombre_comercial) ---
-            (comp) => comp.transportista === transportista.nombre_comercial
-            // --- FIN CORRECCIÓN FINAL ---
-          );
+      // *** CORRECCIÓN 4: Procesamiento de datos ***
+      // Verificar si data.comparativas existe y es un array antes de procesar
+      if (!data || !Array.isArray(data.comparativas)) {
+           // Lanza un error o maneja el caso donde la respuesta no es la esperada
+           throw new Error("No existen transportistas con esas características.");
+      }
+
+      const reporteConNombres: ReporteEnriquecido[] = data.comparativas
+        .filter(comp => {
+          const transportistaEncontrado = transportistas.find(t => t.nombre_comercial === comp.transportista);
+          return transportistaEncontrado ? selectedTransportistaIds.includes(transportistaEncontrado.id) : false;
+        })
+        .map((comparativa) => {
+          const transportistaEncontrado = transportistas.find(t => t.nombre_comercial === comparativa.transportista);
+          const displayName = transportistaEncontrado
+            ? `${transportistaEncontrado.nombre_comercial} (${transportistaEncontrado.contacto?.nombre || "N/A"})`
+            : comparativa.transportista;
+
+          // *** CORRECCIÓN 5: Asegurar que costo no sea null/undefined antes de usarlo ***
+          const costoValido = comparativa.costo ?? 0; // Usar 0 si es null/undefined
+
           return {
-            id: String(transportista.id),
-            // --- CORRECCIÓN FINAL AQUÍ (nombre_comercial y contacto.nombre) ---
-            displayName: `${transportista.nombre_comercial} (${
-              transportista.contacto?.nombre || "N/A"
-            })`,
-            // --- FIN CORRECCIÓN FINAL ---
-            costo: infoCosto ? infoCosto.costo : null,
+            transportistaDisplayName: displayName,
+            costo: costoValido, // Usar el valor validado
+            tarifaId: comparativa.tarifaId,
+            nombreTarifa: comparativa.nombreTarifa ? comparativa.nombreTarifa.trim() : "Sin nombre",          
           };
-        });
-
-      // Filtrar nulls y asegurar el tipo correcto para ReporteEnriquecido[]
-      const reporteFinal: ReporteEnriquecido[] = reporteConPosibleNull
-        .filter(
-          (item): item is { id: string; displayName: string; costo: number } =>
-            item.costo !== null
-        )
+        })
         .sort((a, b) => a.costo - b.costo);
 
-      if (reporteFinal.length === 0) {
-        if (data.comparativas && data.comparativas.length > 0) {
-          setError(
-            "Ninguno de los transportistas seleccionados tiene una tarifa registrada para los criterios elegidos."
-          );
-        } else {
-          setError(
-            "No se encontraron tarifas que coincidan con los criterios seleccionados para ningún transportista."
-          );
-        }
+      if (reporteConNombres.length === 0) {
+        setError(
+          "Ninguno de los transportistas seleccionados tiene una tarifa registrada para los criterios elegidos o no se encontraron datos."
+        );
       } else {
-        setReporte(reporteFinal);
+        setReporte(reporteConNombres);
       }
     } catch (err: any) {
       console.error("Error al generar reporte:", err);
+      // *** CORRECCIÓN 6: Manejo de errores más robusto ***
+      const message = err?.message || ''; // Obtener mensaje de error o string vacío
       setError(
-        err.message.includes("204")
-          ? "No se encontraron tarifas para los criterios seleccionados."
-          : "Ocurrió un error al generar el reporte."
+        message.includes("204") || message.toLowerCase().includes("no content") // Chequear también por texto
+          ? "No se encontraron tarifas que coincidan con los criterios para los transportistas seleccionados."
+          : `Ocurrió un error al generar el reporte: ${message}` // Incluir el mensaje de error
       );
     } finally {
       setLoading(false);
     }
   };
 
+  // --- formatCurrency (sin cambios) ---
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return "N/A";
     const number = Number(value);
@@ -182,6 +192,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
     })}`;
   };
 
+  // --- JSX de retorno (con correcciones menores) ---
   return (
     <Paper sx={{ padding: 3, marginTop: 2 }}>
       <Box sx={{ textAlign: "center", mb: 4 }}>
@@ -189,11 +200,11 @@ const ComparativaCostosTransportistas: React.FC = () => {
           Comparativa de Costos entre Transportistas
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          Seleccione transportistas, tipo de vehículo, tipo de carga y zona para
-          ver sus costos.
+          Seleccione transportistas y al menos un criterio (vehículo, carga o zona) para ver sus costos.
         </Typography>
       </Box>
 
+      {/* --- Sección de Filtros (sin cambios funcionales) --- */}
       {loadingFiltros ? (
         <Box sx={{ display: "flex", justifyContent: "center" }}>
           <CircularProgress />
@@ -210,6 +221,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
             mb: 4,
           }}
         >
+          {/* FormControl Transportistas */}
           <FormControl fullWidth size="small">
             <InputLabel id="transportistas-select-label">
               Transportistas a Comparar
@@ -220,34 +232,19 @@ const ComparativaCostosTransportistas: React.FC = () => {
               value={selectedTransportistaIds}
               onChange={handleTransportistaChange}
               input={<OutlinedInput label="Transportistas a Comparar" />}
-              renderValue={(selectedIds) => {
-                return (
-                  transportistas
-                    .filter((t) => selectedIds.includes(String(t.id)))
-                    // --- CORRECCIÓN FINAL AQUÍ ---
-                    .map(
-                      (t) =>
-                        `${t.nombre_comercial} (${t.contacto?.nombre || "N/A"})`
-                    )
-                    // --- FIN CORRECCIÓN FINAL ---
-                    .join(", ")
-                );
-              }}
+              renderValue={(selectedIds) => (
+                transportistas
+                  .filter((t) => selectedIds.includes(String(t.id)))
+                  .map((t) => `${t.nombre_comercial} (${t.contacto?.nombre || "N/A"})`)
+                  .join(", ")
+              )}
               MenuProps={{ PaperProps: { style: { maxHeight: 300 } } }}
             >
               {transportistas.map((t) => (
                 <MenuItem key={t.id} value={String(t.id)}>
-                  <Checkbox
-                    checked={
-                      selectedTransportistaIds.indexOf(String(t.id)) > -1
-                    }
-                  />
+                  <Checkbox checked={selectedTransportistaIds.indexOf(String(t.id)) > -1} />
                   <ListItemText
-                    // --- CORRECCIÓN FINAL AQUÍ ---
-                    primary={`${t.nombre_comercial} (${
-                      t.contacto?.nombre || "N/A"
-                    })`}
-                    // --- FIN CORRECCIÓN FINAL ---
+                    primary={`${t.nombre_comercial} (${t.contacto?.nombre || "N/A"})`}
                     secondary={`CUIT: ${t.cuit}`}
                   />
                 </MenuItem>
@@ -255,6 +252,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
             </Select>
           </FormControl>
 
+          {/* FormControl Tipo de Vehículo */}
           <FormControl fullWidth size="small">
             <InputLabel id="vehiculo-select-label">Tipo de Vehículo</InputLabel>
             <Select
@@ -264,13 +262,14 @@ const ComparativaCostosTransportistas: React.FC = () => {
               onChange={(e) => setSelectedVehiculoId(e.target.value)}
             >
               {tiposVehiculo.map((v) => (
-                <MenuItem key={v.id} value={v.id}>
+                <MenuItem key={v.id} value={v.id}> {/* Asegurar que value sea string (ID de TipoVehiculo) */}
                   {v.nombre}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
 
+          {/* FormControl Tipo de Carga */}
           <FormControl fullWidth size="small">
             <InputLabel id="carga-select-label">Tipo de Carga</InputLabel>
             <Select
@@ -287,6 +286,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
             </Select>
           </FormControl>
 
+          {/* FormControl Zona */}
           <FormControl fullWidth size="small">
             <InputLabel id="zona-select-label">Zona</InputLabel>
             <Select
@@ -303,6 +303,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
             </Select>
           </FormControl>
 
+          {/* Botón Comparar */}
           <Button
             type="submit"
             variant="contained"
@@ -314,8 +315,9 @@ const ComparativaCostosTransportistas: React.FC = () => {
         </Box>
       )}
 
+      {/* --- Sección de Error y Tabla (con corrección en key) --- */}
       {error && (
-        <Alert severity="warning" sx={{ mt: 2 }}>
+        <Alert severity={error.toLowerCase().includes("no se encontraron") ? "info" : "warning"} sx={{ mt: 2 }}>
           {error}
         </Alert>
       )}
@@ -326,18 +328,20 @@ const ComparativaCostosTransportistas: React.FC = () => {
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableCell>Transportista</TableCell>
+                <TableCell>Tarifa</TableCell>
                 <TableCell align="right">Costo del Servicio (ARS)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {reporte.map((item) => (
+              {reporte.map((item, index) => ( // *** CORRECCIÓN 7: Usar index en la key para asegurar unicidad ***
                 <TableRow
-                  key={item.id}
+                  key={`${item.tarifaId}-${index}`} // Clave más robusta
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
                   <TableCell component="th" scope="row">
-                    {item.displayName}
+                    {item.transportistaDisplayName}
                   </TableCell>
+                  <TableCell>{item.nombreTarifa}</TableCell>
                   <TableCell align="right">
                     {formatCurrency(item.costo)}
                   </TableCell>

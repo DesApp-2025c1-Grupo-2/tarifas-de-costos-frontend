@@ -3,7 +3,7 @@ import { apiClient } from './apiClient';
 
 export interface FrecuenciaAdicional { nombreAdicional: string; cantidad: number; }
 export interface TransportistaMasUtilizado { nombreTransportista: string; cantidadTarifas: number; }
-export interface Comparativa { transportista: string; costo: number; }
+export interface Comparativa { transportista: string; costo: number; tarifaId: number; nombreTarifa: string; }
 export interface ComparativaTransportistaDTO { servicio: string; comparativas: Comparativa[]; }
 export interface ComparativaZonaStats { average: number; count: number; max: number; min: number; sum: number; }
 export interface ComparativaAumento {
