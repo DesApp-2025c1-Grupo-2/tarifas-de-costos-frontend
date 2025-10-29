@@ -25,6 +25,8 @@ import {
   useMediaQuery,
   List,
   ListItem,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import {
   getTransportistaProfile,
@@ -169,27 +171,27 @@ const ReporteHistorialServicios: React.FC = () => {
           flexWrap: "wrap",
         }}
       >
-        <FormControl
-          fullWidth
+        <Autocomplete
+          options={transportistas}
+          getOptionLabel={(option) => `${option.nombre_comercial || `ID: ${option.id}`} (${option.cuit})` || ''}
+          value={transportistas.find(t => t.id === selectedTransportistaId) || null} // Busca el objeto completo
+          onChange={(_, newValue: Transportista | null) => {
+            setSelectedTransportistaId(newValue ? newValue.id : ""); // Guarda solo el ID
+            setProfile(null); // Limpia el perfil anterior al cambiar
+            setError(null);  // Limpia el error anterior al cambiar
+          }}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Transportista"
+              size="small"
+            />
+          )}
+          disabled={loadingFiltros} // Se deshabilita mientras cargan los transportistas
+          sx={{ minWidth: 240, maxWidth: 400, flexGrow: 1 }} // Estilos
           size="small"
-          sx={{ minWidth: 240, maxWidth: 400 }}
-        >
-          <InputLabel id="transportista-select-label">Transportista</InputLabel>
-          <Select
-            labelId="transportista-select-label"
-            value={selectedTransportistaId}
-            label="Transportista"
-            onChange={handleTransportistaChange}
-            disabled={loadingFiltros}
-          >
-            {/* Usar 'nombre_comercial' del tipo Transportista */}
-            {transportistas.map((t) => (
-              <MenuItem key={t.id} value={t.id}>
-                {t.nombre_comercial || `ID: ${t.id}`} ({t.cuit})
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        />
 
         <Button
           variant="contained"

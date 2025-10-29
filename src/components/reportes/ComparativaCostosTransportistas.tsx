@@ -20,6 +20,8 @@ import {
   Checkbox,
   ListItemText,
   OutlinedInput,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import { getComparativaCostos, ComparativaTransportistaDTO } from "../../services/reporteService"; // Import DTO type
 import {
@@ -253,55 +255,55 @@ const ComparativaCostosTransportistas: React.FC = () => {
           </FormControl>
 
           {/* FormControl Tipo de Vehículo */}
-          <FormControl fullWidth size="small">
-            <InputLabel id="vehiculo-select-label">Tipo de Vehículo</InputLabel>
-            <Select
-              labelId="vehiculo-select-label"
-              value={selectedVehiculoId}
-              label="Tipo de Vehículo"
-              onChange={(e) => setSelectedVehiculoId(e.target.value)}
-            >
-              {tiposVehiculo.map((v) => (
-                <MenuItem key={v.id} value={v.id}> {/* Asegurar que value sea string (ID de TipoVehiculo) */}
-                  {v.nombre}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Autocomplete
+            options={tiposVehiculo}
+            getOptionLabel={(option) => option.nombre || ''}
+            value={tiposVehiculo.find(v => v.id === selectedVehiculoId) || null}
+            onChange={(_, newValue: TipoVehiculo | null) => {
+              setSelectedVehiculoId(newValue ? newValue.id : "");
+            }}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderInput={(params) => (
+              <TextField {...params} label="Tipo de Vehículo" size="small" />
+            )}
+            disabled={loadingFiltros}
+            sx={{ minWidth: 180, flexGrow: 1 }} // Ajusta ancho
+            size="small"
+          />
 
           {/* FormControl Tipo de Carga */}
-          <FormControl fullWidth size="small">
-            <InputLabel id="carga-select-label">Tipo de Carga</InputLabel>
-            <Select
-              labelId="carga-select-label"
-              value={selectedCargaId}
-              label="Tipo de Carga"
-              onChange={(e) => setSelectedCargaId(e.target.value)}
-            >
-              {tiposCarga.map((c) => (
-                <MenuItem key={c.id} value={String(c.id)}>
-                  {c.nombre}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Autocomplete
+            options={tiposCarga}
+            getOptionLabel={(option) => option.nombre || ''}
+            value={tiposCarga.find(c => String(c.id) === selectedCargaId) || null} // Compara como string
+            onChange={(_, newValue: Carga | null) => {
+              setSelectedCargaId(newValue ? String(newValue.id) : ""); // Guarda como string
+            }}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderInput={(params) => (
+              <TextField {...params} label="Tipo de Carga" size="small" />
+            )}
+            disabled={loadingFiltros}
+             sx={{ minWidth: 180, flexGrow: 1 }} // Ajusta ancho
+            size="small"
+          />
 
           {/* FormControl Zona */}
-          <FormControl fullWidth size="small">
-            <InputLabel id="zona-select-label">Zona</InputLabel>
-            <Select
-              labelId="zona-select-label"
-              value={selectedZonaId}
-              label="Zona"
-              onChange={(e) => setSelectedZonaId(e.target.value)}
-            >
-              {zonas.map((z) => (
-                <MenuItem key={z.id} value={String(z.id)}>
-                  {z.nombre}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Autocomplete
+            options={zonas}
+            getOptionLabel={(option) => option.nombre || ''}
+            value={zonas.find(z => String(z.id) === selectedZonaId) || null} // Compara como string
+            onChange={(_, newValue: ZonaViaje | null) => {
+              setSelectedZonaId(newValue ? String(newValue.id) : ""); // Guarda como string
+            }}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderInput={(params) => (
+              <TextField {...params} label="Zona" size="small" />
+            )}
+            disabled={loadingFiltros}
+            sx={{ minWidth: 150, flexGrow: 1 }} // Ajusta ancho
+            size="small"
+          />
 
           {/* Botón Comparar */}
           <Button

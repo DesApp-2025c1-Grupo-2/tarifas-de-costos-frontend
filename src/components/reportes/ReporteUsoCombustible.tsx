@@ -17,7 +17,8 @@ import {
   List,
   ListItem,
   ListItemText,
-  LinearProgress, // <-- IMPORTAR LinearProgress
+  LinearProgress,
+  Autocomplete, // <-- IMPORTAR LinearProgress
 } from "@mui/material";
 import { obtenerVehiculo, Vehiculo } from "../../services/vehiculoService";
 import {
@@ -136,8 +137,27 @@ const ReporteUsoCombustible: React.FC = () => {
           size="small"
           sx={{ minWidth: 200, flexGrow: 1, maxWidth: 300 }}
         >
-          <InputLabel id="vehiculo-select-label">Vehículo</InputLabel>
-          <Select
+          <InputLabel id="vehiculo-select-label"></InputLabel>
+          <Autocomplete
+            options={vehiculos}
+            getOptionLabel={(option) => `${option.patente} - ${option.marca} ${option.modelo}` || ''}
+            value={vehiculos.find(v => v.id === selectedVehiculoId) || null} // Busca el objeto, no solo el ID
+            onChange={(_, newValue: Vehiculo | null) => {
+              setSelectedVehiculoId(newValue ? newValue.id : ""); // Guarda el ID en el estado
+            }}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Vehículo"
+                size="small" // Mantenemos el tamaño
+              />
+            )}
+            disabled={loadingFiltros} // Mantenemos el estado de deshabilitado
+            sx={{ minWidth: 200, flexGrow: 1, maxWidth: 300 }} // Mantenemos estilos
+            size="small" // Mantenemos tamaño
+          />
+          {/* <Select
             labelId="vehiculo-select-label"
             value={selectedVehiculoId}
             label="Vehículo"
@@ -151,7 +171,7 @@ const ReporteUsoCombustible: React.FC = () => {
                 {v.patente} - {v.marca} {v.modelo}
               </MenuItem>
             ))}
-          </Select>
+          </Select> */}
         </FormControl>
 
         <TextField
