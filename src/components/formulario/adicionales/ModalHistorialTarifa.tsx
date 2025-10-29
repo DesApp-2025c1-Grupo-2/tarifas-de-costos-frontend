@@ -1,28 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  CircularProgress,
-  Box,
-  Alert,
-  Typography,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  useMediaQuery,
-  useTheme,
+  Dialog, DialogTitle, DialogContent, DialogActions, Button,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Paper, IconButton, CircularProgress, Box, Alert, Typography,
+  Divider, List, ListItem, ListItemText, useMediaQuery, useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { obtenerHistorialPorTarifaId, HistorialTarifa } from '../../../services/historialService';
@@ -33,13 +14,12 @@ type Props = {
   tarifaId: number | null;
 };
 
-const parseDateArray = (dateArray: number[]): Date | null => {
-  if (!Array.isArray(dateArray) || dateArray.length < 6) {
-    return null;
-  }
-  const [year, month, day, hour, minute, second] = dateArray;
-  const date = new Date(year, month - 1, day, hour, minute, second);
-  return isNaN(date.getTime()) ? null : date;
+const formatCurrency = (value: number | undefined) => {
+  const number = Number(value) || 0;
+  return `$${number.toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 };
 
 export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId }) => {
@@ -58,70 +38,73 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
 
       obtenerHistorialPorTarifaId(tarifaId)
         .then(data => {
-          if (data.length === 0) {
+          if (!data || data.length === 0) {
             setError("Esta tarifa no tiene un historial de cambios.");
           } else {
             const datosOrdenados = data.sort((a, b) => {
-              const dateA = parseDateArray(a.fechaModificacion as any);
-              const dateB = parseDateArray(b.fechaModificacion as any);
+              const dateA = a.fechaModificacion ? new Date(a.fechaModificacion) : null;
+              const dateB = b.fechaModificacion ? new Date(b.fechaModificacion) : null;
               if (!dateA || !dateB) return 0;
               return dateB.getTime() - dateA.getTime();
             });
             setHistorial(datosOrdenados);
           }
         })
-        .catch(() => {
-          setError("Ocurrió un error al cargar el historial.");
+        .catch((err) => {
+          console.error("Error fetching history:", err);
+          setError("Ocurrió un error al cargar el historial. Revise la consola.");
         })
         .finally(() => {
           setLoading(false);
         });
+    } else if (!open) {
+        setHistorial([]);
+        setError(null);
+        setLoading(false);
     }
   }, [open, tarifaId]);
 
-  const formatCurrency = (value: number) => `$${(value || 0).toFixed(2)}`;
-  
-  const formatDate = (dateArray: number[]) => {
-    const date = parseDateArray(dateArray);
-    if (!date) return 'N/A';
-    
-    return date.toLocaleString('es-AR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return isNaN(date.getTime())
+      ? 'Fecha inválida'
+      : date.toLocaleString('es-AR', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
   };
 
   const renderContenido = () => {
     if (loading) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
-        </Box>
-      );
+      return <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>;
     }
-
     if (error) {
-      return <Alert severity="info">{error}</Alert>;
+      const severity = error.includes("no tiene un historial") ? "info" : "error";
+      return <Alert severity={severity}>{error}</Alert>;
+    }
+    if (historial.length === 0 && !loading) {
+        return <Alert severity="info">No hay registros de historial para mostrar.</Alert>;
     }
 
     if (esMovil) {
       return (
         <List sx={{ pt: 0 }}>
-          {historial.map((item, index) => (
+          {historial.map((item) => (
             <React.Fragment key={item.id}>
-              <Paper sx={{ p: 2, my: 1 }}>
+              <Paper sx={{ p: 2, my: 1 }} variant="outlined">
                 <Typography variant="subtitle1" gutterBottom fontWeight="bold">
-                  Cambio del {formatDate(item.fechaModificacion as any)}
+                  Cambio del {formatDate(item.fechaModificacion)}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                  Transportista: {item.transportistaNombre || 'N/A'}
                 </Typography>
                 <Divider sx={{ mb: 1 }} />
-                <ListItemText primary="Nombre Anterior" secondary={item.nombreTarifa} />
+                <ListItemText primary="Nombre Tarifa Anterior" secondary={item.nombreTarifa || 'N/A'} />
                 <ListItemText primary="Valor Base Anterior" secondary={formatCurrency(item.valorBase)} />
-                <ListItemText primary="Vehículo Anterior" secondary={item.tipoVehiculo.nombre} />
-                <ListItemText primary="Carga Anterior" secondary={item.tipoCargaTarifa.nombre} />
-                <ListItemText primary="Zona Anterior" secondary={item.zonaViaje.nombre} />
+                <ListItemText primary="Vehículo Anterior (ID)" secondary={item.tipoVehiculoId || 'N/A'} />
+                <ListItemText primary="Carga Anterior" secondary={item.tipoCargaNombre || 'N/A'} />
+                <ListItemText primary="Zona Anterior" secondary={item.zonaViajeNombre || 'N/A'} />
               </Paper>
             </React.Fragment>
           ))}
@@ -133,23 +116,23 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Fecha de Modificación</TableCell>
-                <TableCell>Nombre Anterior</TableCell>
-                <TableCell>Valor Base Anterior</TableCell>
-                <TableCell>Vehículo Anterior</TableCell>
-                <TableCell>Carga Anterior</TableCell>
-                <TableCell>Zona Anterior</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Fecha Modificación</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Transportista</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Nombre Anterior</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }} align="right">Valor Base Ant.</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Carga Anterior</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Zona Anterior</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {historial.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{formatDate(item.fechaModificacion as any)}</TableCell>
-                  <TableCell>{item.nombreTarifa}</TableCell>
-                  <TableCell>{formatCurrency(item.valorBase)}</TableCell>
-                  <TableCell>{item.tipoVehiculo.nombre}</TableCell>
-                  <TableCell>{item.tipoCargaTarifa.nombre}</TableCell>
-                  <TableCell>{item.zonaViaje.nombre}</TableCell>
+                <TableRow key={item.id} hover>
+                  <TableCell>{formatDate(item.fechaModificacion)}</TableCell>
+                  <TableCell>{item.transportistaNombre || 'N/A'}</TableCell>
+                  <TableCell>{item.nombreTarifa || 'N/A'}</TableCell>
+                  <TableCell align="right">{formatCurrency(item.valorBase)}</TableCell>
+                  <TableCell>{item.tipoCargaNombre || 'N/A'}</TableCell>
+                  <TableCell>{item.zonaViajeNombre || 'N/A'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -162,12 +145,8 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
       <DialogTitle>
-        Historial de Cambios de la Tarifa
-        <IconButton
-          aria-label="close"
-          onClick={onClose}
-          sx={{ position: 'absolute', right: 8, top: 8 }}
-        >
+        Historial de Cambios de la Tarifa #{tarifaId ?? ''}
+        <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -175,9 +154,7 @@ export const ModalHistorialTarifa: React.FC<Props> = ({ open, onClose, tarifaId 
         {renderContenido()}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} variant="contained">
-          Cerrar
-        </Button>
+        <Button onClick={onClose} variant="contained">Cerrar</Button>
       </DialogActions>
     </Dialog>
   );

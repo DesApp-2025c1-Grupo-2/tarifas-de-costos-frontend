@@ -1,18 +1,22 @@
+
 import { apiClient } from './apiClient';
 
 export interface HistorialTarifa {
   id: number;
-  tarifaOriginal: { id: number; nombreTarifa: string };
-  codigoTarifa: string;
+  tarifaOriginalId: number | null;
+  codigoTarifa: string | null;
   nombreTarifa: string;
-  tipoVehiculo: { id: number; nombre: string };
-  tipoCargaTarifa: { id: number; nombre: string };
-  zonaViaje: { id: number; nombre: string };
-  transportista: { id: number; nombreEmpresa: string };
+  tipoVehiculoId: string | null;
+  transportistaId: string | null;
+  transportistaNombre: string;
+  tipoCargaId: number | null;
+  tipoCargaNombre: string;
+  zonaViajeId: number | null;
+  zonaViajeNombre: string;
   valorBase: number;
   fechaModificacion: string;
-  idUsuarioModifico: null | number;
-  comentarioCambio: string;
+  idUsuarioModifico: number | null;
+
 }
 
 const HISTORIAL_URL = '/api/historial/tarifa';
