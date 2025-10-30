@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import Sidebar from "./components/Sidebar/Sidebar";
 import {
@@ -18,7 +19,7 @@ import { TransportistasMasUtilizadosReporte } from "./components/reportes/Transp
 import ComparativaCostosTransportistas from "./components/reportes/ComparativaCostosTransportistas";
 import ComparativaAumentosReporte from "./components/reportes/ComparativaAumentosReporte";
 import ReporteHistorialServicios from "./components/reportes/ReporteHistorialServicios";
-import ReporteUsoCombustible from "./components/reportes/ReporteUsoCombustible"; // [NUEVO IMPORT]
+import ReporteUsoCombustible from "./components/reportes/ReporteUsoCombustible"; 
 
 const Reportes: React.FC = () => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
@@ -121,8 +122,9 @@ const Reportes: React.FC = () => {
               scrollButtons="auto"
               allowScrollButtonsMobile
             >
+
               <Tab label="Comparativa Zonas y Costos" />
-              <Tab label="Uso de Combustible" /> 
+              <Tab label="Uso de Combustible" />
               <Tab label="Catálogo de Adicionales" />
               <Tab label="Transportistas Más Utilizados" />
               <Tab label="Comparativa por Transportista" />
@@ -131,13 +133,14 @@ const Reportes: React.FC = () => {
             </Tabs>
           </Box>
           <Box sx={{ mt: 2 }}>
+
             {tabIndex === 0 && <ComparativaZonasCostos />}
-            {tabIndex === 2 && <CatalogoAdicionales />}
-            {tabIndex === 6 && <TransportistasMasUtilizadosReporte />}
-            {tabIndex === 3 && <ComparativaCostosTransportistas />}
-            {tabIndex === 4 && <ComparativaAumentosReporte />}
-            {tabIndex === 5 && <ReporteHistorialServicios />}
             {tabIndex === 1 && <ReporteUsoCombustible />}
+            {tabIndex === 2 && <CatalogoAdicionales />}
+            {tabIndex === 3 && <TransportistasMasUtilizadosReporte />}
+            {tabIndex === 4 && <ComparativaCostosTransportistas />}
+            {tabIndex === 5 && <ComparativaAumentosReporte />}
+            {tabIndex === 6 && <ReporteHistorialServicios />}
           </Box>
         </Paper>
       </Box>

@@ -87,9 +87,10 @@ export const FormCrearTarifa: React.FC = () => {
         obtenerAdicionales(),
       ]);
       setTransportistas(transportistasData.filter((t) => t.activo !== false));
-      setTipoVehiculos(vehiculosData.filter((v) => v.activo !== false));
+      setTipoVehiculos(vehiculosData.filter((v) => v.activo !== false && !v.deletedAt));
       setZonas(zonasData.filter((z) => z.activo));
       setCargas(cargasData.filter((c) => c.activo));
+      // Filtrar aquí para opciones del selector: solo los NO globales y activos
       setAdicionalesDb(adicionalesData.filter((a) => a.activo && !a.esGlobal));
       setDependenciasCargadas(true);
     } catch (error) {
@@ -121,42 +122,64 @@ export const FormCrearTarifa: React.FC = () => {
   };
 
   const handleSubmit = async (formValues: Record<string, any>) => {
+    setMessage(null); // Limpiar mensajes previos
     const adicionalesPayload = (formValues["adicionales"] || []).map(
       (a: any) => {
+        // Asegurarse de que 'a' tenga las propiedades esperadas
         const adicionalData: any = {
           adicional: {
             nombre: a.nombre,
             descripcion: a.descripcion,
-            costoDefault: a.precio,
-            activo: true,
-            esGlobal: a.esGlobal !== undefined ? a.esGlobal : true,
+            costoDefault: a.precio, // precio viene del mapeo de opciones
+            activo: true, // Asumimos activo al asignar
+            // Enviar el estado esGlobal que tiene 'a' en el formulario
+            esGlobal: a.esGlobal === true, // Correcta conversión boolean
           },
           costoEspecifico: parseFloat(a.costoEspecifico ?? a.precio ?? "0"),
         };
+        // Solo enviar ID si es un adicional existente (ID > 0)
         if (a.id > 0) {
           adicionalData.adicional.id = a.id;
+        } else {
+            // Si el ID es negativo (nuevo adicional creado en el modal),
+            // NO enviamos el ID para que el backend lo cree.
+            // Opcional: Podrías querer enviar los datos sin el ID aquí
+            // delete adicionalData.adicional.id; // Podría no ser necesario si el backend ignora ID<=0
         }
-
         return adicionalData;
       }
     );
 
+
     const payload = {
-      nombreTarifa: formValues.nombreTarifa,
-      transportistaId: formValues.transportistaId,
-      tipoVehiculoId: formValues.tipoVehiculoId,
-      zonaViaje: { id: Number(formValues.zonaId || 0) },
-      tipoCargaTarifa: { id: Number(formValues.tipoCargaId || 0) },
-      valorBase: parseFloat(formValues.valorBase || "0"),
-      adicionales: adicionalesPayload,
+        nombreTarifa: formValues.nombreTarifa,
+        transportistaId: formValues.transportistaId,
+        tipoVehiculoId: formValues.tipoVehiculoId,
+        zonaViaje: { id: Number(formValues.zonaId || 0) },
+        tipoCargaTarifa: { id: Number(formValues.tipoCargaId || 0) },
+        valorBase: parseFloat(formValues.valorBase || "0"),
+        adicionales: adicionalesPayload,
+        // Incluir esVigente explícitamente al actualizar o crear
+        esVigente: editingItem ? editingItem.esVigente ?? true : true,
     };
+
+    // Validar que los IDs de relaciones no sean 0 antes de enviar
+    if (!payload.transportistaId || !payload.tipoVehiculoId || !payload.zonaViaje.id || !payload.tipoCargaTarifa.id) {
+        setMessage({ text: "Transportista, Vehículo, Zona y Carga son obligatorios.", severity: "error" });
+        return;
+    }
+     if (payload.valorBase <= 0) {
+        setMessage({ text: "El Costo Base debe ser mayor a cero.", severity: "error" });
+        return;
+    }
+
 
     try {
       let changedItem: Tarifa;
       if (editingItem && editingItem.id) {
         changedItem = await tarifaService.actualizarTarifa(
           editingItem.id,
-          payload
+          payload // El payload ahora incluye esVigente
         );
         setMessage({
           text: "Tarifa actualizada con éxito",
@@ -167,19 +190,24 @@ export const FormCrearTarifa: React.FC = () => {
         setMessage({ text: "Tarifa creada con éxito", severity: "success" });
       }
       handleCancel();
-      await cargarTarifas();
+      await cargarTarifas(); // Recargar la lista principal
       setHighlightedId(changedItem.id);
       setTimeout(() => setHighlightedId(null), 4000);
     } catch (err) {
       const error = err as Error;
+      console.error("Error al guardar tarifa:", error); // Log del error
       setMessage({
         text: `Error al guardar la tarifa: ${error.message}`,
         severity: "error",
       });
     } finally {
-      setTimeout(() => setMessage(null), 5000);
+      // No limpiar mensaje de éxito inmediatamente
+       if (message?.severity !== 'error') {
+            setTimeout(() => setMessage(null), 5000);
+       }
     }
   };
+
 
   const handleView = (tarifa: Tarifa) =>
     setViewingTarifa(tarifa as TarifaDetallada);
@@ -237,7 +265,7 @@ export const FormCrearTarifa: React.FC = () => {
         clave: "transportistaId",
         opciones: transportistas.map((t) => ({
           id: t.id,
-          nombre: `${t.nombre_comercial} - ${t.contacto.nombre} (${t.cuit})`,
+          nombre: `${t.nombre_comercial} (${t.cuit})`, // Simplificado para claridad
         })),
         requerido: true,
       },
@@ -272,17 +300,20 @@ export const FormCrearTarifa: React.FC = () => {
         tipo: "adicionales",
         nombre: "Adicionales",
         clave: "adicionales",
+        // Mapeo corregido para incluir esGlobal
         opciones: adicionalesDb.map((a) => ({
           id: a.id,
           nombre: a.nombre,
           descripcion: a.descripcion,
           precio: Number(a.costoDefault) || 0,
+          esGlobal: a.esGlobal, // <-- INCLUIR esGlobal AQUÍ
         })),
       },
       { tipo: "resultado", nombre: "COSTO TOTAL:", clave: "total" },
     ],
     [transportistas, tipoVehiculos, zonas, cargas, adicionalesDb]
   );
+
 
   const initialFormValues = editingItem
     ? {
@@ -293,6 +324,7 @@ export const FormCrearTarifa: React.FC = () => {
         zonaId: String(editingItem.zonaId || ""),
         tipoCargaId: String(editingItem.tipoCargaId || ""),
         valorBase: editingItem.valorBase,
+        // Mapear adicionales existentes para el formulario
         adicionales:
           editingItem.adicionales?.map((ad) => ({
             id: ad.adicional.id,
@@ -300,9 +332,13 @@ export const FormCrearTarifa: React.FC = () => {
             descripcion: ad.adicional.descripcion,
             precio: ad.adicional.costoDefault,
             costoEspecifico: ad.costoEspecifico,
+            // Incluir el estado esGlobal del adicional original
+            // Asumimos que adicionalesDb contiene la info actualizada de esGlobal
+            esGlobal: adicionalesDb.find(adb => adb.id === ad.adicional.id)?.esGlobal ?? false, // Default a false si no se encuentra
           })) || [],
       }
     : null;
+
 
   return (
     <div>
@@ -343,7 +379,7 @@ export const FormCrearTarifa: React.FC = () => {
           handleMostrarAdicionales={handleMostrarAdicionales}
           handleMostrarHistorial={handleMostrarHistorial}
           highlightedId={highlightedId}
-          actionsDisabled={!dependenciasCargadas}
+          actionsDisabled={!dependenciasCargadas} // Deshabilitar acciones si las dependencias no cargaron
         />
       )}
       <ModalVerTarifa
@@ -362,6 +398,7 @@ export const FormCrearTarifa: React.FC = () => {
         onConfirm={confirmarEliminacion}
         titulo="Confirmar baja de tarifa"
         descripcion="¿Estás seguro de que deseas dar de baja esta tarifa?"
+        textoConfirmar="Dar de Baja"
       />
       <ModalHistorialTarifa
         open={!!historialTarifaId}
@@ -373,6 +410,7 @@ export const FormCrearTarifa: React.FC = () => {
           <Alert
             severity={message.severity}
             sx={{ width: "100%", maxWidth: "600px" }}
+            onClose={()=> setMessage(null)} // Permitir cerrar mensaje
           >
             {message.text}
           </Alert>

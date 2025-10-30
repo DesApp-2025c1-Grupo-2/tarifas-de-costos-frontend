@@ -1,3 +1,4 @@
+// Archivo: src/components/reportes/ReporteUsoCombustible.tsx
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -16,6 +17,8 @@ import {
   List,
   ListItem,
   ListItemText,
+  LinearProgress,
+  Autocomplete, // <-- IMPORTAR LinearProgress
 } from "@mui/material";
 import { obtenerVehiculo, Vehiculo } from "../../services/vehiculoService";
 import {
@@ -23,13 +26,23 @@ import {
   ReporteVehiculoCombustible,
 } from "../../services/reporteService";
 
-const formatCurrency = (value: number) => {
+const formatCurrency = (value: number | undefined) => {
   const number = Number(value) || 0;
   return `$${number.toLocaleString("es-AR", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })}`;
 };
+
+// --- FUNCIÓN PARA FORMATEAR LITROS ---
+const formatLitros = (value: number | undefined) => {
+  const number = Number(value) || 0;
+  return `${number.toLocaleString("es-AR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  })} Lts`;
+};
+// --- FIN FUNCIÓN LITROS ---
 
 const ReporteUsoCombustible: React.FC = () => {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -43,12 +56,14 @@ const ReporteUsoCombustible: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingFiltros, setLoadingFiltros] = useState(true);
 
+  // --- Constante para la escala de la barra ---
+  const MAX_KM_PER_LITRO = 20; // Define un valor máximo razonable para tu tipo de vehículo
+
   useEffect(() => {
     const cargarVehiculos = async () => {
       try {
         const data = await obtenerVehiculo();
-        // Asumiendo que el campo para baja es 'deletedAt'
-        setVehiculos(data.filter((v) => !v.deletedAt));
+        setVehiculos(data.filter((v) => !v.deletedAt && v.activo !== false));
       } catch (err) {
         setError("No se pudieron cargar los vehículos.");
       } finally {
@@ -75,15 +90,34 @@ const ReporteUsoCombustible: React.FC = () => {
       );
       setReporte(data);
     } catch (err: any) {
-      setError(
-        err.message.includes("204")
-          ? "No se encontraron datos en el período seleccionado."
-          : "Ocurrió un error al generar el reporte de combustible."
-      );
+      if (err.message.includes("204")) {
+         setError("No se encontraron datos de viajes ni de combustible en el período seleccionado.");
+      } else {
+        setError(err.message || "Ocurrió un error al generar el reporte de combustible.");
+      }
+      console.error("Error al generar reporte:", err);
     } finally {
       setLoading(false);
     }
   };
+
+
+  const formatKilometros = (value: number | undefined) => {
+    const number = Number(value) || 0;
+    return `${number.toLocaleString("es-AR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
+    })} Km`;
+  };
+
+  // --- CÁLCULO DE KM/L ---
+  const kmPorLitro = reporte?.litrosTotales && reporte.litrosTotales > 0
+    ? (reporte.totalKilometros || 0) / reporte.litrosTotales
+    : 0;
+
+  // Normalizar para la barra de progreso (0 a 100)
+  const progressValue = Math.min((kmPorLitro / MAX_KM_PER_LITRO) * 100, 100);
+  // --- FIN CÁLCULO KM/L ---
 
   return (
     <Paper sx={{ padding: 3, marginTop: 2 }}>
@@ -103,8 +137,27 @@ const ReporteUsoCombustible: React.FC = () => {
           size="small"
           sx={{ minWidth: 200, flexGrow: 1, maxWidth: 300 }}
         >
-          <InputLabel id="vehiculo-select-label">Vehículo</InputLabel>
-          <Select
+          <InputLabel id="vehiculo-select-label"></InputLabel>
+          <Autocomplete
+            options={vehiculos}
+            getOptionLabel={(option) => `${option.patente} - ${option.marca} ${option.modelo}` || ''}
+            value={vehiculos.find(v => v.id === selectedVehiculoId) || null} // Busca el objeto, no solo el ID
+            onChange={(_, newValue: Vehiculo | null) => {
+              setSelectedVehiculoId(newValue ? newValue.id : ""); // Guarda el ID en el estado
+            }}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Vehículo"
+                size="small" // Mantenemos el tamaño
+              />
+            )}
+            disabled={loadingFiltros} // Mantenemos el estado de deshabilitado
+            sx={{ minWidth: 200, flexGrow: 1, maxWidth: 300 }} // Mantenemos estilos
+            size="small" // Mantenemos tamaño
+          />
+          {/* <Select
             labelId="vehiculo-select-label"
             value={selectedVehiculoId}
             label="Vehículo"
@@ -118,7 +171,7 @@ const ReporteUsoCombustible: React.FC = () => {
                 {v.patente} - {v.marca} {v.modelo}
               </MenuItem>
             ))}
-          </Select>
+          </Select> */}
         </FormControl>
 
         <TextField
@@ -154,54 +207,89 @@ const ReporteUsoCombustible: React.FC = () => {
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity="info" sx={{ mt: 2 }}>
           {error}
         </Alert>
       )}
 
       {reporte && !loading && (
-        <Paper variant="outlined" sx={{ p: 3, mt: 3 }}>
-          <Typography variant="h5" gutterBottom>
-            Reporte para {reporte.vehiculoPatente}
-          </Typography>
-          <Divider sx={{ my: 2 }} />
-          <List dense>
-            <ListItem>
-              <ListItemText
-                primary="Período analizado"
-                secondary={`${reporte.fechaInicio} a ${reporte.fechaFin}`}
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemText
-                primary="Total de Viajes Realizados"
-                secondary={reporte.cantidadViajes.toLocaleString()}
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemText
-                primary="Total de Cargas de Combustible"
-                secondary={reporte.cantidadCargasCombustible.toLocaleString()}
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemText
-                primary="Costo Total de Combustible"
-                secondary={formatCurrency(reporte.costoTotalCombustible)}
-              />
-            </ListItem>
-            <ListItem>
-              <ListItemText
-                primary="Métrica: Viajes por Carga (Eficiencia)"
-                secondary={
-                  <Typography variant="h6" color="primary">
-                    {reporte.viajesPorCarga.toFixed(2)} Viajes / Carga
-                  </Typography>
-                }
-              />
-            </ListItem>
-          </List>
-        </Paper>
+        <> {/* <-- Envolver en Fragment para añadir la nueva tarjeta */}
+          <Paper variant="outlined" sx={{ p: 3, mt: 3, mb: 3 }}> 
+            <Typography variant="h5" gutterBottom>
+              Reporte para {reporte.vehiculoPatente}
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <List dense>
+              <ListItem>
+                <ListItemText
+                  primary="Período analizado"
+                  secondary={`${reporte.fechaInicio} a ${reporte.fechaFin}`}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="Total de Viajes Realizados"
+                  secondary={reporte.cantidadViajes.toLocaleString()}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="Kilómetros Totales Recorridos"
+                  secondary={formatKilometros(reporte.totalKilometros)}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="Total de Cargas de Combustible"
+                  secondary={reporte.cantidadCargasCombustible.toLocaleString()}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemText
+                  primary="Costo Total de Combustible"
+                  secondary={formatCurrency(reporte.costoTotalCombustible)}
+                />
+              </ListItem>
+            </List>
+          </Paper>
+
+          <Paper variant="outlined" sx={{ p: 3, mt: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Eficiencia de Combustible
+            </Typography>
+            <Divider sx={{ my: 1 }} />
+            <List dense>
+               <ListItem>
+                 <ListItemText
+                   primary="Kilómetros Recorridos"
+                   secondary={formatKilometros(reporte.totalKilometros)}
+                 />
+               </ListItem>
+               <ListItem>
+                 <ListItemText
+                   primary="Litros Cargados"
+                   secondary={formatLitros(reporte.litrosTotales)}
+                 />
+               </ListItem>
+            </List>
+            <Box sx={{ mt: 2 }}>
+               <Typography variant="body1" gutterBottom>
+                 Consumo Promedio:
+               </Typography>
+               <Typography variant="h5" color="primary" sx={{ mb: 1 }}>
+                 {kmPorLitro.toFixed(1)} Km/L
+               </Typography>
+               <Box sx={{ width: '100%', mr: 1 }}>
+                 <LinearProgress variant="determinate" value={progressValue} />
+               </Box>
+               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary">0 Km/L</Typography>
+                  <Typography variant="caption" color="text.secondary">{MAX_KM_PER_LITRO} Km/L</Typography>
+               </Box>
+            </Box>
+          </Paper>
+
+        </>
       )}
     </Paper>
   );

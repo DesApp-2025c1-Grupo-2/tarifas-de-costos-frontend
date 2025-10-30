@@ -14,8 +14,8 @@ export type Provincia = {
 };
 
 type Props = {
-  provincias: Provincia[];
-  seleccionados: Provincia[];
+  provincias: Provincia[]; // Lista completa de opciones
+  seleccionados: Provincia[]; // Array de provincias actualmente seleccionadas
   onChange: (seleccionados: Provincia[]) => void;
 };
 
@@ -24,6 +24,8 @@ export const ProvinciaSelector: React.FC<Props> = ({
   seleccionados,
   onChange,
 }) => {
+  // --- LOGS ELIMINADOS ---
+
   return (
     <Box sx={{ mt: 2 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -38,13 +40,13 @@ export const ProvinciaSelector: React.FC<Props> = ({
         getOptionLabel={(option) => option.nombre}
         value={seleccionados}
         onChange={(_, newValue) => {
-          onChange(newValue);
+          onChange(newValue || []);
         }}
         renderTags={(value: Provincia[], getTagProps) =>
           value.map((option: Provincia, index: number) => {
             const { key, ...chipProps } = getTagProps({ index });
             return (
-              <Chip key={option.id} label={option.nombre} {...chipProps} />
+              <Chip key={option.id} label={option.nombre} {...chipProps} /> // Usar ID como key es seguro aquí si los IDs son únicos
             );
           })
         }
@@ -57,6 +59,7 @@ export const ProvinciaSelector: React.FC<Props> = ({
             {option.nombre}
           </li>
         )}
+        getOptionKey={(option) => option.id}
       />
     </Box>
   );

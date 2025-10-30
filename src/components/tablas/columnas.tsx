@@ -1,11 +1,12 @@
 // src/components/tablas/columnas.tsx
 
-import { GridColDef } from "@mui/x-data-grid";
+import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 
+// Asegúrate de que todas tus entidades estén listadas aquí
 export type Entidad =
   | "vehiculo"
   | "transportista"
-  | "zona"
+  | "zona" // <-- Entidad relevante
   | "tipoDeCarga"
   | "combustible"
   | "tarifa"
@@ -14,6 +15,7 @@ export type Entidad =
 
 type Columnas = Record<Entidad, GridColDef[]>;
 
+// Tu función para formatear moneda (mantenida como estaba)
 const formatCurrency = (value: number | any) => {
   const number = Number(value) || 0;
   return `$${number.toLocaleString("es-AR", {
@@ -23,62 +25,45 @@ const formatCurrency = (value: number | any) => {
 };
 
 export const columnas: Columnas = {
+  // --- Definiciones para OTRAS entidades (vehiculo, transportista, etc.) ---
+  // (Asegúrate de que estas definiciones estén correctas según tus DTOs)
   vehiculo: [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "patente", headerName: "Patente", flex: 1 },
     { field: "marca", headerName: "Marca", flex: 1 },
     { field: "modelo", headerName: "Modelo", flex: 1 },
-    { field: "anio", headerName: "Año", flex: 1 },
-    { field: "tipoVehiculoNombre", headerName: "Tipo Vehículo", flex: 1.5 },
-    {
-      field: "capacidadCarga",
-      headerName: "Capacidad Carga (kg)",
-      flex: 1.5,
-      type: "number",
-    },
+    // { field: "anio", headerName: "Año", flex: 1 }, // Asumo que anio existe en VehiculoDTO
+    // { field: "tipoVehiculoNombre", headerName: "Tipo Vehículo", flex: 1.5 }, // Asumo anidación o getter
+    // { field: "capacidadCarga", headerName: "Capacidad Carga (kg)", flex: 1.5, type: "number", }, // Asumo
   ],
   transportista: [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "cuit", headerName: "CUIT", flex: 1 },
-    
-    { field: "nombre_comercial", headerName: "Nombre Comercial", flex: 1.5 },
+    { field: "nombre_comercial", headerName: "Nombre Comercial", flex: 1.5 }, // Campo del DTO
     {
       field: "contactoNombre",
       headerName: "Nombre de Contacto",
       flex: 1.5,
-      valueGetter: (value, row) => row.contacto?.nombre || "N/A",
+      valueGetter: (_value, row) => row.contacto?.nombre || "N/A", // Acceder a través de 'contacto'
     },
     {
       field: "contactoEmail",
       headerName: "Email",
       flex: 1.5,
-      valueGetter: (value, row) => row.contacto?.email || "N/A",
+      valueGetter: (_value, row) => row.contacto?.email || "N/A", // Acceder a través de 'contacto'
     },
     {
       field: "contactoTelefono",
       headerName: "Teléfono",
       flex: 1,
-      valueGetter: (value, row) => row.contacto?.telefono?.numero || "N/A",
+      valueGetter: (_value, row) => row.contacto?.telefono?.numero || "N/A", // Acceder anidado
     },
   ],
-  zona: [
+  tipoDeVehiculo: [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombre", headerName: "Nombre", flex: 1.5 },
     { field: "descripcion", headerName: "Descripción", flex: 2 },
-    {
-      field: "provincias",
-      headerName: "Provincias",
-      flex: 2.5,
-      sortable: false,
-      renderCell: (params) => {
-        if (Array.isArray(params.value) && params.value.length > 0) {
-          return params.value
-            .map((p: { nombre: string }) => p.nombre)
-            .join(", ");
-        }
-        return "Sin provincias asignadas";
-      },
-    },
+    { field: "licencia_permitida", headerName: "Licencia Permitida", flex: 1 },
   ],
   tipoDeCarga: [
     { field: "id", headerName: "ID", flex: 0.5 },
@@ -92,9 +77,9 @@ export const columnas: Columnas = {
       headerName: "Fecha de Carga",
       flex: 1.5,
       valueFormatter: (value) =>
-        new Date(value as string).toLocaleString("es-AR"),
+        value ? new Date(value as string).toLocaleString("es-AR") : "N/A",
     },
-    { field: "vehiculoNombre", headerName: "Vehículo", flex: 1.5 },
+    { field: "vehiculoNombre", headerName: "Vehículo", flex: 1.5 }, // Asume que este campo se añade en el frontend
     { field: "numeroTicket", headerName: "Nro. Ticket", flex: 1 },
     {
       field: "litrosCargados",
@@ -148,16 +133,34 @@ export const columnas: Columnas = {
       headerName: "Veces Utilizado",
       type: "number",
       flex: 1,
-    },
+    }, // Asume que este campo se añade en el frontend
   ],
-  tipoDeVehiculo: [
+
+  // --- DEFINICIÓN CORREGIDA PARA 'zona' ---
+  zona: [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombre", headerName: "Nombre", flex: 1.5 },
     { field: "descripcion", headerName: "Descripción", flex: 2 },
     {
-      field: "licencia_permitida",
-      headerName: "Licencia Permitida",
-      flex: 1,
+      // **CAMBIO 1: Usar el campo del DTO**
+      field: "provinciasNombres",
+      headerName: "Provincias",
+      flex: 2.5,
+      sortable: false, // Es difícil ordenar por un array
+      // **CAMBIO 2: renderCell espera string[]**
+      renderCell: (
+        params: GridRenderCellParams<any, string[] | null | undefined>
+      ) => {
+        const nombres = params.value; // nombres es string[] o null/undefined
+        // Verificar que sea un array y tenga elementos
+        if (Array.isArray(nombres) && nombres.length > 0) {
+          // Unir los nombres con coma y espacio
+          return nombres.join(", ");
+        }
+        // Si no hay provincias o el array está vacío
+        return "Sin provincias asignadas";
+      },
+      // --- FIN CAMBIOS ---
     },
   ],
 };

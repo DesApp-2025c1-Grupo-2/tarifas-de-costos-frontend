@@ -1,3 +1,4 @@
+// Archivo: src/components/reportes/ReporteHistorialServicios.tsx
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -24,6 +25,8 @@ import {
   useMediaQuery,
   List,
   ListItem,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import {
   getTransportistaProfile,
@@ -31,7 +34,7 @@ import {
 } from "../../services/transportistaService";
 import {
   obtenerTransportistas,
-  Transportista,
+  Transportista, // <-- Tipo para la lista del dropdown
 } from "../../services/transportistaService";
 
 const parseDateArray = (dateArray: number[]): Date | null => {
@@ -61,7 +64,8 @@ const ReporteHistorialServicios: React.FC = () => {
     const cargarTransportistas = async () => {
       try {
         const data = await obtenerTransportistas();
-        setTransportistas(data.filter((t) => t.activo));
+        // Filtrar transportistas inactivos si es necesario (asumiendo que 'activo' existe)
+        setTransportistas(data.filter((t) => t.activo !== false));
       } catch (err) {
         setError("No se pudieron cargar los transportistas.");
       } finally {
@@ -74,7 +78,7 @@ const ReporteHistorialServicios: React.FC = () => {
   const handleTransportistaChange = (event: SelectChangeEvent) => {
     const id = event.target.value;
     setSelectedTransportistaId(id);
-    setProfile(null);
+    setProfile(null); // Limpiar perfil al cambiar selección
     setError(null);
   };
 
@@ -88,12 +92,21 @@ const ReporteHistorialServicios: React.FC = () => {
     setProfile(null);
 
     try {
-      const profileData = await getTransportistaProfile(
-        Number(selectedTransportistaId)
-      );
+      // Usar directamente el ID string que viene de la API de Viajes
+      const profileData = await getTransportistaProfile(selectedTransportistaId);
       setProfile(profileData);
+      if (!profileData?.historialServicios?.length) {
+         // Puedes setear un mensaje de info en lugar de error si prefieres
+         setError("Este transportista no tiene un historial de servicios registrado.");
+      }
     } catch (err: any) {
-      setError(err.message || "Ocurrió un error al generar el reporte.");
+        // Manejar error 404 Not Found si el perfil no existe
+        if (err.message.includes('404')) {
+            setError("No se encontró el perfil para el transportista seleccionado.");
+        } else {
+            setError(err.message || "Ocurrió un error al generar el reporte.");
+        }
+        console.error("Error fetching profile:", err);
     } finally {
       setLoading(false);
     }
@@ -107,6 +120,7 @@ const ReporteHistorialServicios: React.FC = () => {
     if (Array.isArray(dateInput)) {
       date = parseDateArray(dateInput);
     } else {
+      // Intentar parsear como ISO string
       const parsed = new Date(dateInput);
       if (!isNaN(parsed.getTime())) {
         date = parsed;
@@ -119,18 +133,29 @@ const ReporteHistorialServicios: React.FC = () => {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
+      // Opcional: añadir hora si es relevante
+      // hour: '2-digit',
+      // minute: '2-digit',
     });
   };
 
-  // --- INICIO DE LA CORRECCIÓN ---
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | undefined) => {
     const number = Number(value) || 0;
     return `$${number.toLocaleString("es-AR", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     })}`;
   };
-  // --- FIN DE LA CORRECCIÓN ---
+
+  // --- Función para formatear teléfono ---
+  const formatTelefono = (telefono: { numero: string, codigo_area?: string | null, codigo_pais?: string | null } | null): string => {
+    if (!telefono || !telefono.numero) return "N/A";
+    let formatted = "";
+    if (telefono.codigo_pais) formatted += `+${telefono.codigo_pais} `;
+    if (telefono.codigo_area) formatted += `(${telefono.codigo_area}) `;
+    formatted += telefono.numero;
+    return formatted;
+  }
 
   return (
     <Paper sx={{ padding: 3, marginTop: 2 }}>
@@ -146,26 +171,27 @@ const ReporteHistorialServicios: React.FC = () => {
           flexWrap: "wrap",
         }}
       >
-        <FormControl
-          fullWidth
+        <Autocomplete
+          options={transportistas}
+          getOptionLabel={(option) => `${option.nombre_comercial || `ID: ${option.id}`} (${option.cuit})` || ''}
+          value={transportistas.find(t => t.id === selectedTransportistaId) || null} // Busca el objeto completo
+          onChange={(_, newValue: Transportista | null) => {
+            setSelectedTransportistaId(newValue ? newValue.id : ""); // Guarda solo el ID
+            setProfile(null); // Limpia el perfil anterior al cambiar
+            setError(null);  // Limpia el error anterior al cambiar
+          }}
+          isOptionEqualToValue={(option, value) => option.id === value.id}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Transportista"
+              size="small"
+            />
+          )}
+          disabled={loadingFiltros} // Se deshabilita mientras cargan los transportistas
+          sx={{ minWidth: 240, maxWidth: 400, flexGrow: 1 }} // Estilos
           size="small"
-          sx={{ minWidth: 240, maxWidth: 400 }}
-        >
-          <InputLabel id="transportista-select-label">Transportista</InputLabel>
-          <Select
-            labelId="transportista-select-label"
-            value={selectedTransportistaId}
-            label="Transportista"
-            onChange={handleTransportistaChange}
-            disabled={loadingFiltros}
-          >
-            {transportistas.map((t) => (
-              <MenuItem key={t.id} value={t.id.toString()}>
-                {t.nombreEmpresa} ({t.cuit})
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        />
 
         <Button
           variant="contained"
@@ -183,19 +209,21 @@ const ReporteHistorialServicios: React.FC = () => {
         </Box>
       )}
 
+      {/* Mostrar error o mensaje informativo */}
       {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity={error.includes("historial") ? "info" : "error"} sx={{ mt: 2 }}>
           {error}
         </Alert>
       )}
 
       {profile && !loading && (
-        <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, mt: 2 }}>
+          {/* CORRECCIÓN 3: Usar nombreEmpresa del profile */}
           <Typography variant="h5" gutterBottom>
-            {profile.nombreEmpresa}
+            {profile.nombreEmpresa || "Nombre no disponible"}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            CUIT: {profile.cuit}
+            CUIT: {profile.cuit || "N/A"}
           </Typography>
           <Divider sx={{ my: 2 }} />
           <Box sx={{ mb: 2 }}>
@@ -203,64 +231,73 @@ const ReporteHistorialServicios: React.FC = () => {
               Contacto
             </Typography>
             <ListItemText
-              primary={profile.contactoNombre}
-              secondary={`${profile.contactoEmail} | ${profile.contactoTelefono}`}
+              primary={profile.contactoNombre || "N/A"}
+              secondary={
+                <>
+                  {profile.contactoEmail || "Email no disponible"}
+                  <br />
+                  {/* Usar función para formatear teléfono */}
+                  Tel: {formatTelefono(profile.contactoTelefono)}
+                </>
+              }
             />
           </Box>
 
           <Divider sx={{ my: 2 }}>
-            <Chip label="Activos Operativos" />
+            <Chip label="Activos Operativos" size="small" />
           </Divider>
           <Box
             sx={{
               display: "flex",
               flexDirection: { xs: "column", md: "row" },
-              gap: 2,
+              gap: { xs: 2, md: 3 },
             }}
           >
             <Box sx={{ width: { xs: "100%", md: "50%" } }}>
-              <Typography variant="h6" gutterBottom>
-                Vehículos Disponibles
+              <Typography variant="h6" gutterBottom fontSize="1.1rem">
+                Tipos de Vehículo Asociados {/* Cambiado título */}
               </Typography>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {profile.vehiculos.length > 0 ? (
-                  profile.vehiculos.map((v) => (
-                    <Chip key={v.id} label={v.nombre} />
+                {/* Usar 'tiposVehiculo' */}
+                {profile.tiposVehiculo && profile.tiposVehiculo.length > 0 ? (
+                  profile.tiposVehiculo.map((v) => (
+                    <Chip key={v.id} label={v.nombre} size="small" />
                   ))
                 ) : (
-                  <Typography>No hay vehículos registrados.</Typography>
+                  <Typography variant="body2">No hay tipos de vehículo asociados en las tarifas.</Typography>
                 )}
               </Box>
             </Box>
             <Box sx={{ width: { xs: "100%", md: "50%" } }}>
-              <Typography variant="h6" gutterBottom>
-                Zonas de Operación
+              <Typography variant="h6" gutterBottom fontSize="1.1rem">
+                Zonas de Operación (según tarifas)
               </Typography>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {profile.zonasOperacion.length > 0 ? (
+                {profile.zonasOperacion && profile.zonasOperacion.length > 0 ? (
                   profile.zonasOperacion.map((z) => (
-                    <Chip key={z.id} label={z.nombre} />
+                    <Chip key={z.id} label={z.nombre} size="small" />
                   ))
                 ) : (
-                  <Typography>No hay zonas registradas.</Typography>
+                  <Typography variant="body2">No hay zonas asociadas en las tarifas.</Typography>
                 )}
               </Box>
             </Box>
           </Box>
 
           <Divider sx={{ my: 2 }}>
-            <Chip label="Historial de Servicios" />
+            <Chip label="Historial de Servicios" size="small" />
           </Divider>
-          {profile.historialServicios.length > 0 ? (
+          {/* Solo mostrar la tabla si hay historial y no hay error */}
+          {profile.historialServicios && profile.historialServicios.length > 0 ? (
             esMovil ? (
               <List disablePadding>
                 {profile.historialServicios.map((s) => (
                   <ListItem key={s.id} sx={{ p: 0, my: 1 }}>
-                    <Paper sx={{ p: 2, width: "100%" }}>
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        Tarifa Creada el {formatDate(s.fecha)}
+                    <Paper sx={{ p: 2, width: "100%" }} variant="outlined">
+                      <Typography variant="body2" fontWeight="bold" gutterBottom>
+                         {formatDate(s.fecha)} {/* Mover fecha aquí */}
                       </Typography>
-                      <Divider sx={{ my: 1 }} />
+                      {/* <Divider sx={{ my: 1 }} /> */}
                       <ListItemText
                         primary="Tarifa Utilizada"
                         secondary={s.nombreTarifaUtilizada || "N/A"}
@@ -279,13 +316,13 @@ const ReporteHistorialServicios: React.FC = () => {
               </List>
             ) : (
               <TableContainer component={Paper} variant="outlined">
-                <Table>
+                <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Fecha de Creación</TableCell>
+                      <TableCell>Fecha</TableCell> {/* Cambiado orden */}
                       <TableCell>Tarifa Utilizada</TableCell>
-                      <TableCell align="right">Costo de Tarifa ($)</TableCell>
                       <TableCell>Tipo de Carga</TableCell>
+                      <TableCell align="right">Costo de Tarifa ($)</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -295,10 +332,10 @@ const ReporteHistorialServicios: React.FC = () => {
                         <TableCell>
                           {s.nombreTarifaUtilizada || "N/A"}
                         </TableCell>
+                         <TableCell>{s.nombreCarga || "N/A"}</TableCell>
                         <TableCell align="right">
                           {formatCurrency(s.valorTotalTarifa)}
                         </TableCell>
-                        <TableCell>{s.nombreCarga || "N/A"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -306,9 +343,8 @@ const ReporteHistorialServicios: React.FC = () => {
               </TableContainer>
             )
           ) : (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              Este transportista no tiene un historial de servicios.
-            </Alert>
+            // No mostrar nada aquí si ya mostramos el Alert de info arriba
+             !error && <Typography variant="body2" color="textSecondary" sx={{mt: 1}}>No hay historial de servicios disponible.</Typography>
           )}
         </Paper>
       )}
