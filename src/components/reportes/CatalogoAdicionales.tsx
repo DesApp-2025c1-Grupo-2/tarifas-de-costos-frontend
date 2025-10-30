@@ -11,8 +11,7 @@ import {
   Grid,
   Card,
   CardContent,
-  ToggleButton,
-  ToggleButtonGroup,
+  // ToggleButton y ToggleButtonGroup eliminados
 } from "@mui/material";
 // --- BarChart, Bar, XAxis, YAxis eliminados ---
 import {
@@ -32,7 +31,6 @@ import {
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
 
 type AdicionalConFrecuencia = Adicional & { cantidad: number };
-type FiltroTipo = "todos" | "constantes" | "flotantes";
 
 const formatCurrency = (value: number | any) => {
   const number = Number(value) || 0;
@@ -57,15 +55,10 @@ const COLORS = [
   "#673AB7",
 ];
 
+// Columna "Tipo" (esGlobal) eliminada
 const columns: GridColDef[] = [
   { field: "id", headerName: "ID", width: 90 },
   { field: "nombre", headerName: "Nombre Adicional", flex: 1 },
-  {
-    field: "esGlobal",
-    headerName: "Tipo",
-    width: 100,
-    renderCell: (params) => (params.value ? "Flotante" : "Constante"),
-  },
   {
     field: "cantidad",
     headerName: "Veces Utilizado",
@@ -103,7 +96,6 @@ const CatalogoAdicionales: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [fechaInicio, setFechaInicio] = useState<string>("");
   const [fechaFin, setFechaFin] = useState<string>("");
-  const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>("todos");
 
   const fetchData = async (params: FrecuenciaAdicionalesParams = {}) => {
     setLoading(true);
@@ -147,31 +139,14 @@ const CatalogoAdicionales: React.FC = () => {
     fetchData({ fechaInicio, fechaFin });
   };
 
-  const handleFiltroTipoChange = (
-    event: React.MouseEvent<HTMLElement>,
-    newFilter: FiltroTipo | null
-  ) => {
-    if (newFilter !== null) {
-      setFiltroTipo(newFilter);
-    }
-  };
-
   useEffect(() => {
     fetchData();
   }, []);
 
   const datosFiltrados = useMemo(() => {
-    let data = adicionalesCombinados.filter((a) => a.activo);
-
-    switch (filtroTipo) {
-      case "constantes":
-        return data.filter((a) => !a.esGlobal);
-      case "flotantes":
-        return data.filter((a) => a.esGlobal);
-      default:
-        return data;
-    }
-  }, [adicionalesCombinados, filtroTipo]);
+    // Filtra directamente por adicionales activos Y que NO sean globales (constantes)
+    return adicionalesCombinados.filter((a) => a.activo && !a.esGlobal);
+  }, [adicionalesCombinados]);
 
   const kpis = useMemo(() => {
     if (loading || datosFiltrados.length === 0) {
@@ -200,8 +175,6 @@ const CatalogoAdicionales: React.FC = () => {
 
     return { masUsado, menosUsado, costoPromedio };
   }, [loading, datosFiltrados]);
-
-  // --- dataGraficoBarras eliminado ---
 
   const dataGraficoTorta = useMemo(() => {
     return datosFiltrados
@@ -238,7 +211,7 @@ const CatalogoAdicionales: React.FC = () => {
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h6" gutterBottom>
-        Dashboard de Adicionales
+        Dashboard de Adicionales Constantes
       </Typography>
 
       <Box
@@ -248,6 +221,8 @@ const CatalogoAdicionales: React.FC = () => {
           alignItems: "center",
           mb: 2,
           flexWrap: "wrap",
+          // Centrado de los controles de fecha
+          justifyContent: "center",
         }}
       >
         <TextField
@@ -275,21 +250,6 @@ const CatalogoAdicionales: React.FC = () => {
           {loading ? <CircularProgress size={24} /> : "Filtrar por Fecha"}
         </Button>
       </Box>
-      <Box sx={{ mb: 3, display: "flex", justifyContent: "center" }}>
-        <ToggleButtonGroup
-          color="primary"
-          value={filtroTipo}
-          exclusive
-          onChange={handleFiltroTipoChange}
-          aria-label="Filtrar por tipo"
-          disabled={loading}
-          size="small"
-        >
-          <ToggleButton value="todos">Todos</ToggleButton>
-          <ToggleButton value="constantes">Constantes</ToggleButton>
-          <ToggleButton value="flotantes">Flotantes</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
 
       {loading ? (
         <Box
@@ -306,7 +266,8 @@ const CatalogoAdicionales: React.FC = () => {
         <Alert severity="info">{error}</Alert>
       ) : (
         <>
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          {/* CAMBIO CLAVE: Se añade justifyContent="center" a Grid container para centrar los KPIs */}
+          <Grid container spacing={3} sx={{ mb: 4 }} justifyContent="center">
             <Grid item xs={12} sm={4}>
               <KpiCard
                 title="Adicional Más Utilizado"
@@ -333,12 +294,10 @@ const CatalogoAdicionales: React.FC = () => {
               />
             </Grid>
           </Grid>
+          {/* Fin del cambio */}
 
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            {/* GRÁFICO BARRAS (FRECUENCIA) - ELIMINADO */}
-
-            {/* GRÁFICO TORTA (IMPACTO ECONÓMICO) - ANCHO COMPLETO */}
-            <Grid item xs={12} md={12}>
+          <Grid container spacing={3} sx={{ mb: 4 }} justifyContent="center">
+            <Grid item xs={12} md={8}>
               <Paper
                 sx={{
                   p: 2,
@@ -390,7 +349,7 @@ const CatalogoAdicionales: React.FC = () => {
           </Grid>
 
           <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-            Catálogo Completo (Filtrado)
+            Catálogo Completo de Adicionales Constantes
           </Typography>
           <Box sx={{ height: 400, width: "100%" }}>
             <DataGrid
