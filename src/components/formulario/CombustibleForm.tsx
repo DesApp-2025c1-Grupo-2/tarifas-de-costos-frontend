@@ -1,5 +1,11 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { CircularProgress, Box, Alert } from "@mui/material";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import {
+  CircularProgress,
+  Box,
+  Alert,
+  FormControlLabel, // <-- Importar
+  Switch, // <-- Importar
+} from "@mui/material";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
 import DataTable from "../tablas/tablaDinamica";
@@ -8,6 +14,12 @@ import { CargaDeCombustible } from "../../services/cargaDeCombustibleService";
 import { obtenerVehiculo, Vehiculo } from "../../services/vehiculoService";
 import { MessageState } from "../hook/useCrud";
 import DialogoConfirmacion from "../DialogoConfirmacion";
+
+const getISODate30DaysAgo = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 30);
+  return date.toISOString().split("T")[0];
+};
 
 export const CombustibleForm: React.FC = () => {
   const [cargas, setCargas] = useState<CargaDeCombustible[]>([]);
@@ -20,12 +32,14 @@ export const CombustibleForm: React.FC = () => {
   const [message, setMessage] = useState<MessageState | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [idAEliminar, setIdAEliminar] = useState<number | null>(null);
+  const [mostrarHistorico, setMostrarHistorico] = useState(false);
 
-  const cargarDatos = async () => {
+  const cargarDatos = useCallback(async () => {
     setIsLoading(true);
     try {
+      const fechaInicio = mostrarHistorico ? undefined : getISODate30DaysAgo();
       const [cargasData, vehiculosData] = await Promise.all([
-        cargaDeCombustibleService.obtenerCargasDeCombustible(),
+        cargaDeCombustibleService.obtenerCargasDeCombustible(fechaInicio),
         obtenerVehiculo(),
       ]);
       setCargas(cargasData.filter((c) => c.esVigente));
@@ -36,11 +50,11 @@ export const CombustibleForm: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [mostrarHistorico]);
 
   useEffect(() => {
     cargarDatos();
-  }, []);
+  }, [cargarDatos]);
 
   const handleCreateNew = () => {
     setEditingItem(null);
@@ -85,7 +99,9 @@ export const CombustibleForm: React.FC = () => {
   };
 
   const handleSubmit = async (values: Record<string, any>) => {
-    const fechaISO = values.fecha ? new Date(values.fecha).toISOString() : new Date().toISOString();
+    const fechaISO = values.fecha
+      ? new Date(values.fecha).toISOString()
+      : new Date().toISOString();
 
     const payload = {
       esVigente: true,
@@ -113,11 +129,15 @@ export const CombustibleForm: React.FC = () => {
       handleCancel();
       await cargarDatos();
     } catch (error: any) {
-        console.error("Error al guardar:", error);
-        const errorMessage = error?.message || "Error desconocido al guardar la carga.";
-        setMessage({ text: `Error al guardar la carga: ${errorMessage}`, severity: "error" });
+      console.error("Error al guardar:", error);
+      const errorMessage =
+        error?.message || "Error desconocido al guardar la carga.";
+      setMessage({
+        text: `Error al guardar la carga: ${errorMessage}`,
+        severity: "error",
+      });
     } finally {
-        setTimeout(() => setMessage(null), 5000);
+      setTimeout(() => setMessage(null), 5000);
     }
   };
 
@@ -174,11 +194,13 @@ export const CombustibleForm: React.FC = () => {
 
   return (
     <div>
+      {/* --- BOTÓN MOVIDO --- */}
       <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
         <BotonPrimario onClick={handleCreateNew} disabled={isLoading}>
           Registrar Carga de Combustible
         </BotonPrimario>
       </Box>
+      {/* --- FIN DEL CAMBIO --- */}
 
       {showForm && (
         <FormularioDinamico
@@ -202,6 +224,11 @@ export const CombustibleForm: React.FC = () => {
           rows={enrichedRows}
           handleEdit={handleEdit}
           handleDelete={handleDelete}
+          // --- PROPS PASADOS AL DATATABLE ---
+          showHistoricoSwitch={true}
+          historicoChecked={mostrarHistorico}
+          onHistoricoChange={(e) => setMostrarHistorico(e.target.checked)}
+          // --- FIN ---
         />
       )}
 

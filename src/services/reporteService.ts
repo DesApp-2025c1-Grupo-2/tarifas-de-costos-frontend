@@ -22,26 +22,26 @@ export interface ReporteVehiculoCombustible {
   fechaFin: string;
   viajesPorCarga: number;
   totalKilometros: number;
-  litrosTotales: number; // <-- NUEVO CAMPO
+  litrosTotales: number;
 }
 
-// [TIPO PARA FILTRO DE ADICIONALES]
 export type FrecuenciaAdicionalesParams = {
   fechaInicio?: string; // Formato YYYY-MM-DD
   fechaFin?: string; // Formato YYYY-MM-DD
 };
 
-// [TIPO PARA FILTRO DE ZONAS]
+// --- CORRECCIÓN AQUÍ ---
 export type ComparativaZonasParams = {
   fechaInicio?: string; // Formato YYYY-MM-DD
   fechaFin?: string; // Formato YYYY-MM-DD
+  zonaId?: string; // <-- AÑADIR ESTA PROPIEDAD
 };
+// --- FIN DE LA CORRECCIÓN ---
 
 
 const REPORTES_URL = '/api/reportes';
 const ZONAS_URL = '/api/zonas';
 
-// [FUNCIÓN MODIFICADA]
 export const getFrecuenciaAdicionales = (params: FrecuenciaAdicionalesParams = {}) => {
   const qs = new URLSearchParams(params as any).toString();
   return apiClient.get<FrecuenciaAdicional[]>(`${REPORTES_URL}/frecuencia-adicionales?${qs}`);
@@ -55,10 +55,8 @@ export const getComparativaCostos = (params: { [k: string]: string | number }) =
   return apiClient.get<ComparativaTransportistaDTO>(`${REPORTES_URL}/comparativa-costos?${qs}`);
 };
 
-// [FUNCIÓN MODIFICADA]
 export const getComparativaGeneralPorZona = (params: ComparativaZonasParams = {}) => {
   const qs = new URLSearchParams(params as any).toString();
-  // Ajusta el tipo esperado para manejar la posible respuesta string del backend
   return apiClient.get<Record<string, ComparativaZonaStats | string>>(`${ZONAS_URL}/comparativa-costos?${qs}`);
 };
 
@@ -69,6 +67,5 @@ export const getComparativaAumentos = (fechaInicio: string, fechaFin: string) =>
 
 export const getReporteUsoCombustible = (vehiculoId: string, fechaInicio: string, fechaFin: string) => {
   const qs = new URLSearchParams({ vehiculoId, fechaInicio, fechaFin }).toString();
-  // Asegúrate que el tipo genérico aquí incluya el nuevo campo
   return apiClient.get<ReporteVehiculoCombustible>(`${REPORTES_URL}/uso-combustible?${qs}`);
 };

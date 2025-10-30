@@ -16,6 +16,8 @@ import {
   AccordionDetails,
   Tooltip,
   IconButton,
+  FormControlLabel, // <-- Importar
+  Switch, // <-- Importar
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import HistoryIcon from "@mui/icons-material/History";
@@ -33,6 +35,11 @@ interface DataTableProps {
   handleMostrarHistorial?: (tarifaId: number) => void;
   highlightedId?: number | string | null;
   actionsDisabled?: boolean;
+  // --- AÑADIR NUEVOS PROPS ---
+  showHistoricoSwitch?: boolean;
+  historicoChecked?: boolean;
+  onHistoricoChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  // --- FIN ---
 }
 
 const cardConfigs: Record<Entidad, CardConfig> = {
@@ -101,15 +108,15 @@ const cardConfigs: Record<Entidad, CardConfig> = {
     },
   },
   combustible: {
-        titleField: "vehiculoNombre",
-        subtitleField: "precioTotal", // Cambiado
-        detailFields: ["fecha", "numeroTicket", "litrosCargados"], // Actualizado
-        fieldLabels: {
-          precioTotal: "Precio Total",
-          fecha: "Fecha",
-          numeroTicket: "Ticket Nro.",
-          litrosCargados: "Litros",
-        },
+    titleField: "vehiculoNombre",
+    subtitleField: "precioTotal",
+    detailFields: ["fecha", "numeroTicket", "litrosCargados"],
+    fieldLabels: {
+      precioTotal: "Precio Total",
+      fecha: "Fecha",
+      numeroTicket: "Ticket Nro.",
+      litrosCargados: "Litros",
+    },
   },
 };
 
@@ -139,6 +146,10 @@ export default function DataTable({
   handleMostrarHistorial,
   highlightedId,
   actionsDisabled = false,
+  // --- RECIBIR NUEVOS PROPS ---
+  showHistoricoSwitch = false,
+  historicoChecked = false,
+  onHistoricoChange,
 }: DataTableProps) {
   const theme = useTheme();
   const esMovil = useMediaQuery(theme.breakpoints.down("md"));
@@ -342,7 +353,16 @@ export default function DataTable({
           aria-controls="filtros-panel-content"
           id="filtros-panel-header"
         >
-          <Typography variant="h6">Filtros</Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <Typography variant="h6">Filtros</Typography>
+          </Box>
         </AccordionSummary>
         <AccordionDetails>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
@@ -378,6 +398,30 @@ export default function DataTable({
                 Limpiar Filtros
               </Button>
             </Box>
+
+            {/* --- EL SWITCH DE HISTÓRICO ESTÁ AQUÍ --- */}
+            {showHistoricoSwitch && onHistoricoChange && (
+              <Box
+                sx={{
+                  flex: "1 1 200px",
+                  alignSelf: "center",
+                  minWidth: "220px",
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={historicoChecked}
+                      onChange={onHistoricoChange}
+                    />
+                  }
+                  label="Mostrar histórico completo"
+                />
+              </Box>
+            )}
+            {/* --- FIN --- */}
           </Box>
         </AccordionDetails>
       </Accordion>

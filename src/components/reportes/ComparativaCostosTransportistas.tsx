@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Button,
@@ -22,8 +22,23 @@ import {
   OutlinedInput,
   Autocomplete,
   TextField,
+  Chip, // <-- 1. IMPORTAR Chip
 } from "@mui/material";
-import { getComparativaCostos, ComparativaTransportistaDTO } from "../../services/reporteService"; // Import DTO type
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import {
+  getComparativaCostos,
+  ComparativaTransportistaDTO,
+} from "../../services/reporteService";
 import {
   obtenerTransportistas,
   Transportista,
@@ -36,19 +51,42 @@ import { obtenerCargas, Carga } from "../../services/cargaService";
 import { obtenerZonas, ZonaViaje } from "../../services/zonaService";
 
 interface ReporteEnriquecido {
+  transportistaId: string;
   transportistaDisplayName: string;
   costo: number;
   tarifaId: number;
   nombreTarifa: string;
 }
 
+const formatCurrency = (value: number | null | undefined) => {
+  if (value === null || value === undefined) return "N/A";
+  const number = Number(value);
+  return `$${number.toLocaleString("es-AR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+const COLORS = [
+  "#E65F2B",
+  "#2196F3",
+  "#4CAF50",
+  "#FFC107",
+  "#9C27B0",
+  "#00BCD4",
+  "#F44336",
+  "#795548",
+];
+
 const ComparativaCostosTransportistas: React.FC = () => {
-  // --- Estados (sin cambios) ---
+  // --- Estados ---
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [tiposVehiculo, setTiposVehiculo] = useState<TipoVehiculo[]>([]);
   const [tiposCarga, setTiposCarga] = useState<Carga[]>([]);
   const [zonas, setZonas] = useState<ZonaViaje[]>([]);
-  const [selectedTransportistaIds, setSelectedTransportistaIds] = useState<string[]>([]);
+  const [selectedTransportistaIds, setSelectedTransportistaIds] = useState<
+    string[]
+  >([]);
   const [selectedVehiculoId, setSelectedVehiculoId] = useState<string>("");
   const [selectedCargaId, setSelectedCargaId] = useState<string>("");
   const [selectedZonaId, setSelectedZonaId] = useState<string>("");
@@ -57,7 +95,11 @@ const ComparativaCostosTransportistas: React.FC = () => {
   const [loadingFiltros, setLoadingFiltros] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- useEffect para cargar filtros (sin cambios) ---
+  // --- 2. AÑADIR NUEVO ESTADO PARA FILTROS ---
+  const [filtrosActivos, setFiltrosActivos] = useState<string[]>([]);
+  // -------------------------------------------
+
+  // --- useEffect (sin cambios) ---
   useEffect(() => {
     const cargarDatosFiltros = async () => {
       try {
@@ -84,6 +126,15 @@ const ComparativaCostosTransportistas: React.FC = () => {
     cargarDatosFiltros();
   }, []);
 
+  // --- Mapa de colores (sin cambios) ---
+  const transportistaColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    transportistas.forEach((transportista, index) => {
+      map.set(transportista.id, COLORS[index % COLORS.length]);
+    });
+    return map;
+  }, [transportistas]);
+
   // --- handleTransportistaChange (sin cambios) ---
   const handleTransportistaChange = (event: SelectChangeEvent<string[]>) => {
     const {
@@ -94,18 +145,15 @@ const ComparativaCostosTransportistas: React.FC = () => {
     );
   };
 
-  // --- handleSubmit (CORREGIDO) ---
+  // --- 3. MODIFICAR handleSubmit ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // *** CORRECCIÓN 1: Lógica de validación ***
-    // Debe haber al menos 2 transportistas Y al menos un filtro adicional
     if (
-      !selectedTransportistaIds/*.length < 2*/ && (
-        !selectedVehiculoId &&
-        !selectedCargaId &&
-        !selectedZonaId
-      )
+      !selectedTransportistaIds &&
+      !selectedVehiculoId &&
+      !selectedCargaId &&
+      !selectedZonaId
     ) {
       setError(
         "Debe seleccionar al menos dos transportistas y al menos un criterio adicional (tipo de vehículo, tipo de carga o zona) para comparar."
@@ -116,49 +164,78 @@ const ComparativaCostosTransportistas: React.FC = () => {
     setLoading(true);
     setError(null);
     setReporte(null);
+    setFiltrosActivos([]); // Limpiar filtros anteriores
 
-    // *** CORRECCIÓN 2: Construcción dinámica de params ***
+    // Construir parámetros
     const params: { [key: string]: string | number } = {};
     if (selectedVehiculoId) {
-      params.tipoVehiculoId = selectedVehiculoId; // string
+      params.tipoVehiculoId = selectedVehiculoId;
     }
     if (selectedCargaId) {
-      params.tipoCargaId = Number(selectedCargaId); // number
+      params.tipoCargaId = Number(selectedCargaId);
     }
     if (selectedZonaId) {
-      params.zonaId = Number(selectedZonaId); // number
+      params.zonaId = Number(selectedZonaId);
     }
 
+    // Capturar nombres de filtros para mostrar
+    const filtrosAplicados: string[] = [];
     try {
-      // *** CORRECCIÓN 3: Llamada al servicio ***
-      const data: ComparativaTransportistaDTO = await getComparativaCostos(params); // Tipado explícito
+      if (selectedVehiculoId) {
+        const vehiculo = tiposVehiculo.find((v) => v.id === selectedVehiculoId);
+        if (vehiculo) filtrosAplicados.push(`Vehículo: ${vehiculo.nombre}`);
+      }
+      if (selectedCargaId) {
+        const carga = tiposCarga.find((c) => String(c.id) === selectedCargaId);
+        if (carga) filtrosAplicados.push(`Carga: ${carga.nombre}`);
+      }
+      if (selectedZonaId) {
+        const zona = zonas.find((z) => String(z.id) === selectedZonaId);
+        if (zona) filtrosAplicados.push(`Zona: ${zona.nombre}`);
+      }
+    } catch (e) {
+      console.error("Error al buscar nombres de filtros", e);
+    }
 
-      // *** CORRECCIÓN 4: Procesamiento de datos ***
-      // Verificar si data.comparativas existe y es un array antes de procesar
+    // Lógica de API (sin cambios)
+    try {
+      const data: ComparativaTransportistaDTO = await getComparativaCostos(
+        params
+      );
+
       if (!data || !Array.isArray(data.comparativas)) {
-           // Lanza un error o maneja el caso donde la respuesta no es la esperada
-           throw new Error("No existen transportistas con esas características.");
+        throw new Error("No existen transportistas con esas características.");
       }
 
       const reporteConNombres: ReporteEnriquecido[] = data.comparativas
-        .filter(comp => {
-          const transportistaEncontrado = transportistas.find(t => t.nombre_comercial === comp.transportista);
-          return transportistaEncontrado ? selectedTransportistaIds.includes(transportistaEncontrado.id) : false;
+        .filter((comp) => {
+          const transportistaEncontrado = transportistas.find(
+            (t) => t.nombre_comercial === comp.transportista
+          );
+          return transportistaEncontrado
+            ? selectedTransportistaIds.includes(transportistaEncontrado.id)
+            : false;
         })
         .map((comparativa) => {
-          const transportistaEncontrado = transportistas.find(t => t.nombre_comercial === comparativa.transportista);
+          const transportistaEncontrado = transportistas.find(
+            (t) => t.nombre_comercial === comparativa.transportista
+          );
           const displayName = transportistaEncontrado
-            ? `${transportistaEncontrado.nombre_comercial} (${transportistaEncontrado.contacto?.nombre || "N/A"})`
+            ? `${transportistaEncontrado.nombre_comercial} (${
+                transportistaEncontrado.contacto?.nombre || "N/A"
+              })`
             : comparativa.transportista;
-
-          // *** CORRECCIÓN 5: Asegurar que costo no sea null/undefined antes de usarlo ***
-          const costoValido = comparativa.costo ?? 0; // Usar 0 si es null/undefined
-
+          const costoValido = comparativa.costo ?? 0;
           return {
+            transportistaId: transportistaEncontrado
+              ? transportistaEncontrado.id
+              : "unknown",
             transportistaDisplayName: displayName,
-            costo: costoValido, // Usar el valor validado
+            costo: costoValido,
             tarifaId: comparativa.tarifaId,
-            nombreTarifa: comparativa.nombreTarifa ? comparativa.nombreTarifa.trim() : "Sin nombre",          
+            nombreTarifa: comparativa.nombreTarifa
+              ? comparativa.nombreTarifa.trim()
+              : "Sin nombre",
           };
         })
         .sort((a, b) => a.costo - b.costo);
@@ -167,46 +244,39 @@ const ComparativaCostosTransportistas: React.FC = () => {
         setError(
           "Ninguno de los transportistas seleccionados tiene una tarifa registrada para los criterios elegidos o no se encontraron datos."
         );
+        setFiltrosActivos([]); // Limpiar si no hay reporte
       } else {
         setReporte(reporteConNombres);
+        setFiltrosActivos(filtrosAplicados); // Guardar filtros en caso de éxito
       }
     } catch (err: any) {
       console.error("Error al generar reporte:", err);
-      // *** CORRECCIÓN 6: Manejo de errores más robusto ***
-      const message = err?.message || ''; // Obtener mensaje de error o string vacío
+      const message = err?.message || "";
       setError(
-        message.includes("204") || message.toLowerCase().includes("no content") // Chequear también por texto
+        message.includes("204") || message.toLowerCase().includes("no content")
           ? "No se encontraron tarifas que coincidan con los criterios para los transportistas seleccionados."
-          : `Ocurrió un error al generar el reporte: ${message}` // Incluir el mensaje de error
+          : `Ocurrió un error al generar el reporte: ${message}`
       );
+      setFiltrosActivos([]); // Limpiar en caso de error
     } finally {
       setLoading(false);
     }
   };
+  // --- FIN handleSubmit ---
 
-  // --- formatCurrency (sin cambios) ---
-  const formatCurrency = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return "N/A";
-    const number = Number(value);
-    return `$${number.toLocaleString("es-AR", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    })}`;
-  };
-
-  // --- JSX de retorno (con correcciones menores) ---
   return (
     <Paper sx={{ padding: 3, marginTop: 2 }}>
+      {/* ... (Título y Formulario de Filtros - sin cambios) ... */}
       <Box sx={{ textAlign: "center", mb: 4 }}>
         <Typography variant="h6" gutterBottom>
           Comparativa de Costos entre Transportistas
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          Seleccione transportistas y al menos un criterio (vehículo, carga o zona) para ver sus costos.
+          Seleccione transportistas y al menos un criterio (vehículo, carga o
+          zona) para ver sus costos.
         </Typography>
       </Box>
 
-      {/* --- Sección de Filtros (sin cambios funcionales) --- */}
       {loadingFiltros ? (
         <Box sx={{ display: "flex", justifyContent: "center" }}>
           <CircularProgress />
@@ -223,7 +293,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
             mb: 4,
           }}
         >
-          {/* FormControl Transportistas */}
+          {/* ... (Controles de formulario sin cambios) ... */}
           <FormControl fullWidth size="small">
             <InputLabel id="transportistas-select-label">
               Transportistas a Comparar
@@ -234,31 +304,40 @@ const ComparativaCostosTransportistas: React.FC = () => {
               value={selectedTransportistaIds}
               onChange={handleTransportistaChange}
               input={<OutlinedInput label="Transportistas a Comparar" />}
-              renderValue={(selectedIds) => (
+              renderValue={(selectedIds) =>
                 transportistas
                   .filter((t) => selectedIds.includes(String(t.id)))
-                  .map((t) => `${t.nombre_comercial} (${t.contacto?.nombre || "N/A"})`)
+                  .map(
+                    (t) =>
+                      `${t.nombre_comercial} (${t.contacto?.nombre || "N/A"})`
+                  )
                   .join(", ")
-              )}
+              }
               MenuProps={{ PaperProps: { style: { maxHeight: 300 } } }}
             >
               {transportistas.map((t) => (
                 <MenuItem key={t.id} value={String(t.id)}>
-                  <Checkbox checked={selectedTransportistaIds.indexOf(String(t.id)) > -1} />
+                  <Checkbox
+                    checked={
+                      selectedTransportistaIds.indexOf(String(t.id)) > -1
+                    }
+                  />
                   <ListItemText
-                    primary={`${t.nombre_comercial} (${t.contacto?.nombre || "N/A"})`}
+                    primary={`${t.nombre_comercial} (${
+                      t.contacto?.nombre || "N/A"
+                    })`}
                     secondary={`CUIT: ${t.cuit}`}
                   />
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-
-          {/* FormControl Tipo de Vehículo */}
           <Autocomplete
             options={tiposVehiculo}
-            getOptionLabel={(option) => option.nombre || ''}
-            value={tiposVehiculo.find(v => v.id === selectedVehiculoId) || null}
+            getOptionLabel={(option) => option.nombre || ""}
+            value={
+              tiposVehiculo.find((v) => v.id === selectedVehiculoId) || null
+            }
             onChange={(_, newValue: TipoVehiculo | null) => {
               setSelectedVehiculoId(newValue ? newValue.id : "");
             }}
@@ -267,45 +346,41 @@ const ComparativaCostosTransportistas: React.FC = () => {
               <TextField {...params} label="Tipo de Vehículo" size="small" />
             )}
             disabled={loadingFiltros}
-            sx={{ minWidth: 180, flexGrow: 1 }} // Ajusta ancho
+            sx={{ minWidth: 180, flexGrow: 1 }}
             size="small"
           />
-
-          {/* FormControl Tipo de Carga */}
           <Autocomplete
             options={tiposCarga}
-            getOptionLabel={(option) => option.nombre || ''}
-            value={tiposCarga.find(c => String(c.id) === selectedCargaId) || null} // Compara como string
+            getOptionLabel={(option) => option.nombre || ""}
+            value={
+              tiposCarga.find((c) => String(c.id) === selectedCargaId) || null
+            }
             onChange={(_, newValue: Carga | null) => {
-              setSelectedCargaId(newValue ? String(newValue.id) : ""); // Guarda como string
+              setSelectedCargaId(newValue ? String(newValue.id) : "");
             }}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             renderInput={(params) => (
               <TextField {...params} label="Tipo de Carga" size="small" />
             )}
             disabled={loadingFiltros}
-             sx={{ minWidth: 180, flexGrow: 1 }} // Ajusta ancho
+            sx={{ minWidth: 180, flexGrow: 1 }}
             size="small"
           />
-
-          {/* FormControl Zona */}
           <Autocomplete
             options={zonas}
-            getOptionLabel={(option) => option.nombre || ''}
-            value={zonas.find(z => String(z.id) === selectedZonaId) || null} // Compara como string
+            getOptionLabel={(option) => option.nombre || ""}
+            value={zonas.find((z) => String(z.id) === selectedZonaId) || null}
             onChange={(_, newValue: ZonaViaje | null) => {
-              setSelectedZonaId(newValue ? String(newValue.id) : ""); // Guarda como string
+              setSelectedZonaId(newValue ? String(newValue.id) : "");
             }}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             renderInput={(params) => (
               <TextField {...params} label="Zona" size="small" />
             )}
             disabled={loadingFiltros}
-            sx={{ minWidth: 150, flexGrow: 1 }} // Ajusta ancho
+            sx={{ minWidth: 150, flexGrow: 1 }}
             size="small"
           />
-
-          {/* Botón Comparar */}
           <Button
             type="submit"
             variant="contained"
@@ -317,41 +392,150 @@ const ComparativaCostosTransportistas: React.FC = () => {
         </Box>
       )}
 
-      {/* --- Sección de Error y Tabla (con corrección en key) --- */}
+      {/* --- Sección de Error, Gráfico y Tabla --- */}
+
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
       {error && (
-        <Alert severity={error.toLowerCase().includes("no se encontraron") ? "info" : "warning"} sx={{ mt: 2 }}>
+        <Alert
+          severity={
+            error.toLowerCase().includes("no se encontraron")
+              ? "info"
+              : "warning"
+          }
+          sx={{ mt: 2 }}
+        >
           {error}
         </Alert>
       )}
 
+      {/* --- 4. MODIFICAR JSX DEL GRÁFICO --- */}
       {reporte && reporte.length > 0 && (
-        <TableContainer component={Paper} variant="outlined" sx={{ mt: 2 }}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-                <TableCell>Transportista</TableCell>
-                <TableCell>Tarifa</TableCell>
-                <TableCell align="right">Costo del Servicio (ARS)</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {reporte.map((item, index) => ( // *** CORRECCIÓN 7: Usar index en la key para asegurar unicidad ***
-                <TableRow
-                  key={`${item.tarifaId}-${index}`} // Clave más robusta
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {item.transportistaDisplayName}
-                  </TableCell>
-                  <TableCell>{item.nombreTarifa}</TableCell>
-                  <TableCell align="right">
-                    {formatCurrency(item.costo)}
-                  </TableCell>
-                </TableRow>
+        <Box
+          sx={{
+            height: Math.max(300, 60 * reporte.length),
+            width: "100%",
+            mt: 4,
+            mb: 4,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Gráfico Comparativo
+          </Typography>
+
+          {/* --- INICIO: FILTROS APLICADOS --- */}
+          {filtrosActivos.length > 0 && (
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 1,
+                mb: 2,
+                justifyContent: "flex-start", // Alinear a la izquierda
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{ alignSelf: "center", mr: 1, fontWeight: 500 }}
+              >
+                Filtros Aplicados:
+              </Typography>
+              {filtrosActivos.map((filtro, index) => (
+                <Chip
+                  key={index}
+                  label={filtro}
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                />
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            </Box>
+          )}
+          {/* --- FIN: FILTROS APLICADOS --- */}
+
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              layout="vertical"
+              data={reporte}
+              margin={{ top: 5, right: 30, left: 200, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                type="number"
+                tickFormatter={(value) => formatCurrency(value)}
+              />
+              <YAxis
+                type="category"
+                dataKey="transportistaDisplayName"
+                width={180}
+                interval={0}
+              />
+              <Tooltip formatter={(value) => formatCurrency(value as number)} />
+              <Legend />
+              <Bar dataKey="costo" name="Costo del Servicio">
+                {reporte.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      transportistaColorMap.get(entry.transportistaId) ||
+                      COLORS[index % COLORS.length]
+                    }
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Box>
+      )}
+
+      {/* ... (Tabla de datos - sin cambios) ... */}
+      {reporte && reporte.length > 0 && (
+        <>
+          <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+            Datos de la Comparativa
+          </Typography>
+          <TableContainer component={Paper} variant="outlined" sx={{ mt: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                  <TableCell>Transportista</TableCell>
+                  <TableCell>Tarifa</TableCell>
+                  <TableCell align="right">Costo del Servicio (ARS)</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {reporte.map((item, index) => (
+                  <TableRow
+                    key={`${item.tarifaId}-${index}`}
+                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      {item.transportistaDisplayName}
+                    </TableCell>
+                    <TableCell>{item.nombreTarifa}</TableCell>
+                    <TableCell align="right">
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color:
+                            transportistaColorMap.get(item.transportistaId) ||
+                            COLORS[index % COLORS.length],
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {formatCurrency(item.costo)}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </>
       )}
     </Paper>
   );
