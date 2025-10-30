@@ -11,9 +11,7 @@ import {
   Grid,
   Card,
   CardContent,
-  // ToggleButton y ToggleButtonGroup eliminados
 } from "@mui/material";
-// --- BarChart, Bar, XAxis, YAxis eliminados ---
 import {
   Tooltip,
   Legend,
@@ -21,7 +19,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  PieLabelRenderProps,
 } from "recharts";
 import { obtenerAdicionales, Adicional } from "../../services/adicionalService";
 import {
@@ -41,21 +38,20 @@ const formatCurrency = (value: number | any) => {
 };
 
 const COLORS = [
-  "#E65F2B",
-  "#2196F3",
-  "#4CAF50",
-  "#FFC107",
-  "#9C27B0",
-  "#00BCD4",
-  "#F44336",
-  "#795548",
-  "#FF9800",
-  "#8BC34A",
-  "#03A9F4",
-  "#673AB7",
+  "#E65F2B", // Naranja (Color principal)
+  "#2196F3", // Azul
+  "#4CAF50", // Verde
+  "#FFC107", // Amarillo
+  "#9C27B0", // Púrpura
+  "#00BCD4", // Cian
+  "#F44336", // Rojo
+  "#795548", // Marrón
+  "#FF9800", // Naranja claro
+  "#8BC34A", // Verde claro
+  "#03A9F4", // Azul claro
+  "#673AB7", // Violeta
 ];
 
-// Columna "Tipo" (esGlobal) eliminada
 const columns: GridColDef[] = [
   { field: "id", headerName: "ID", width: 90 },
   { field: "nombre", headerName: "Nombre Adicional", flex: 1 },
@@ -87,6 +83,8 @@ const FallbackGrafico: React.FC<{ mensaje: string }> = ({ mensaje }) => (
     <Typography color="text.secondary">{mensaje}</Typography>
   </Box>
 );
+
+// --- SE HA ELIMINADO LA FUNCIÓN renderCustomizedLabel YA QUE NO SE USARÁ ---
 
 const CatalogoAdicionales: React.FC = () => {
   const [adicionalesCombinados, setAdicionalesCombinados] = useState<
@@ -144,7 +142,6 @@ const CatalogoAdicionales: React.FC = () => {
   }, []);
 
   const datosFiltrados = useMemo(() => {
-    // Filtra directamente por adicionales activos Y que NO sean globales (constantes)
     return adicionalesCombinados.filter((a) => a.activo && !a.esGlobal);
   }, [adicionalesCombinados]);
 
@@ -221,7 +218,6 @@ const CatalogoAdicionales: React.FC = () => {
           alignItems: "center",
           mb: 2,
           flexWrap: "wrap",
-          // Centrado de los controles de fecha
           justifyContent: "center",
         }}
       >
@@ -266,7 +262,6 @@ const CatalogoAdicionales: React.FC = () => {
         <Alert severity="info">{error}</Alert>
       ) : (
         <>
-          {/* CAMBIO CLAVE: Se añade justifyContent="center" a Grid container para centrar los KPIs */}
           <Grid container spacing={3} sx={{ mb: 4 }} justifyContent="center">
             <Grid item xs={12} sm={4}>
               <KpiCard
@@ -282,7 +277,7 @@ const CatalogoAdicionales: React.FC = () => {
                 title="Adicional Menos Utilizado"
                 value={kpis.menosUsado?.nombre ?? "N/A"}
                 subValue={
-                  kpis.menosUsado ? `${kpis.menosUsado.cantidad} veces` : ""
+                  kpis.masUsado ? `${kpis.menosUsado.cantidad} veces` : ""
                 }
               />
             </Grid>
@@ -294,38 +289,39 @@ const CatalogoAdicionales: React.FC = () => {
               />
             </Grid>
           </Grid>
-          {/* Fin del cambio */}
 
           <Grid container spacing={3} sx={{ mb: 4 }} justifyContent="center">
-            <Grid item xs={12} md={8}>
+            <Grid item xs={12} md={12}>
               <Paper
                 sx={{
                   p: 2,
-                  height: 400,
+                  height: 500,
                   display: "flex",
                   flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 <Typography variant="h6" gutterBottom align="center">
-                  Impacto Económico Total
+                  Distribución de Costos Totales por Adicional
                 </Typography>
                 {dataGraficoTorta.length > 0 ? (
-                  <Box sx={{ flexGrow: 1, width: "100%", height: "100%" }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
+                  <Box sx={{ width: "100%", height: "100%", pt: 2 }}>
+                    <ResponsiveContainer width="100%" height="80%">
+                      <PieChart
+                        margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+                      >
+                        {" "}
+                        {/* Márgenes reducidos a 0 */}
                         <Pie
                           data={dataGraficoTorta}
                           cx="50%"
                           cy="50%"
-                          outerRadius={100}
+                          outerRadius={140}
                           fill="#8884d8"
                           dataKey="value"
-                          labelLine={false}
-                          label={(props: PieLabelRenderProps) => {
-                            const percent = (props.percent as number) ?? 0;
-                            if (percent < 0.05) return null;
-                            return `${(percent * 100).toFixed(0)}%`;
-                          }}
+                          labelLine={false} // DESACTIVADO: No mostrar líneas
+                          label={false} // DESACTIVADO: No mostrar etiquetas de texto alrededor
                         >
                           {dataGraficoTorta.map((entry, index) => (
                             <Cell
@@ -335,9 +331,26 @@ const CatalogoAdicionales: React.FC = () => {
                           ))}
                         </Pie>
                         <Tooltip
-                          formatter={(value) => formatCurrency(value as number)}
+                          formatter={(value, name) => [
+                            formatCurrency(value as number),
+                            name,
+                          ]}
                         />
-                        <Legend verticalAlign="bottom" height={36} />
+                        <Legend
+                          wrapperStyle={{
+                            position: "relative",
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            display: "flex",
+                            flexWrap: "wrap",
+                            justifyContent: "center",
+                            paddingTop: "10px",
+                          }}
+                          layout="horizontal"
+                          align="center"
+                          verticalAlign="bottom"
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                   </Box>

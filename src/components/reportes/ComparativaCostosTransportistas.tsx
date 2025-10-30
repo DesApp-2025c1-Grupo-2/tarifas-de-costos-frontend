@@ -22,7 +22,7 @@ import {
   OutlinedInput,
   Autocomplete,
   TextField,
-  Chip, // <-- 1. IMPORTAR Chip
+  Chip,
 } from "@mui/material";
 import {
   BarChart,
@@ -56,6 +56,7 @@ interface ReporteEnriquecido {
   costo: number;
   tarifaId: number;
   nombreTarifa: string;
+  uniqueKey: string;
 }
 
 const formatCurrency = (value: number | null | undefined) => {
@@ -79,7 +80,6 @@ const COLORS = [
 ];
 
 const ComparativaCostosTransportistas: React.FC = () => {
-  // --- Estados ---
   const [transportistas, setTransportistas] = useState<Transportista[]>([]);
   const [tiposVehiculo, setTiposVehiculo] = useState<TipoVehiculo[]>([]);
   const [tiposCarga, setTiposCarga] = useState<Carga[]>([]);
@@ -94,12 +94,8 @@ const ComparativaCostosTransportistas: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loadingFiltros, setLoadingFiltros] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // --- 2. AÑADIR NUEVO ESTADO PARA FILTROS ---
   const [filtrosActivos, setFiltrosActivos] = useState<string[]>([]);
-  // -------------------------------------------
 
-  // --- useEffect (sin cambios) ---
   useEffect(() => {
     const cargarDatosFiltros = async () => {
       try {
@@ -126,7 +122,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
     cargarDatosFiltros();
   }, []);
 
-  // --- Mapa de colores (sin cambios) ---
   const transportistaColorMap = useMemo(() => {
     const map = new Map<string, string>();
     transportistas.forEach((transportista, index) => {
@@ -135,7 +130,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
     return map;
   }, [transportistas]);
 
-  // --- handleTransportistaChange (sin cambios) ---
   const handleTransportistaChange = (event: SelectChangeEvent<string[]>) => {
     const {
       target: { value },
@@ -145,7 +139,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
     );
   };
 
-  // --- 3. MODIFICAR handleSubmit ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -164,9 +157,8 @@ const ComparativaCostosTransportistas: React.FC = () => {
     setLoading(true);
     setError(null);
     setReporte(null);
-    setFiltrosActivos([]); // Limpiar filtros anteriores
+    setFiltrosActivos([]);
 
-    // Construir parámetros
     const params: { [key: string]: string | number } = {};
     if (selectedVehiculoId) {
       params.tipoVehiculoId = selectedVehiculoId;
@@ -178,7 +170,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
       params.zonaId = Number(selectedZonaId);
     }
 
-    // Capturar nombres de filtros para mostrar
     const filtrosAplicados: string[] = [];
     try {
       if (selectedVehiculoId) {
@@ -197,7 +188,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
       console.error("Error al buscar nombres de filtros", e);
     }
 
-    // Lógica de API (sin cambios)
     try {
       const data: ComparativaTransportistaDTO = await getComparativaCostos(
         params
@@ -236,6 +226,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
             nombreTarifa: comparativa.nombreTarifa
               ? comparativa.nombreTarifa.trim()
               : "Sin nombre",
+            uniqueKey: `${displayName}_${comparativa.tarifaId}`,
           };
         })
         .sort((a, b) => a.costo - b.costo);
@@ -244,10 +235,10 @@ const ComparativaCostosTransportistas: React.FC = () => {
         setError(
           "Ninguno de los transportistas seleccionados tiene una tarifa registrada para los criterios elegidos o no se encontraron datos."
         );
-        setFiltrosActivos([]); // Limpiar si no hay reporte
+        setFiltrosActivos([]);
       } else {
         setReporte(reporteConNombres);
-        setFiltrosActivos(filtrosAplicados); // Guardar filtros en caso de éxito
+        setFiltrosActivos(filtrosAplicados);
       }
     } catch (err: any) {
       console.error("Error al generar reporte:", err);
@@ -257,16 +248,14 @@ const ComparativaCostosTransportistas: React.FC = () => {
           ? "No se encontraron tarifas que coincidan con los criterios para los transportistas seleccionados."
           : `Ocurrió un error al generar el reporte: ${message}`
       );
-      setFiltrosActivos([]); // Limpiar en caso de error
+      setFiltrosActivos([]);
     } finally {
       setLoading(false);
     }
   };
-  // --- FIN handleSubmit ---
 
   return (
     <Paper sx={{ padding: 3, marginTop: 2 }}>
-      {/* ... (Título y Formulario de Filtros - sin cambios) ... */}
       <Box sx={{ textAlign: "center", mb: 4 }}>
         <Typography variant="h6" gutterBottom>
           Comparativa de Costos entre Transportistas
@@ -293,7 +282,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
             mb: 4,
           }}
         >
-          {/* ... (Controles de formulario sin cambios) ... */}
           <FormControl fullWidth size="small">
             <InputLabel id="transportistas-select-label">
               Transportistas a Comparar
@@ -392,8 +380,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
         </Box>
       )}
 
-      {/* --- Sección de Error, Gráfico y Tabla --- */}
-
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
           <CircularProgress />
@@ -413,7 +399,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
         </Alert>
       )}
 
-      {/* --- 4. MODIFICAR JSX DEL GRÁFICO --- */}
       {reporte && reporte.length > 0 && (
         <Box
           sx={{
@@ -427,7 +412,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
             Gráfico Comparativo
           </Typography>
 
-          {/* --- INICIO: FILTROS APLICADOS --- */}
           {filtrosActivos.length > 0 && (
             <Box
               sx={{
@@ -435,7 +419,7 @@ const ComparativaCostosTransportistas: React.FC = () => {
                 flexWrap: "wrap",
                 gap: 1,
                 mb: 2,
-                justifyContent: "flex-start", // Alinear a la izquierda
+                justifyContent: "flex-start",
               }}
             >
               <Typography
@@ -455,7 +439,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
               ))}
             </Box>
           )}
-          {/* --- FIN: FILTROS APLICADOS --- */}
 
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -470,9 +453,16 @@ const ComparativaCostosTransportistas: React.FC = () => {
               />
               <YAxis
                 type="category"
-                dataKey="transportistaDisplayName"
+                dataKey="uniqueKey"
                 width={180}
                 interval={0}
+                tickFormatter={(value, index) => {
+                  const item = reporte[index];
+                  if (item) {
+                    return `${item.transportistaDisplayName} (${item.nombreTarifa})`;
+                  }
+                  return value;
+                }}
               />
               <Tooltip formatter={(value) => formatCurrency(value as number)} />
               <Legend />
@@ -492,7 +482,6 @@ const ComparativaCostosTransportistas: React.FC = () => {
         </Box>
       )}
 
-      {/* ... (Tabla de datos - sin cambios) ... */}
       {reporte && reporte.length > 0 && (
         <>
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
