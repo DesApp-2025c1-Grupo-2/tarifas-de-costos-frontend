@@ -1,11 +1,8 @@
-// Archivo: src/services/reporteService.ts
 import { apiClient } from './apiClient';
 
 export interface FrecuenciaAdicional { nombreAdicional: string; cantidad: number; }
-export interface TransportistaMasUtilizado { nombreTransportista: string; cantidadTarifas: number; }
 export interface Comparativa { transportista: string; costo: number; tarifaId: number; nombreTarifa: string; }
 export interface ComparativaTransportistaDTO { servicio: string; comparativas: Comparativa[]; }
-export interface ComparativaZonaStats { average: number; count: number; max: number; min: number; sum: number; }
 export interface ComparativaAumento {
   tarifaId: number; nombreTarifa: string;
   valorInicial: number; fechaInicial: string;
@@ -23,41 +20,32 @@ export interface ReporteVehiculoCombustible {
   viajesPorCarga: number;
   totalKilometros: number;
   litrosTotales: number;
+  viajes: {
+    fecha: string;
+    km: number;
+  }[];
+  cargas: {
+    fecha: string;
+    litros: number;
+  }[];
 }
 
 export type FrecuenciaAdicionalesParams = {
-  fechaInicio?: string; // Formato YYYY-MM-DD
-  fechaFin?: string; // Formato YYYY-MM-DD
+  fechaInicio?: string;
+  fechaFin?: string;
 };
-
-// --- CORRECCIÓN AQUÍ ---
-export type ComparativaZonasParams = {
-  fechaInicio?: string; // Formato YYYY-MM-DD
-  fechaFin?: string; // Formato YYYY-MM-DD
-  zonaId?: string; // <-- AÑADIR ESTA PROPIEDAD
-};
-// --- FIN DE LA CORRECCIÓN ---
 
 
 const REPORTES_URL = '/api/reportes';
-const ZONAS_URL = '/api/zonas';
 
 export const getFrecuenciaAdicionales = (params: FrecuenciaAdicionalesParams = {}) => {
   const qs = new URLSearchParams(params as any).toString();
   return apiClient.get<FrecuenciaAdicional[]>(`${REPORTES_URL}/frecuencia-adicionales?${qs}`);
 };
 
-export const getTransportistasMasUtilizados = () =>
-  apiClient.get<TransportistaMasUtilizado[]>(`${REPORTES_URL}/transportistas-mas-utilizados`);
-
 export const getComparativaCostos = (params: { [k: string]: string | number }) => {
   const qs = new URLSearchParams(params as any).toString();
   return apiClient.get<ComparativaTransportistaDTO>(`${REPORTES_URL}/comparativa-costos?${qs}`);
-};
-
-export const getComparativaGeneralPorZona = (params: ComparativaZonasParams = {}) => {
-  const qs = new URLSearchParams(params as any).toString();
-  return apiClient.get<Record<string, ComparativaZonaStats | string>>(`${ZONAS_URL}/comparativa-costos?${qs}`);
 };
 
 export const getComparativaAumentos = (fechaInicio: string, fechaFin: string) => {

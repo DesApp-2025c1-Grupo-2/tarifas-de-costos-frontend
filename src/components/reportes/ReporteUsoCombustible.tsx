@@ -1,5 +1,4 @@
-// Archivo: src/components/reportes/ReporteUsoCombustible.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Button,
@@ -17,9 +16,21 @@ import {
   List,
   ListItem,
   ListItemText,
-  LinearProgress,
-  Autocomplete, // <-- IMPORTAR LinearProgress
+  Autocomplete,
 } from "@mui/material";
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Line,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  Dot, // Importar Dot
+  DotProps, // Importar DotProps
+} from "recharts";
 import { obtenerVehiculo, Vehiculo } from "../../services/vehiculoService";
 import {
   getReporteUsoCombustible,
@@ -34,15 +45,58 @@ const formatCurrency = (value: number | undefined) => {
   })}`;
 };
 
-// --- FUNCIÓN PARA FORMATEAR LITROS ---
-const formatLitros = (value: number | undefined) => {
+const formatLitros = (value: number | undefined | null) => {
+  if (value === null || value === undefined) return "N/A";
   const number = Number(value) || 0;
   return `${number.toLocaleString("es-AR", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 1,
   })} Lts`;
 };
-// --- FIN FUNCIÓN LITROS ---
+
+const formatKilometros = (value: number | undefined | null) => {
+  if (value === null || value === undefined) return "N/A";
+  const number = Number(value) || 0;
+  return `${number.toLocaleString("es-AR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  })} Km`;
+};
+
+type ChartDataPoint = {
+  fecha: string;
+  km_diario: number | null;
+  km_acumulado: number;
+  litros: number | null;
+};
+
+// --- FUNCIÓN HELPER CORREGIDA ---
+interface CustomDotProps extends DotProps {
+  payload?: ChartDataPoint;
+}
+
+const renderTripDot = (props: CustomDotProps) => {
+  const { cx, cy, payload, key } = props;
+
+  // Comprobar que el payload existe y que km_diario es positivo
+  if (payload && payload.km_diario && payload.km_diario > 0) {
+    return (
+      <Dot
+        key={key} // Usar la key provista
+        cx={cx}
+        cy={cy}
+        r={5}
+        stroke="#E65F2B"
+        fill="#fff"
+        strokeWidth={2}
+      />
+    );
+  }
+
+  // Devolver un elemento SVG vacío (un grupo) en lugar de null
+  return <g key={key} />;
+};
+// --- FIN FUNCIÓN HELPER ---
 
 const ReporteUsoCombustible: React.FC = () => {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -55,9 +109,6 @@ const ReporteUsoCombustible: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingFiltros, setLoadingFiltros] = useState(true);
-
-  // --- Constante para la escala de la barra ---
-  const MAX_KM_PER_LITRO = 20; // Define un valor máximo razonable para tu tipo de vehículo
 
   useEffect(() => {
     const cargarVehiculos = async () => {
@@ -89,11 +140,24 @@ const ReporteUsoCombustible: React.FC = () => {
         fechaFin
       );
       setReporte(data);
+      if (
+        (!data.viajes || data.viajes.length === 0) &&
+        (!data.cargas || data.cargas.length === 0)
+      ) {
+        setError(
+          "No se encontraron viajes ni cargas de combustible en el período seleccionado para graficar."
+        );
+      }
     } catch (err: any) {
       if (err.message.includes("204")) {
-         setError("No se encontraron datos de viajes ni de combustible en el período seleccionado.");
+        setError(
+          "No se encontraron datos de viajes ni de combustible en el período seleccionado."
+        );
       } else {
-        setError(err.message || "Ocurrió un error al generar el reporte de combustible.");
+        setError(
+          err.message ||
+            "Ocurrió un error al generar el reporte de combustible."
+        );
       }
       console.error("Error al generar reporte:", err);
     } finally {
@@ -101,23 +165,62 @@ const ReporteUsoCombustible: React.FC = () => {
     }
   };
 
+  const chartData = useMemo((): ChartDataPoint[] => {
+    if (!reporte || !fechaInicio || !fechaFin) {
+      return [];
+    }
 
-  const formatKilometros = (value: number | undefined) => {
-    const number = Number(value) || 0;
-    return `${number.toLocaleString("es-AR", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 1,
-    })} Km`;
-  };
+    const dataMap = new Map<string, { km: number; litros: number }>();
 
-  // --- CÁLCULO DE KM/L ---
-  const kmPorLitro = reporte?.litrosTotales && reporte.litrosTotales > 0
-    ? (reporte.totalKilometros || 0) / reporte.litrosTotales
-    : 0;
+    (reporte.viajes || []).forEach((viaje) => {
+      const fecha = viaje.fecha;
+      const existing = dataMap.get(fecha) || { km: 0, litros: 0 };
+      existing.km += viaje.km;
+      dataMap.set(fecha, existing);
+    });
 
-  // Normalizar para la barra de progreso (0 a 100)
-  const progressValue = Math.min((kmPorLitro / MAX_KM_PER_LITRO) * 100, 100);
-  // --- FIN CÁLCULO KM/L ---
+    (reporte.cargas || []).forEach((carga) => {
+      const fecha = carga.fecha;
+      const existing = dataMap.get(fecha) || { km: 0, litros: 0 };
+      existing.litros += carga.litros;
+      dataMap.set(fecha, existing);
+    });
+
+    const finalData: ChartDataPoint[] = [];
+    const startDate = new Date(fechaInicio + "T00:00:00");
+    const endDate = new Date(fechaFin + "T00:00:00");
+    let kmAcumulado = 0;
+
+    for (
+      let d = new Date(startDate);
+      d <= endDate;
+      d.setDate(d.getDate() + 1)
+    ) {
+      const fechaISO = d.toISOString().split("T")[0];
+      const event = dataMap.get(fechaISO);
+
+      const kmDiario = event && event.km > 0 ? event.km : null;
+      const litrosDiarios = event && event.litros > 0 ? event.litros : null;
+
+      if (kmDiario !== null) {
+        kmAcumulado += kmDiario;
+      }
+
+      finalData.push({
+        fecha: fechaISO,
+        km_diario: kmDiario,
+        km_acumulado: kmAcumulado,
+        litros: litrosDiarios,
+      });
+    }
+
+    return finalData;
+  }, [reporte, fechaInicio, fechaFin]);
+
+  const kmPorLitro =
+    reporte?.litrosTotales && reporte.litrosTotales > 0
+      ? (reporte.totalKilometros || 0) / reporte.litrosTotales
+      : 0;
 
   return (
     <Paper sx={{ padding: 3, marginTop: 2 }}>
@@ -140,38 +243,21 @@ const ReporteUsoCombustible: React.FC = () => {
           <InputLabel id="vehiculo-select-label"></InputLabel>
           <Autocomplete
             options={vehiculos}
-            getOptionLabel={(option) => `${option.patente} - ${option.marca} ${option.modelo}` || ''}
-            value={vehiculos.find(v => v.id === selectedVehiculoId) || null} // Busca el objeto, no solo el ID
+            getOptionLabel={(option) =>
+              `${option.patente} - ${option.marca} ${option.modelo}` || ""
+            }
+            value={vehiculos.find((v) => v.id === selectedVehiculoId) || null}
             onChange={(_, newValue: Vehiculo | null) => {
-              setSelectedVehiculoId(newValue ? newValue.id : ""); // Guarda el ID en el estado
+              setSelectedVehiculoId(newValue ? newValue.id : "");
             }}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Vehículo"
-                size="small" // Mantenemos el tamaño
-              />
+              <TextField {...params} label="Vehículo" size="small" />
             )}
-            disabled={loadingFiltros} // Mantenemos el estado de deshabilitado
-            sx={{ minWidth: 200, flexGrow: 1, maxWidth: 300 }} // Mantenemos estilos
-            size="small" // Mantenemos tamaño
-          />
-          {/* <Select
-            labelId="vehiculo-select-label"
-            value={selectedVehiculoId}
-            label="Vehículo"
-            onChange={(e: SelectChangeEvent) =>
-              setSelectedVehiculoId(e.target.value as string)
-            }
             disabled={loadingFiltros}
-          >
-            {vehiculos.map((v) => (
-              <MenuItem key={v.id} value={v.id}>
-                {v.patente} - {v.marca} {v.modelo}
-              </MenuItem>
-            ))}
-          </Select> */}
+            sx={{ minWidth: 200, flexGrow: 1, maxWidth: 300 }}
+            size="small"
+          />
         </FormControl>
 
         <TextField
@@ -213,82 +299,138 @@ const ReporteUsoCombustible: React.FC = () => {
       )}
 
       {reporte && !loading && (
-        <> {/* <-- Envolver en Fragment para añadir la nueva tarjeta */}
-          <Paper variant="outlined" sx={{ p: 3, mt: 3, mb: 3 }}> 
+        <>
+          <Paper variant="outlined" sx={{ p: 3, mt: 3, mb: 3 }}>
             <Typography variant="h5" gutterBottom>
-              Reporte para {reporte.vehiculoPatente}
+              Resumen para {reporte.vehiculoPatente}
+            </Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Período analizado: {reporte.fechaInicio} a {reporte.fechaFin}
             </Typography>
             <Divider sx={{ my: 2 }} />
-            <List dense>
-              <ListItem>
-                <ListItemText
-                  primary="Período analizado"
-                  secondary={`${reporte.fechaInicio} a ${reporte.fechaFin}`}
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemText
-                  primary="Total de Viajes Realizados"
-                  secondary={reporte.cantidadViajes.toLocaleString()}
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemText
-                  primary="Kilómetros Totales Recorridos"
-                  secondary={formatKilometros(reporte.totalKilometros)}
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemText
-                  primary="Total de Cargas de Combustible"
-                  secondary={reporte.cantidadCargasCombustible.toLocaleString()}
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemText
-                  primary="Costo Total de Combustible"
-                  secondary={formatCurrency(reporte.costoTotalCombustible)}
-                />
-              </ListItem>
-            </List>
-          </Paper>
-
-          <Paper variant="outlined" sx={{ p: 3, mt: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Eficiencia de Combustible
-            </Typography>
-            <Divider sx={{ my: 1 }} />
-            <List dense>
-               <ListItem>
-                 <ListItemText
-                   primary="Kilómetros Recorridos"
-                   secondary={formatKilometros(reporte.totalKilometros)}
-                 />
-               </ListItem>
-               <ListItem>
-                 <ListItemText
-                   primary="Litros Cargados"
-                   secondary={formatLitros(reporte.litrosTotales)}
-                 />
-               </ListItem>
-            </List>
-            <Box sx={{ mt: 2 }}>
-               <Typography variant="body1" gutterBottom>
-                 Consumo Promedio:
-               </Typography>
-               <Typography variant="h5" color="primary" sx={{ mb: 1 }}>
-                 {kmPorLitro.toFixed(1)} Km/L
-               </Typography>
-               <Box sx={{ width: '100%', mr: 1 }}>
-                 <LinearProgress variant="determinate" value={progressValue} />
-               </Box>
-               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
-                  <Typography variant="caption" color="text.secondary">0 Km/L</Typography>
-                  <Typography variant="caption" color="text.secondary">{MAX_KM_PER_LITRO} Km/L</Typography>
-               </Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-around",
+                flexWrap: "wrap",
+              }}
+            >
+              <Box sx={{ textAlign: "center", p: 1 }}>
+                <Typography variant="h4" color="primary">
+                  {reporte.cantidadViajes.toLocaleString()}
+                </Typography>
+                <Typography variant="body2">Viajes Finalizados</Typography>
+              </Box>
+              <Box sx={{ textAlign: "center", p: 1 }}>
+                <Typography variant="h4" color="primary">
+                  {formatKilometros(reporte.totalKilometros)}
+                </Typography>
+                <Typography variant="body2">Km Totales Recorridos</Typography>
+              </Box>
+              <Box sx={{ textAlign: "center", p: 1 }}>
+                <Typography variant="h4" color="secondary">
+                  {reporte.cantidadCargasCombustible.toLocaleString()}
+                </Typography>
+                <Typography variant="body2">Cargas de Combustible</Typography>
+              </Box>
+              <Box sx={{ textAlign: "center", p: 1 }}>
+                <Typography variant="h4" color="secondary">
+                  {formatLitros(reporte.litrosTotales)}
+                </Typography>
+                <Typography variant="body2">Litros Totales Cargados</Typography>
+              </Box>
+              <Box sx={{ textAlign: "center", p: 1 }}>
+                <Typography variant="h4">{kmPorLitro.toFixed(1)}</Typography>
+                <Typography variant="body2">Km / Litro (Promedio)</Typography>
+              </Box>
             </Box>
           </Paper>
 
+          {chartData.length > 0 ? (
+            <Paper variant="outlined" sx={{ p: 3, mt: 3, height: 400 }}>
+              <Typography variant="h6" gutterBottom>
+                Línea de Tiempo: Viajes vs. Cargas de Combustible
+              </Typography>
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart
+                  data={chartData}
+                  margin={{
+                    top: 20,
+                    right: 30,
+                    left: 20,
+                    bottom: 20,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="fecha"
+                    tickFormatter={(dateStr) =>
+                      new Date(dateStr + "T00:00:00").toLocaleDateString(
+                        "es-AR",
+                        { day: "2-digit", month: "2-digit" }
+                      )
+                    }
+                  />
+                  <YAxis
+                    yAxisId="left"
+                    label={{
+                      value: "Km Acumulados",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    label={{
+                      value: "Litros (Lts)",
+                      angle: 90,
+                      position: "insideRight",
+                    }}
+                  />
+                  <Tooltip
+                    formatter={(value: number, name: string, props: any) => [
+                      name === "Km Acumulados"
+                        ? formatKilometros(value)
+                        : formatLitros(value),
+                      name,
+                    ]}
+                    labelFormatter={(label) =>
+                      new Date(label + "T00:00:00").toLocaleDateString(
+                        "es-AR",
+                        { dateStyle: "long" }
+                      )
+                    }
+                  />
+                  <Legend />
+                  <Bar
+                    yAxisId="right"
+                    dataKey="litros"
+                    name="Carga Combustible (Lts)"
+                    fill="#82ca9d"
+                    barSize={20}
+                  />
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="km_acumulado"
+                    name="Km Acumulados"
+                    stroke="#E65F2B"
+                    strokeWidth={2}
+                    activeDot={{ r: 8 }}
+                    dot={renderTripDot}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </Paper>
+          ) : (
+            !error && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                No hay datos suficientes de viajes o cargas en este período para
+                generar un gráfico.
+              </Alert>
+            )
+          )}
         </>
       )}
     </Paper>

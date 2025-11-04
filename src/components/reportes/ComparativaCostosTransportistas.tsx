@@ -122,6 +122,15 @@ const ComparativaCostosTransportistas: React.FC = () => {
     cargarDatosFiltros();
   }, []);
 
+  useEffect(() => {
+    setError(null);
+  }, [
+    selectedTransportistaIds,
+    selectedVehiculoId,
+    selectedCargaId,
+    selectedZonaId,
+  ]);
+
   const transportistaColorMap = useMemo(() => {
     const map = new Map<string, string>();
     transportistas.forEach((transportista, index) => {
@@ -142,17 +151,28 @@ const ComparativaCostosTransportistas: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !selectedTransportistaIds &&
-      !selectedVehiculoId &&
-      !selectedCargaId &&
-      !selectedZonaId
-    ) {
+    // --- REGLAS DE VALIDACIÓN MODIFICADAS ---
+    const transportistasSeleccionados = selectedTransportistaIds.length;
+    const criterioSeleccionado =
+      selectedVehiculoId || selectedCargaId || selectedZonaId;
+
+    // Regla 1: Siempre debe haber al menos un transportista.
+    if (transportistasSeleccionados === 0) {
       setError(
-        "Debe seleccionar al menos dos transportistas y al menos un criterio adicional (tipo de vehículo, tipo de carga o zona) para comparar."
+        "Debe seleccionar al menos un transportista para generar el reporte."
       );
       return;
     }
+
+    // Regla 2: Si hay 2 o más transportistas, DEBE haber un criterio.
+    if (transportistasSeleccionados >= 2 && !criterioSeleccionado) {
+      setError(
+        "Para comparar 2 o más transportistas, debe seleccionar al menos un criterio (vehículo, carga o zona)."
+      );
+      return;
+    }
+    // (Si se selecciona 1 transportista, pasa esta validación aunque no haya criterio)
+    // --- FIN REGLAS DE VALIDACIÓN ---
 
     setLoading(true);
     setError(null);
@@ -261,8 +281,8 @@ const ComparativaCostosTransportistas: React.FC = () => {
           Comparativa de Costos entre Transportistas
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          Seleccione transportistas y al menos un criterio (vehículo, carga o
-          zona) para ver sus costos.
+          Seleccione transportistas y (opcionalmente) criterios para ver sus
+          costos.
         </Typography>
       </Box>
 

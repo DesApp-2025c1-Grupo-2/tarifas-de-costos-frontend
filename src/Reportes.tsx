@@ -13,10 +13,10 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import CatalogoAdicionales from "./components/reportes/CatalogoAdicionales";
-// --- IMPORTAR EL NUEVO REPORTE ---
-import ComparativaVehiculosCostos from "./components/reportes/ComparativaZonasCostos"; // El nombre del archivo sigue siendo el mismo
-// --- FIN ---
-import { TransportistasMasUtilizadosReporte } from "./components/reportes/TransportistasMasUtilizadosReporte";
+// --- IMPORT ELIMINADO ---
+// import ComparativaVehiculosCostos from "./components/reportes/ComparativaZonasCostos";
+// --- IMPORT ELIMINADO ---
+// import { TransportistasMasUtilizadosReporte } from "./components/reportes/TransportistasMasUtilizadosReporte";
 import ComparativaCostosTransportistas from "./components/reportes/ComparativaCostosTransportistas";
 import ComparativaAumentosReporte from "./components/reportes/ComparativaAumentosReporte";
 import ReporteHistorialServicios from "./components/reportes/ReporteHistorialServicios";
@@ -123,27 +123,21 @@ const Reportes: React.FC = () => {
               scrollButtons="auto"
               allowScrollButtonsMobile
             >
-              {/* --- CAMBIAR LABEL DE LA TAB --- */}
-              <Tab label="Comparativa Vehículos y Costos" />
-              {/* --- FIN --- */}
+              {/* --- PESTAÑAS ELIMINADAS --- */}
               <Tab label="Uso de Combustible" />
               <Tab label="Catálogo de Adicionales" />
-              <Tab label="Transportistas Más Utilizados" />
               <Tab label="Comparativa por Transportista" />
               <Tab label="Análisis de Aumentos" />
               <Tab label="Historial de Servicios" />
             </Tabs>
           </Box>
           <Box sx={{ mt: 2 }}>
-            {/* --- CAMBIAR COMPONENTE A RENDERIZAR --- */}
-            {tabIndex === 0 && <ComparativaVehiculosCostos />}
-            {/* --- FIN --- */}
-            {tabIndex === 1 && <ReporteUsoCombustible />}
-            {tabIndex === 2 && <CatalogoAdicionales />}
-            {tabIndex === 3 && <TransportistasMasUtilizadosReporte />}
-            {tabIndex === 4 && <ComparativaCostosTransportistas />}
-            {tabIndex === 5 && <ComparativaAumentosReporte />}
-            {tabIndex === 6 && <ReporteHistorialServicios />}
+            {/* --- ÍNDICES AJUSTADOS --- */}
+            {tabIndex === 0 && <ReporteUsoCombustible />}
+            {tabIndex === 1 && <CatalogoAdicionales />}
+            {tabIndex === 2 && <ComparativaCostosTransportistas />}
+            {tabIndex === 3 && <ComparativaAumentosReporte />}
+            {tabIndex === 4 && <ReporteHistorialServicios />}
           </Box>
         </Paper>
       </Box>
