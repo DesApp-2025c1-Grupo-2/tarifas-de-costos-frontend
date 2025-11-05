@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import {
   Paper,
   Typography,
@@ -10,23 +11,14 @@ import {
   Grid,
   Card,
   CardContent,
-  Divider,
 } from "@mui/material";
-import {
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Cell,
-} from "recharts";
+// --- IMPORTACIONES DE RECHARTS ELIMINADAS ---
 import { obtenerAdicionales, Adicional } from "../../services/adicionalService";
 import {
   getFrecuenciaAdicionales,
   FrecuenciaAdicionalesParams,
 } from "../../services/reporteService";
+import { esES as esESGrid } from "@mui/x-data-grid/locales";
 
 type AdicionalConFrecuencia = Adicional & { cantidad: number };
 
@@ -38,66 +30,25 @@ const formatCurrency = (value: number | any) => {
   })}`;
 };
 
-const formatNumber = (value: number | any) => {
-  const number = Number(value) || 0;
-  return number.toLocaleString("es-AR");
-};
-
-const COLORS = [
-  "#E65F2B", // Naranja (Color principal)
-  "#2196F3", // Azul
-  "#4CAF50", // Verde
-  "#FFC107", // Amarillo
-  "#9C27B0", // Púrpura
-  "#00BCD4", // Cian
-  "#F44336", // Rojo
-  "#795548", // Marrón
-  "#FF9800", // Naranja claro
-  "#8BC34A", // Verde claro
-  "#03A9F4", // Azul claro
-  "#673AB7", // Violeta
+const columns: GridColDef[] = [
+  { field: "id", headerName: "ID", width: 90 },
+  { field: "nombre", headerName: "Nombre Adicional", flex: 1 },
+  {
+    field: "cantidad",
+    headerName: "Veces Utilizado",
+    type: "number",
+    flex: 1,
+  },
+  {
+    field: "costoDefault",
+    headerName: "Costo Base",
+    type: "number",
+    width: 150,
+    valueFormatter: (value) => formatCurrency(value),
+  },
 ];
 
-const FallbackGrafico: React.FC<{ mensaje: string }> = ({ mensaje }) => (
-  <Box
-    sx={{
-      display: "flex",
-      minHeight: 300,
-      height: "100%",
-      alignItems: "center",
-      justifyContent: "center",
-    }}
-  >
-    <Typography color="text.secondary">{mensaje}</Typography>
-  </Box>
-);
-
-const CustomTooltip: React.FC<any> = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <Paper
-        elevation={3}
-        sx={{ p: 1.5, backgroundColor: "rgba(255, 255, 255, 0.9)" }}
-      >
-        <Typography variant="subtitle2" sx={{ fontWeight: "bold" }}>
-          {data.nombre}
-        </Typography>
-        <Typography variant="body2" color="primary.main">
-          Impacto Total: {formatCurrency(data.costoTotal)}
-        </Typography>
-        <Divider sx={{ my: 0.5 }} />
-        <Typography variant="caption" display="block">
-          Veces Utilizado: {formatNumber(data.vecesUtilizado)}
-        </Typography>
-        <Typography variant="caption" display="block">
-          Costo Base: {formatCurrency(data.costoBase)}
-        </Typography>
-      </Paper>
-    );
-  }
-  return null;
-};
+// --- SE HA ELIMINADO LA FUNCIÓN renderCustomizedLabel YA QUE NO SE USARÁ ---
 
 const CatalogoAdicionales: React.FC = () => {
   const [adicionalesCombinados, setAdicionalesCombinados] = useState<
@@ -112,10 +63,13 @@ const CatalogoAdicionales: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const [adicionales, frecuencia] = await Promise.all([
+      const [adicionales, frecuenciaData] = await Promise.all([
         obtenerAdicionales(),
         getFrecuenciaAdicionales(params),
       ]);
+
+      // Si frecuenciaData es undefined (por 204) o null, trátalo como array vacío
+      const frecuencia = Array.isArray(frecuenciaData) ? frecuenciaData : [];
 
       const frecuenciaMap = new Map(
         frecuencia.map((f) => [f.nombreAdicional, f.cantidad])
@@ -127,14 +81,23 @@ const CatalogoAdicionales: React.FC = () => {
       }));
 
       setAdicionalesCombinados(combinados);
+
+      // Si se aplicó filtro pero el resultado está vacío (porque frecuenciaMap estaba vacío)
+      if ((params.fechaInicio || params.fechaFin) && frecuencia.length === 0) {
+        setError(
+          "No se encontró uso de adicionales en el período seleccionado."
+        );
+      }
     } catch (err: any) {
       console.error("Error al cargar los datos de adicionales:", err);
+      // Manejar el 204 explícitamente si el servicio (apiClient) lo lanza como error
       if (err.message.includes("204")) {
         setError(
           "No se encontró uso de adicionales en el período seleccionado."
         );
-        setAdicionalesCombinados([]);
+        setAdicionalesCombinados([]); // Limpiar datos si da 204
       } else {
+        // Manejar otros errores (ej. TypeError si la corrección 2 no estuviera)
         setError("No se pudieron cargar los datos. Intente más tarde.");
       }
     } finally {
@@ -158,17 +121,51 @@ const CatalogoAdicionales: React.FC = () => {
     return adicionalesCombinados.filter((a) => a.activo && !a.esGlobal);
   }, [adicionalesCombinados]);
 
-  const barData = useMemo(() => {
-    return datosFiltrados
-      .map((a) => ({
-        nombre: a.nombre,
-        costoBase: a.costoDefault,
-        vecesUtilizado: a.cantidad,
-        costoTotal: a.cantidad * a.costoDefault,
-      }))
-      .filter((a) => a.costoTotal > 0)
-      .sort((a, b) => b.costoTotal - a.costoTotal);
-  }, [datosFiltrados]);
+  // --- CORRECCIÓN 3: ELIMINADO calculo de costoPromedio ---
+  const kpis = useMemo(() => {
+    if (loading || datosFiltrados.length === 0) {
+      return { masUsado: null, menosUsado: null };
+    }
+
+    const usados = datosFiltrados.filter((a) => a.cantidad > 0);
+
+    let masUsado = null;
+    let menosUsado = null;
+
+    if (usados.length > 0) {
+      masUsado = usados.reduce((prev, current) =>
+        prev.cantidad > current.cantidad ? prev : current
+      );
+      menosUsado = usados.reduce((prev, current) =>
+        prev.cantidad < current.cantidad ? prev : current
+      );
+    }
+
+    return { masUsado, menosUsado };
+  }, [loading, datosFiltrados]);
+  // --- FIN CORRECCIÓN 3 ---
+
+  const KpiCard: React.FC<{
+    title: string;
+    value: string;
+    subValue?: string;
+  }> = ({ title, value, subValue }) => (
+    <Card sx={{ height: "100%" }}>
+      <CardContent sx={{ textAlign: "center" }}>
+        <Typography color="text.secondary" gutterBottom>
+          {title}
+        </Typography>
+        <Typography variant="h5" component="div">
+          {value}
+        </Typography>
+        {subValue && (
+          <Typography sx={{ mt: 0.5 }} color="text.secondary">
+            {subValue}
+          </Typography>
+        )}
+      </CardContent>
+    </Card>
+  );
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
@@ -227,78 +224,54 @@ const CatalogoAdicionales: React.FC = () => {
         <Alert severity="info">{error}</Alert>
       ) : (
         <>
-          {/* --- Contenedor del Gráfico (sin Grid) --- */}
-          <Paper
-            variant="outlined"
-            sx={{
-              p: { xs: 1, sm: 2, md: 3 },
-              mt: 4,
-              height: Math.max(500, barData.length * 60 + 100),
-              minHeight: 400,
-              display: "flex",
-              flexDirection: "column",
-              // --- SE ELIMINA EL CENTRADO ---
-              // alignItems: "center",
-              // justifyContent: "center",
-              width: "100%",
-            }}
-          >
-            <Typography variant="h6" gutterBottom align="center">
-              Impacto Económico Total por Adicional
-            </Typography>
-            {barData.length > 0 ? (
-              <Box sx={{ width: "100%", height: "100%", pt: 2 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    layout="vertical"
-                    data={barData.sort((a, b) => a.costoTotal - b.costoTotal)}
-                    margin={{
-                      top: 5,
-                      right: 40,
-                      left: 160,
-                      bottom: 20,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      type="number"
-                      label={{
-                        value: "Impacto Total ($)",
-                        position: "bottom",
-                        offset: 0,
-                      }}
-                      tickFormatter={(value) => formatCurrency(value)}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="nombre"
-                      width={150}
-                      interval={0}
-                      tick={{ fontSize: 12, fill: "#5A5A65" }}
-                    />
-                    <Tooltip
-                      cursor={{ fill: "rgba(206, 206, 206, 0.2)" }}
-                      content={<CustomTooltip />}
-                    />
-                    <Bar
-                      dataKey="costoTotal"
-                      name="Impacto Total"
-                      fill="#E65F2B"
-                    >
-                      {barData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </Box>
-            ) : (
-              <FallbackGrafico mensaje="No hay impacto económico para mostrar." />
-            )}
-          </Paper>
+          {/* --- CORRECCIÓN 4: ELIMINADA la tarjeta de Costo Promedio --- */}
+          <Grid container spacing={3} sx={{ mb: 4 }} justifyContent="center">
+            <Grid item xs={12} sm={4}>
+              <KpiCard
+                title="Adicional Más Utilizado"
+                value={kpis.masUsado?.nombre ?? "N/A"}
+                subValue={
+                  kpis.masUsado ? `${kpis.masUsado.cantidad} veces` : ""
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <KpiCard
+                title="Adicional Menos Utilizado"
+                value={kpis.menosUsado?.nombre ?? "N/A"}
+                subValue={
+                  kpis.masUsado ? `${kpis.menosUsado.cantidad} veces` : ""
+                }
+              />
+            </Grid>
+          </Grid>
+          {/* --- FIN CORRECCIÓN 4 --- */}
+
+          {/* --- BLOQUE DEL GRÁFICO DE TORTA ELIMINADO --- */}
+
+          <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+            Catálogo Completo de Adicionales Constantes
+          </Typography>
+          <Box sx={{ height: 400, width: "100%" }}>
+            <DataGrid
+              rows={datosFiltrados}
+              columns={columns}
+              initialState={{
+                pagination: {
+                  paginationModel: { page: 0, pageSize: 5 },
+                },
+                sorting: {
+                  sortModel: [{ field: "cantidad", sort: "desc" }],
+                },
+              }}
+              getRowId={(row) => row.id}
+              pageSizeOptions={[5, 10, 20]}
+              disableRowSelectionOnClick
+              localeText={
+                esESGrid.components.MuiDataGrid.defaultProps.localeText
+              }
+            />
+          </Box>
         </>
       )}
     </Paper>
