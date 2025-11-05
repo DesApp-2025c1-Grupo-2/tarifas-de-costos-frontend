@@ -1,7 +1,5 @@
 import { apiClient } from './apiClient';
-import { ComparativaZonaStats } from './reporteService';
 
-// --- CAMBIO AQUÍ: Eliminada la propiedad regionMapa ---
 export type ZonaViaje = {
   activo: boolean;
   id: number;
@@ -21,13 +19,9 @@ export type ZonaComparativa = {
   sum?: number;
 };
 
-// Tipos para filtros de reportes (si los usas)
-export type FrecuenciaAdicionalesParams = { fechaInicio?: string; fechaFin?: string; };
-export type ComparativaZonasParams = { fechaInicio?: string; fechaFin?: string; };
-
 
 const ZONAS_URL = '/api/zonas';
-const REPORTES_ZONAS_COMPARATIVA_URL = '/api/zonas/comparativa-costos'; // Usado en reportes
+
 
 export const obtenerZonas = () => apiClient.get<ZonaViaje[]>(ZONAS_URL);
 
@@ -43,15 +37,3 @@ export const actualizarZona = (id: number | string, data: Omit<ZonaViaje, 'id' |
 export const eliminarZona = (id: number | string) =>
     apiClient.baja(`${ZONAS_URL}/${id}/baja`);
 
-// Función para reporte, mantenida igual
-export async function obtenerComparativaCostosPorZona(params: ComparativaZonasParams = {}): Promise<Record<string, ComparativaZonaStats>> {
-    const qs = new URLSearchParams(params as any).toString();
-    const raw = await apiClient.get<Record<string, ComparativaZonaStats | string>>(`${REPORTES_ZONAS_COMPARATIVA_URL}?${qs}`);
-    const out: Record<string, ComparativaZonaStats> = {};
-    for (const [k, v] of Object.entries(raw)) {
-        if (typeof v !== 'string') { // Filtrar respuestas "No hay tarifas"
-            out[k] = v;
-        }
-    }
-    return out;
-}
