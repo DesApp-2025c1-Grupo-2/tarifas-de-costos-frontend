@@ -1,147 +1,51 @@
 import React, { useState } from "react";
-import Sidebar from "./components/Sidebar/Sidebar";
-import {
-  Box,
-  Paper,
-  Typography,
-  useMediaQuery,
-  useTheme,
-  IconButton,
-  Tabs,
-  Tab,
-} from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Box, Typography, Tabs, Tab } from "@mui/material";
+// Se eliminaron todas las importaciones de layout (Sidebar, Button, etc.)
 import CatalogoAdicionales from "./components/reportes/CatalogoAdicionales";
-// --- IMPORT ELIMINADO ---
-// import ComparativaVehiculosCostos from "./components/reportes/ComparativaZonasCostos";
-// --- IMPORT ELIMINADO ---
-// import { TransportistasMasUtilizadosReporte } from "./components/reportes/TransportistasMasUtilizadosReporte";
 import ComparativaCostosTransportistas from "./components/reportes/ComparativaCostosTransportistas";
 import ComparativaAumentosReporte from "./components/reportes/ComparativaAumentosReporte";
 import ReporteHistorialServicios from "./components/reportes/ReporteHistorialServicios";
 import ReporteUsoCombustible from "./components/reportes/ReporteUsoCombustible";
 
-const Reportes: React.FC = () => {
-  const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [tabIndex, setTabIndex] = useState(0);
+// Se eliminó todo el layout (Box, Sidebar, Button, state, etc.)
 
-  const handleToggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+const Reportes: React.FC = () => {
+  const [tabIndex, setTabIndex] = useState(0);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
 
-  const drawerWidth = 256;
-  const collapsedDrawerWidth = 80;
-
   return (
-    <Box
-      sx={{
-        display: "flex",
-        minHeight: "100vh",
-        backgroundColor: "#F6F7FB",
-        position: "relative",
-      }}
-    >
-      <Sidebar
-        isVisible={sidebarVisible}
-        setIsVisible={setSidebarVisible}
-        isCollapsed={isCollapsed}
-      />
-
-      {!isMobile && (
-        <IconButton
-          onClick={handleToggleCollapse}
-          sx={{
-            position: "absolute",
-            top: "28px",
-            left: isCollapsed
-              ? `${collapsedDrawerWidth}px`
-              : `${drawerWidth}px`,
-            transform: "translateX(-50%)",
-            zIndex: 1301,
-            backgroundColor: "white",
-            border: `1px solid ${theme.palette.divider}`,
-            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-            transition: "left 0.2s ease-in-out",
-            "&:hover": {
-              backgroundColor: theme.palette.grey[100],
-            },
-          }}
+    // Solo se devuelve el contenido que va dentro del <Paper>
+    <>
+      <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 3 }}>
+        Reportes Generales
+      </Typography>
+      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+        <Tabs
+          value={tabIndex}
+          onChange={handleTabChange}
+          aria-label="tabs reportes"
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
         >
-          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </IconButton>
-      )}
-
-      {isMobile && !sidebarVisible && (
-        <IconButton
-          aria-label="open drawer"
-          onClick={() => setSidebarVisible(true)}
-          sx={{
-            position: "absolute",
-            top: 16,
-            left: 16,
-            zIndex: 1300,
-            border: `1px solid ${theme.palette.grey[400]}`,
-            borderRadius: "8px",
-            "&:hover": {
-              backgroundColor: "rgba(0, 0, 0, 0.04)",
-            },
-          }}
-        >
-          <MenuIcon sx={{ color: "text.primary" }} />
-        </IconButton>
-      )}
-
-      <Box
-        component="main"
-        sx={{ flexGrow: 1, p: 3, width: "100%", overflowX: "hidden" }}
-      >
-        <Paper
-          sx={{
-            p: { xs: 2, md: 4 },
-            pt: { xs: 8, md: 4 },
-            borderRadius: "8px",
-            boxShadow: "none",
-          }}
-        >
-          <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 3 }}>
-            Reportes Generales
-          </Typography>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <Tabs
-              value={tabIndex}
-              onChange={handleTabChange}
-              aria-label="tabs reportes"
-              variant="scrollable"
-              scrollButtons="auto"
-              allowScrollButtonsMobile
-            >
-              {/* --- PESTAÑAS ELIMINADAS --- */}
-              <Tab label="Uso de Combustible" />
-              <Tab label="Catálogo de Adicionales" />
-              <Tab label="Comparativa por Transportista" />
-              <Tab label="Análisis de Aumentos" />
-              <Tab label="Historial de Servicios" />
-            </Tabs>
-          </Box>
-          <Box sx={{ mt: 2 }}>
-            {/* --- ÍNDICES AJUSTADOS --- */}
-            {tabIndex === 0 && <ReporteUsoCombustible />}
-            {tabIndex === 1 && <CatalogoAdicionales />}
-            {tabIndex === 2 && <ComparativaCostosTransportistas />}
-            {tabIndex === 3 && <ComparativaAumentosReporte />}
-            {tabIndex === 4 && <ReporteHistorialServicios />}
-          </Box>
-        </Paper>
+          <Tab label="Uso de Combustible" />
+          <Tab label="Catálogo de Adicionales" />
+          <Tab label="Comparativa por Transportista" />
+          <Tab label="Análisis de Aumentos" />
+          <Tab label="Historial de Servicios" />
+        </Tabs>
       </Box>
-    </Box>
+      <Box sx={{ mt: 2 }}>
+        {tabIndex === 0 && <ReporteUsoCombustible />}
+        {tabIndex === 1 && <CatalogoAdicionales />}
+        {tabIndex === 2 && <ComparativaCostosTransportistas />}
+        {tabIndex === 3 && <ComparativaAumentosReporte />}
+        {tabIndex === 4 && <ReporteHistorialServicios />}
+      </Box>
+    </>
   );
 };
 

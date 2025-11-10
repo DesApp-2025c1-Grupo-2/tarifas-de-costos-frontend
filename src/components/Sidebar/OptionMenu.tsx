@@ -7,6 +7,7 @@ import {
   ListItemText,
   Tooltip,
   Link,
+  useTheme, // <-- Importamos useTheme
 } from "@mui/material";
 
 interface OptionMenuProps {
@@ -26,10 +27,11 @@ export default function OptionMenu({
   title,
   link = "",
   isExternal = false,
-  isSubmenu = false,
+  isSubmenu = false, // <-- Esta prop es la clave
 }: OptionMenuProps) {
   const location = useLocation();
   const [isActive, setIsActive] = useState(false);
+  const theme = useTheme(); // <-- Obtenemos el tema
 
   useEffect(() => {
     if (isExternal) {
@@ -37,39 +39,71 @@ export default function OptionMenu({
       return;
     }
     const currentPathname = location.pathname;
-    // Manejo especial para la ruta raíz
+    const targetPath = `/${link}`;
+
     if (link === "" && currentPathname === "/") {
       setIsActive(true);
       return;
     }
-    const targetPath = `/${link}`;
+    if (link === "tarifas" && currentPathname === "/") {
+      setIsActive(true);
+      return;
+    }
+
     setIsActive(link ? currentPathname.startsWith(targetPath) : false);
   }, [location, link, isExternal]);
 
-  const activeColor = "white";
-  const inactiveColor = "#5A5A65";
+  // --- INICIO DE LA CORRECCIÓN ---
+
+  // Colores para el estado ACTIVO o HOVER DE SUBMENÚ
+  const activeBackgroundColor = theme.palette.primary.main; // Ámbar
+  const activeColor = "white"; // Blanco
+
+  // Colores para el estado INACTIVO
+  const inactiveColor = "#5A5A65"; // Gris
+  const inactiveHoverColor = theme.palette.action.hover; // Gris claro
 
   const buttonContent = (
     <ListItemButton
       onClick={onClick}
-      selected={isActive}
+      selected={isActive} // Controla el estado "activo"
       sx={{
         borderRadius: 2,
         minHeight: 48,
         justifyContent: isCollapsed ? "center" : "initial",
         px: 2.5,
-        pl: isSubmenu && !isCollapsed ? 4 : 2.5, // Indentación para submenú
+        pl: isSubmenu && !isCollapsed ? 4 : 2.5,
         mb: 1,
-        color: "text.secondary",
+        color: "text.secondary", // Color de texto por defecto (gris)
+
+        "& .MuiListItemIcon-root": {
+          color: inactiveColor, // Ícono gris por defecto
+        },
+
+        // Estilo cuando está ACTIVO (selected={true})
+        // (Esto se aplica a "Inicio" o "Tarifas" si están activos)
         "&.Mui-selected": {
-          backgroundColor: "primary.main",
-          color: "white",
+          backgroundColor: activeBackgroundColor, // Fondo Ámbar
+          color: activeColor, // Texto Blanco
+          "& .MuiListItemIcon-root": {
+            color: activeColor, // Ícono Blanco
+          },
           "&:hover": {
-            backgroundColor: "primary.dark",
+            backgroundColor: theme.palette.primary.dark, // Ámbar más oscuro
           },
         },
+
+        // Estilo cuando pasas el mouse (HOVER) y NO está activo
         "&:hover": {
-          backgroundColor: "action.hover",
+          // Si es Submenú ("Tarifas"), pon fondo Ámbar/texto Blanco
+          // Si NO es Submenú ("Inicio"), pon fondo Gris Claro/texto Gris
+          backgroundColor: isSubmenu
+            ? activeBackgroundColor
+            : inactiveHoverColor,
+          color: isSubmenu ? activeColor : inactiveColor,
+          "& .MuiListItemIcon-root": {
+            color: isSubmenu ? activeColor : inactiveColor,
+          },
         },
       }}
     >
@@ -78,10 +112,9 @@ export default function OptionMenu({
           minWidth: 0,
           mr: isCollapsed ? "auto" : 3,
           justifyContent: "center",
-          color: isActive ? activeColor : inactiveColor,
         }}
       >
-        <IconComponent color={isActive ? activeColor : inactiveColor} />
+        <IconComponent />
       </ListItemIcon>
       <ListItemText
         primary={title}
@@ -95,13 +128,15 @@ export default function OptionMenu({
     </ListItemButton>
   );
 
+  // --- FIN DE LA CORRECCIÓN ---
+
   return (
     <ListItem disablePadding sx={{ display: "block" }}>
       <Tooltip title={isCollapsed ? title : ""} placement="right">
         {isExternal ? (
           <Link
             href={link}
-            target="_self" // Cambiado para navegar en la misma pestaña
+            target="_self"
             rel="noopener noreferrer"
             underline="none"
             color="inherit"

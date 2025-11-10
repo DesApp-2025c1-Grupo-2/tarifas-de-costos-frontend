@@ -7,6 +7,7 @@ import {
   useMediaQuery,
   List,
   Tooltip,
+  Divider, // Importamos el Divider
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Home, Route, ClipboardList, Coins } from "lucide-react";
@@ -60,7 +61,6 @@ export default function Sidebar({
   };
 
   useEffect(() => {
-    // Para asegurar que la sección de costos esté abierta por defecto en esta app
     const isCostosApp =
       window.location.host.includes("tarifas-de-costo") ||
       window.location.port === "8080";
@@ -102,7 +102,14 @@ export default function Sidebar({
         </Tooltip>
       </Toolbar>
 
-      <List sx={{ flexGrow: 1, p: 1, pt: 0, overflowY: "auto" }}>
+      {/* Esta es la línea divisoria que agregamos */}
+      <Divider />
+
+      {/* --- INICIO DE LA CORRECCIÓN --- */}
+      {/* Cambiamos pt: 1 por pt: 2 para más espacio */}
+      <List sx={{ flexGrow: 1, p: 1, pt: 2, overflowY: "auto" }}>
+        {/* --- FIN DE LA CORRECCIÓN --- */}
+
         {menuItems.map((item) => {
           if (item.key === "inicio") {
             return (
