@@ -48,24 +48,28 @@ const servicioAdaptado: CrudService<Adicional> = {
 type AdicionalConFrecuencia = Adicional & { cantidad: number };
 
 export const AdicionalForm: React.FC = () => {
+  // --- INICIO CORRECCIÓN 1: Dejar de usar confirmDelete y confirmOpen del hook ---
   const {
     editingItem,
     showForm,
     message,
-    confirmOpen,
-    setConfirmOpen,
-    confirmDelete,
     highlightedId,
     setMessage,
+    setHighlightedId,
     actions,
   } = useCrud<Adicional>(servicioAdaptado);
+  // --- FIN CORRECCIÓN 1 ---
 
   const [items, setItems] = useState<AdicionalConFrecuencia[]>([]);
   const [modalPromoverAbierto, setModalPromoverAbierto] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const fetchItems = useCallback(async () => {
-    setMessage(null);
+  // --- INICIO CORRECCIÓN 2: Añadir estado local para el diálogo de confirmación ---
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [idToDelete, setIdToDelete] = useState<number | string | null>(null);
+  // --- FIN CORRECCIÓN 2 ---
+
+  const loadItems = useCallback(async () => {
     try {
       const [adicionales, frecuenciaData] = await Promise.all([
         adicionalService.obtenerAdicionales(),
@@ -77,7 +81,7 @@ export const AdicionalForm: React.FC = () => {
         frecuencia.map((f) => [f.nombreAdicional, f.cantidad])
       );
 
-      const combinados = adicionales.map((a: Adicional) => ({ // <-- Tipo explícito para 'a'
+      const combinados = adicionales.map((a: Adicional) => ({
         ...a,
         cantidad: frecuenciaMap.get(a.nombre) ?? 0,
       }));
@@ -85,50 +89,107 @@ export const AdicionalForm: React.FC = () => {
       setItems(combinados);
     } catch (error) {
       console.error("Error al cargar los adicionales con frecuencia:", error);
-      setMessage({
-        text: "Error al cargar los datos.",
-        severity: "error",
-      });
+      if (items.length === 0) {
+        setMessage({
+          text: "Error al cargar los datos.",
+          severity: "error",
+        });
+      }
     }
-  }, [setMessage]);
+  }, [setMessage, items.length]);
 
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    loadItems();
+  }, [loadItems]);
+
+  // --- INICIO CORRECCIÓN 3: Crear funciones locales de borrado ---
+  const handleDelete = (item: Adicional) => {
+    setIdToDelete(item.id);
+    setConfirmOpen(true);
+  };
+
+  const localConfirmDelete = async () => {
+    if (idToDelete === null) return;
+    setIsSaving(true);
+    setMessage(null); // Limpiar mensajes anteriores
+    try {
+      await servicioAdaptado.remove(idToDelete);
+      // Mensaje personalizado
+      setMessage({
+        text: "Adicional dado de baja con éxito.",
+        severity: "success",
+      });
+      await loadItems();
+      // Timeout para el mensaje de éxito
+      setTimeout(() => setMessage(null), 4000);
+    } catch (err: any) {
+      console.error(err);
+      const cleanError = getHumanReadableError(err);
+      setMessage({ text: cleanError, severity: "error" });
+      // Timeout para el mensaje de error
+      setTimeout(() => setMessage(null), 8000);
+    } finally {
+      setConfirmOpen(false);
+      setIdToDelete(null);
+      setIsSaving(false);
+    }
+  };
+  // --- FIN CORRECCIÓN 3 ---
 
   const handleFormSubmit = async (formValues: Record<string, any>) => {
     setIsSaving(true);
     setMessage(null);
-    // Asegurarse de que 'activo' se incluya y sea boolean
-    const esActivo = editingItem ? editingItem.activo : true; // Mantiene el estado activo o default a true
+    const esActivo = editingItem ? editingItem.activo : true;
     const data: Omit<Adicional, "id"> = {
       nombre: formValues.nombre,
       descripcion: formValues.descripcion,
       costoDefault: Number(formValues.costoDefault),
-      esGlobal: formValues.esGlobal === true, // Conversión explícita
-      activo: esActivo, // Incluir estado activo
+      esGlobal: formValues.esGlobal === true,
+      activo: esActivo,
     };
 
     try {
-      await actions.handleSubmit(data);
-      await fetchItems();
+      let changedItem: Adicional;
+      if (editingItem) {
+        changedItem = await servicioAdaptado.update(editingItem.id, data);
+        setMessage({
+          text: "Adicional actualizado con éxito.",
+          severity: "success",
+        });
+      } else {
+        changedItem = await servicioAdaptado.create(data);
+        setMessage({
+          text: "Adicional creado con éxito.",
+          severity: "success",
+        });
+      }
+
+      actions.handleCancel();
+      await loadItems();
+
+      setHighlightedId(changedItem.id);
+      setTimeout(() => setHighlightedId(null), 4000);
+
+      setTimeout(() => setMessage(null), 4000);
     } catch (err: any) {
       console.error("Error en handleFormSubmit:", err);
+      const cleanError = getHumanReadableError(err);
+      setMessage({ text: cleanError, severity: "error" });
+      setTimeout(() => setMessage(null), 8000);
     } finally {
       setIsSaving(false);
     }
   };
 
-
   const handlePromoverSubmit = async (adicional: Adicional) => {
     setIsSaving(true);
     setMessage(null);
     try {
-      const { id, ...rest } = adicional; // Separa el id del resto de las propiedades
-      const payload: Omit<Adicional, 'id'> = {
-          ...rest, // Incluye nombre, descripcion, costoDefault
-          esGlobal: false, // Cambia esGlobal a false
-          activo: true // Asegura que permanezca activo
+      const { id, ...rest } = adicional;
+      const payload: Omit<Adicional, "id"> = {
+        ...rest,
+        esGlobal: false,
+        activo: true,
       };
 
       await adicionalService.actualizarAdicional(id, payload);
@@ -136,7 +197,7 @@ export const AdicionalForm: React.FC = () => {
         text: "Adicional promovido con éxito.",
         severity: "success",
       });
-      await fetchItems();
+      await loadItems();
     } catch (error: any) {
       console.error("Error al promover adicional:", error);
       const errorMsg = getHumanReadableError(error);
@@ -157,7 +218,10 @@ export const AdicionalForm: React.FC = () => {
         <BotonPrimario onClick={actions.handleCreateNew} disabled={isSaving}>
           Crear Adicional
         </BotonPrimario>
-        <BotonSecundario onClick={() => setModalPromoverAbierto(true)} disabled={isSaving}>
+        <BotonSecundario
+          onClick={() => setModalPromoverAbierto(true)}
+          disabled={isSaving}
+        >
           Promover Flotante
         </BotonSecundario>
       </Box>
@@ -182,28 +246,25 @@ export const AdicionalForm: React.FC = () => {
         onPromover={handlePromoverSubmit}
       />
 
+      {/* --- INICIO CORRECCIÓN 4: Usar la función de borrado local --- */}
       <DataTable
         entidad="adicional"
         rows={adicionalesConstantes}
         handleEdit={actions.handleEdit}
-        handleDelete={actions.handleDelete} // Ahora hace baja lógica
+        handleDelete={handleDelete} // <-- Usar la función local
         highlightedId={highlightedId}
         actionsDisabled={isSaving}
       />
 
       <DialogoConfirmacion
-        open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
-        onConfirm={async () => {
-          setIsSaving(true);
-          await confirmDelete();
-          await fetchItems();
-          setIsSaving(false);
-        }}
+        open={confirmOpen} // <-- Usar estado local
+        onClose={() => setConfirmOpen(false)} // <-- Usar estado local
+        onConfirm={localConfirmDelete} // <-- Usar función local
         titulo="Confirmar baja de adicional"
         descripcion="¿Estás seguro de que deseas dar de baja este adicional?"
         textoConfirmar="Dar de Baja"
       />
+      {/* --- FIN CORRECCIÓN 4 --- */}
 
       {message && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>

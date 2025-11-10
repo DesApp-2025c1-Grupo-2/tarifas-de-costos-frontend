@@ -112,12 +112,14 @@ export const FormCrearZona: React.FC = () => {
     setMessage(null);
   };
 
+  // --- INICIO DE LA CORRECCIÓN 1 ---
+  // Se elimina setMessage(null) de handleCancel
   const handleCancel = () => {
     setShowForm(false);
     setEditingItem(null);
     setSelectedProvincesForMap([]); // Limpiar mapa al cancelar
-    setMessage(null);
   };
+  // --- FIN DE LA CORRECCIÓN 1 ---
 
   const handleDelete = (zona: ZonaViaje) => {
     setIdToDelete(zona.id);
@@ -197,8 +199,10 @@ export const FormCrearZona: React.FC = () => {
   }, [initialValuesForForm, editingItem]);
   // --- FIN useEffect MAPA ---
 
+  // --- INICIO DE LA CORRECCIÓN 2 ---
+  // Se mueven los setTimeout para limpiar los mensajes DENTRO de try/catch
+  // y se elimina el bloque 'finally' que borraba el mensaje de éxito.
   const handleFormSubmit = async (formValues: Record<string, any>) => {
-    // ... (sin cambios en handleFormSubmit)
     setIsSaving(true);
     setMessage(null);
     const data = {
@@ -221,21 +225,26 @@ export const FormCrearZona: React.FC = () => {
         changedItem = await zonaService.crearZona(data);
         setMessage({ text: "Zona creada con éxito.", severity: "success" });
       }
-      handleCancel();
+      handleCancel(); // Esta llamada ya es segura
       await loadItems();
       setHighlightedId(changedItem.id);
       setTimeout(() => setHighlightedId(null), 4000);
+
+      // Limpiar mensaje de ÉXITO después de 5 segundos
+      setTimeout(() => setMessage(null), 5000);
     } catch (err: any) {
       console.error("Error al guardar la zona:", err);
       const errorMsg = err.message || `Error al guardar la zona.`;
       setMessage({ text: errorMsg, severity: "error" });
+
+      // Limpiar mensaje de ERROR después de 5 segundos
+      setTimeout(() => setMessage(null), 5000);
     } finally {
       setIsSaving(false);
-      setTimeout(() => {
-        if (message?.severity !== "error") setMessage(null);
-      }, 5000);
+      // Se elimina el setTimeout de aquí
     }
   };
+  // --- FIN DE LA CORRECCIÓN 2 ---
 
   return (
     <div>

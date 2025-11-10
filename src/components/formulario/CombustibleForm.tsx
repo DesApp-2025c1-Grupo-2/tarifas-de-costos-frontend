@@ -80,16 +80,22 @@ export const CombustibleForm: React.FC = () => {
     if (idAEliminar !== null) {
       try {
         await cargaDeCombustibleService.eliminarCargaDeCombustible(idAEliminar);
+
+        // --- INICIO DE LA CORRECCIÓN ---
         setMessage({
-          text: "Carga eliminada con éxito",
+          text: "Carga de combustible eliminada con éxito",
           severity: "success",
         });
+        // --- FIN DE LA CORRECCIÓN ---
+
         await cargarDatos();
       } catch (err) {
+        // --- INICIO DE LA CORRECCIÓN (Error) ---
         setMessage({
-          text: "Error al eliminar la carga",
+          text: "Error al eliminar la carga de combustible",
           severity: "error",
         });
+        // --- FIN DE LA CORRECCIÓN (Error) ---
       } finally {
         setConfirmDialogOpen(false);
         setIdAEliminar(null);
@@ -119,12 +125,15 @@ export const CombustibleForm: React.FC = () => {
           payload
         );
         setMessage({
-          text: "Carga actualizada con éxito",
+          text: "Carga de combustible actualizada con éxito",
           severity: "success",
         });
       } else {
         await cargaDeCombustibleService.crearCargaDeCombustible(payload as any);
-        setMessage({ text: "Carga registrada con éxito", severity: "success" });
+        setMessage({
+          text: "Carga de combustible registrada con éxito",
+          severity: "success",
+        });
       }
       handleCancel();
       await cargarDatos();
@@ -194,13 +203,11 @@ export const CombustibleForm: React.FC = () => {
 
   return (
     <div>
-      {/* --- BOTÓN MOVIDO --- */}
       <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
         <BotonPrimario onClick={handleCreateNew} disabled={isLoading}>
           Registrar Carga de Combustible
         </BotonPrimario>
       </Box>
-      {/* --- FIN DEL CAMBIO --- */}
 
       {showForm && (
         <FormularioDinamico
@@ -224,11 +231,9 @@ export const CombustibleForm: React.FC = () => {
           rows={enrichedRows}
           handleEdit={handleEdit}
           handleDelete={handleDelete}
-          // --- PROPS PASADOS AL DATATABLE ---
           showHistoricoSwitch={true}
           historicoChecked={mostrarHistorico}
           onHistoricoChange={(e) => setMostrarHistorico(e.target.checked)}
-          // --- FIN ---
         />
       )}
 
@@ -245,6 +250,7 @@ export const CombustibleForm: React.FC = () => {
           <Alert
             severity={message.severity}
             sx={{ width: "100%", maxWidth: "600px" }}
+            onClose={() => setMessage(null)} // Permitir cierre manual
           >
             {message.text}
           </Alert>
