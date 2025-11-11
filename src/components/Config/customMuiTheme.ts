@@ -24,17 +24,21 @@ declare module "@mui/material/styles" {
 }
 
 // --- Paleta de colores ---
-const colorPrimario = '#fddca8ff';     // Naranja-Ámbar (para fondos de selección)
+const colorPrimario = '#ffe7c0ff';     // Naranja-Ámbar (para fondos de selección)
 const colorSecundario = '#E65F2B'; // Naranja Fuerte (para texto/ícono sobre el ámbar)
 // --- Fin Paleta de colores ---
 
 export const customMuiTheme = createTheme({
   palette: {
     primary: {
-      main: colorPrimario, // ÁMBAR
+      // --- INICIO DE LA MODIFICACIÓN ---
+      main: colorSecundario, // NARANJA FUERTE
+      // --- FIN DE LA MODIFICACIÓN ---
     },
     secondary: {
-      main: colorSecundario, // NARANJA FUERTE
+      // --- INICIO DE LA MODIFICACIÓN ---
+      main: colorPrimario, // ÁMBAR
+      // --- FIN DE LA MODIFICACIÓN ---
     },
     error: {
       main: '#DD5050',
@@ -153,10 +157,10 @@ export const customMuiTheme = createTheme({
           "& .MuiOutlinedInput-root": {
             //... (tus otras reglas)
             "&:hover fieldset": {
-              borderColor: colorPrimario, // Borde ámbar en hover
+              borderColor: colorSecundario, // Borde NARANJA en hover
             },
             "&.Mui-focused fieldset": {
-              borderColor: colorPrimario, // Borde ámbar en focus
+              borderColor: colorSecundario, // Borde NARANJA en focus
             },
           },
         },
@@ -230,7 +234,7 @@ export const customMuiTheme = createTheme({
             borderColor: "#5A5A65", 
           },
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: colorPrimario, // Borde ámbar en focus
+            borderColor: colorSecundario, // Borde NARANJA en focus
           },
         },
       },
@@ -241,7 +245,7 @@ export const customMuiTheme = createTheme({
           "& .MuiOutlinedInput-root": {
             //... (tus otras reglas)
             "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: colorPrimario, // Borde ámbar en focus
+              borderColor: colorSecundario, // Borde NARANJA en focus
             },
           },
         },

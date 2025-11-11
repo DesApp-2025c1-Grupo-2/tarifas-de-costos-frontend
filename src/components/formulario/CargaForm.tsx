@@ -7,6 +7,7 @@ import { Carga } from "../../services/cargaService";
 import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
 import { Box, Alert } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add"; // <-- Importar AddIcon
 import DialogoConfirmacion from "../DialogoConfirmacion";
 import { getHumanReadableError } from "../../utils/errorUtils";
 
@@ -124,13 +125,18 @@ export const FormCrearCarga: React.FC = () => {
 
   return (
     <div>
+      {/* --- INICIO DE LA MODIFICACIÓN --- */}
       {!showForm && (
-        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-          <BotonPrimario onClick={actions.handleCreateNew}>
-            Crear nuevo Tipo de Carga
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+          <BotonPrimario
+            onClick={actions.handleCreateNew}
+            startIcon={<AddIcon />}
+          >
+            Nuevo Tipo de Carga
           </BotonPrimario>
         </Box>
       )}
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       {showForm && (
         <FormularioDinamico

@@ -14,6 +14,7 @@ import {
   CircularProgress,
   Typography,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add"; // <-- Importar AddIcon
 import DialogoConfirmacion from "../DialogoConfirmacion";
 import { Provincia, obtenerProvincias } from "../../services/provinciaService";
 import { MapaArgentina } from "./provincias/MapaArgentina"; // <-- Importa el mapa nuevamente
@@ -248,13 +249,15 @@ export const FormCrearZona: React.FC = () => {
 
   return (
     <div>
+      {/* --- INICIO DE LA MODIFICACIÓN --- */}
       {!showForm && (
-        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
           <BotonPrimario
             onClick={handleCreateNew}
             disabled={isLoading || !dependenciesLoaded}
+            startIcon={<AddIcon />}
           >
-            Crear nueva zona
+            Nueva Zona
           </BotonPrimario>
           {isLoading && (
             <Typography
@@ -266,6 +269,7 @@ export const FormCrearZona: React.FC = () => {
           )}
         </Box>
       )}
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       {showForm && (
         // --- VUELVE A AÑADIR EL LAYOUT DE DOS COLUMNAS ---
@@ -281,7 +285,11 @@ export const FormCrearZona: React.FC = () => {
           {/* Columna 1: Formulario */}
           <Paper
             elevation={0}
-            sx={{ p: { xs: 2, md: 4 }, borderRadius: "8px" }}
+            sx={{
+              p: { xs: 2, md: 4 },
+              borderRadius: "8px",
+              backgroundColor: "white",
+            }}
           >
             <FormularioDinamico
               titulo={editingItem ? "Editar Zona" : "Registrar nueva zona"}
@@ -324,6 +332,7 @@ export const FormCrearZona: React.FC = () => {
             sx={{
               p: { xs: 2, md: 4 },
               borderRadius: "8px",
+              backgroundColor: "white",
               // Asegurar altura mínima o específica si es necesario
               height: { xs: "300px", md: "100%" }, // Ajusta altura según necesites
               minHeight: "300px", // Altura mínima

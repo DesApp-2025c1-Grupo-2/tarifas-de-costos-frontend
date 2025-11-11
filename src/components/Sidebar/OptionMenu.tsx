@@ -27,11 +27,18 @@ export default function OptionMenu({
   title,
   link = "",
   isExternal = false,
-  isSubmenu = false, // <-- Esta prop es la clave
+  isSubmenu = false,
 }: OptionMenuProps) {
   const location = useLocation();
   const [isActive, setIsActive] = useState(false);
   const theme = useTheme(); // <-- Obtenemos el tema
+
+  // --- INICIO DE LA MODIFICACIÓN DE COLORES ---
+  // Invertimos la lógica para que el Sidebar mantenga los colores originales
+  const colorFondoSidebar = theme.palette.secondary.main; // <-- ÁMBAR (ahora es secondary)
+  const colorTextoActivo = theme.palette.primary.main; // <-- NARANJA (ahora es primary)
+  const colorGris = "#5A5A65"; // Gris (texto inactivo/hover)
+  // --- FIN DE LA MODIFICACIÓN DE COLORES ---
 
   useEffect(() => {
     if (isExternal) {
@@ -53,16 +60,6 @@ export default function OptionMenu({
     setIsActive(link ? currentPathname.startsWith(targetPath) : false);
   }, [location, link, isExternal]);
 
-  // --- INICIO DE LA CORRECCIÓN ---
-
-  // Colores para el estado ACTIVO o HOVER DE SUBMENÚ
-  const activeBackgroundColor = theme.palette.primary.main; // Ámbar
-  const activeColor = "white"; // Blanco
-
-  // Colores para el estado INACTIVO
-  const inactiveColor = "#5A5A65"; // Gris
-  const inactiveHoverColor = theme.palette.action.hover; // Gris claro
-
   const buttonContent = (
     <ListItemButton
       onClick={onClick}
@@ -74,35 +71,38 @@ export default function OptionMenu({
         px: 2.5,
         pl: isSubmenu && !isCollapsed ? 4 : 2.5,
         mb: 1,
-        color: "text.secondary", // Color de texto por defecto (gris)
 
+        // 1. Estado Inactivo (Default)
+        color: colorGris,
+        backgroundColor: "transparent",
         "& .MuiListItemIcon-root": {
-          color: inactiveColor, // Ícono gris por defecto
+          color: colorGris,
         },
 
-        // Estilo cuando está ACTIVO (selected={true})
-        // (Esto se aplica a "Inicio" o "Tarifas" si están activos)
+        // 2. Estado Activo (Fondo Ámbar, Texto Naranja)
         "&.Mui-selected": {
-          backgroundColor: activeBackgroundColor, // Fondo Ámbar
-          color: activeColor, // Texto Blanco
+          backgroundColor: colorFondoSidebar, // <-- Ámbar
+          color: colorTextoActivo, // <-- Naranja
           "& .MuiListItemIcon-root": {
-            color: activeColor, // Ícono Blanco
-          },
-          "&:hover": {
-            backgroundColor: theme.palette.primary.dark, // Ámbar más oscuro
+            color: colorTextoActivo, // <-- Naranja
           },
         },
 
-        // Estilo cuando pasas el mouse (HOVER) y NO está activo
+        // 3. Estado Hover (Inactivo) (Fondo Ámbar, Texto Gris)
         "&:hover": {
-          // Si es Submenú ("Tarifas"), pon fondo Ámbar/texto Blanco
-          // Si NO es Submenú ("Inicio"), pon fondo Gris Claro/texto Gris
-          backgroundColor: isSubmenu
-            ? activeBackgroundColor
-            : inactiveHoverColor,
-          color: isSubmenu ? activeColor : inactiveColor,
+          backgroundColor: colorFondoSidebar, // <-- Ámbar
+          color: colorGris,
           "& .MuiListItemIcon-root": {
-            color: isSubmenu ? activeColor : inactiveColor,
+            color: colorGris,
+          },
+        },
+
+        // 4. Hover sobre un ítem Activo (Fondo Ámbar, Texto Naranja)
+        "&.Mui-selected:hover": {
+          backgroundColor: colorFondoSidebar, // <-- Ámbar
+          color: colorTextoActivo, // <-- Naranja
+          "& .MuiListItemIcon-root": {
+            color: colorTextoActivo, // <-- Naranja
           },
         },
       }}
@@ -112,6 +112,7 @@ export default function OptionMenu({
           minWidth: 0,
           mr: isCollapsed ? "auto" : 3,
           justifyContent: "center",
+          color: "inherit", // Hereda el color del ListItemButton
         }}
       >
         <IconComponent />
@@ -120,6 +121,7 @@ export default function OptionMenu({
         primary={title}
         sx={{
           opacity: isCollapsed ? 0 : 1,
+          color: "inherit", // Hereda el color del ListItemButton
           "& .MuiTypography-root": {
             fontWeight: isActive ? 500 : 400,
           },
@@ -127,8 +129,6 @@ export default function OptionMenu({
       />
     </ListItemButton>
   );
-
-  // --- FIN DE LA CORRECCIÓN ---
 
   return (
     <ListItem disablePadding sx={{ display: "block" }}>

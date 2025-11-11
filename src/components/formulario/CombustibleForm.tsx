@@ -13,6 +13,7 @@ import * as cargaDeCombustibleService from "../../services/cargaDeCombustibleSer
 import { CargaDeCombustible } from "../../services/cargaDeCombustibleService";
 import { obtenerVehiculo, Vehiculo } from "../../services/vehiculoService";
 import { MessageState } from "../hook/useCrud";
+import AddIcon from "@mui/icons-material/Add"; // <-- Importar AddIcon
 import DialogoConfirmacion from "../DialogoConfirmacion";
 
 const getISODate30DaysAgo = () => {
@@ -203,11 +204,17 @@ export const CombustibleForm: React.FC = () => {
 
   return (
     <div>
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
-        <BotonPrimario onClick={handleCreateNew} disabled={isLoading}>
-          Registrar Carga de Combustible
+      {/* --- INICIO DE LA MODIFICACIÓN --- */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mb: 3 }}>
+        <BotonPrimario
+          onClick={handleCreateNew}
+          disabled={isLoading}
+          startIcon={<AddIcon />}
+        >
+          Nueva Carga
         </BotonPrimario>
       </Box>
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       {showForm && (
         <FormularioDinamico

@@ -1,6 +1,14 @@
 import React, { useState, useMemo } from "react";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { Card, CardHeader, CardContent, Alert } from "@mui/material";
+// --- INICIO MODIFICACIÓN 1: Importar Divider y Grid ---
+import {
+  Paper,
+  Collapse,
+  Alert,
+  Divider, // <-- Importar Divider
+  Grid, // <-- Importar Grid
+} from "@mui/material";
+// --- FIN MODIFICACIÓN 1 ---
 import { columnas, Entidad } from "./columnas";
 import {
   Box,
@@ -11,15 +19,13 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
+  // --- Se quitan imports de Accordion ---
   Tooltip,
   IconButton,
   FormControlLabel, // <-- Importar
   Switch, // <-- Importar
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FilterListIcon from "@mui/icons-material/FilterList"; // <-- Importar ícono de Filtro
 import HistoryIcon from "@mui/icons-material/History";
 import EntityCard, { CardConfig } from "./EntityCard";
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
@@ -35,11 +41,9 @@ interface DataTableProps {
   handleMostrarHistorial?: (tarifaId: number) => void;
   highlightedId?: number | string | null;
   actionsDisabled?: boolean;
-  // --- AÑADIR NUEVOS PROPS ---
   showHistoricoSwitch?: boolean;
   historicoChecked?: boolean;
   onHistoricoChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  // --- FIN ---
 }
 
 const cardConfigs: Record<Entidad, CardConfig> = {
@@ -120,17 +124,6 @@ const cardConfigs: Record<Entidad, CardConfig> = {
   },
 };
 
-const titulosEntidad: Record<Entidad, string> = {
-  tarifa: "Tarifas",
-  transportista: "Transportistas",
-  vehiculo: "Vehículos",
-  tipoDeVehiculo: "Tipos de Vehículo",
-  tipoDeCarga: "Tipos de Carga",
-  zona: "Zonas",
-  adicional: "Adicionales",
-  combustible: "Cargas de Combustible",
-};
-
 const highlightAnimation = keyframes`
   0% { background-color: rgba(124, 179, 66, 0.4); }
   100% { background-color: transparent; }
@@ -146,7 +139,6 @@ export default function DataTable({
   handleMostrarHistorial,
   highlightedId,
   actionsDisabled = false,
-  // --- RECIBIR NUEVOS PROPS ---
   showHistoricoSwitch = false,
   historicoChecked = false,
   onHistoricoChange,
@@ -155,6 +147,7 @@ export default function DataTable({
   const esMovil = useMediaQuery(theme.breakpoints.down("md"));
   const columnasBase = columnas[entidad];
   const [filtros, setFiltros] = useState<{ [key: string]: string }>({});
+  const [filtrosVisibles, setFiltrosVisibles] = useState(false);
 
   const rowsFiltrados = useMemo(() => {
     if (!rows) return [];
@@ -345,30 +338,81 @@ export default function DataTable({
     );
   }
 
+  // Mapeo de campos a títulos de filtro
+  const filterTitles: { [key: string]: string } = {
+    // Tarifas
+    id: "ID",
+    nombreTarifa: "Nombre de Tarifa",
+    transportistaNombre: "Transportista",
+    tipoVehiculoNombre: "Tipo de Vehículo",
+    zonaNombre: "Zona",
+    tipoCargaNombre: "Tipo de Carga",
+    valorBase: "Costo Base",
+    total: "Costo Total",
+    // Transportistas
+    cuit: "CUIT",
+    nombre_comercial: "Nombre Comercial",
+    contactoNombre: "Nombre de Contacto",
+    contactoEmail: "Email",
+    contactoTelefono: "Teléfono",
+    // Vehículos
+    patente: "Patente",
+    marca: "Marca",
+    modelo: "Modelo",
+    anio: "Año",
+    // Genéricos (TipoVehiculo, TipoCarga, Zona, Adicional)
+    nombre: "Nombre",
+    descripcion: "Descripción",
+    // Adicional
+    costoDefault: "Costo Base",
+    cantidad: "Veces Utilizado",
+    // Combustible
+    vehiculoNombre: "Vehículo",
+    fecha: "Fecha de Carga",
+    numeroTicket: "Nro. Ticket",
+    litrosCargados: "Litros Cargados",
+    precioTotal: "Precio Total",
+  };
+
   return (
     <Box sx={{ width: "100%" }}>
-      <Accordion sx={{ mb: 3, boxShadow: "none", border: "1px solid #e0e0e0" }}>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="filtros-panel-content"
-          id="filtros-panel-header"
+      <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-start" }}>
+        <Button
+          variant="outlined"
+          startIcon={<FilterListIcon />}
+          onClick={() => setFiltrosVisibles(!filtrosVisibles)}
+          sx={{
+            backgroundColor: "white",
+            color: theme.palette.text.primary,
+            borderColor: "#e0e0e0",
+            "&:hover": {
+              backgroundColor: "#f5f5f5",
+              borderColor: "#ccc",
+            },
+          }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <Typography variant="h6">Filtros</Typography>
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+          Filtros
+        </Button>
+      </Box>
+
+      <Collapse in={filtrosVisibles}>
+        <Paper
+          variant="outlined"
+          sx={{ p: 3, mb: 3, backgroundColor: "white" }}
+        >
+          <Grid container spacing={3} sx={{ mb: 2 }}>
             {columnasBase.map((col) => (
-              <Box key={col.field} sx={{ flex: "1 1 200px" }}>
-                <FormControl fullWidth variant="outlined" size="small">
+              // --- INICIO DE LA MODIFICACIÓN (2 Columnas) ---
+              <Grid item xs={12} sm={12} md={6} lg={6} key={col.field}>
+                {/* --- FIN DE LA MODIFICACIÓN --- */}
+                <Typography
+                  variant="caption"
+                  color="textSecondary"
+                  sx={{ mb: 0.5, display: "block", fontWeight: 500 }}
+                >
+                  {filterTitles[col.field] || col.headerName}
+                </Typography>
+                <FormControl fullWidth variant="outlined">
                   <Autocomplete
                     options={valoresUnicosPorColumna[col.field] || []}
                     getOptionLabel={(option) => String(option)}
@@ -378,53 +422,70 @@ export default function DataTable({
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label={col.headerName}
+                        label=""
                         variant="outlined"
-                        size="small"
+                        size="medium" // <-- Campos más altos
                       />
                     )}
                     fullWidth
                   />
                 </FormControl>
-              </Box>
+              </Grid>
             ))}
-            <Box sx={{ flex: "1 1 200px", alignSelf: "center" }}>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={limpiarFiltros}
-                sx={{ height: "40px" }}
-              >
-                Limpiar Filtros
-              </Button>
-            </Box>
 
-            {/* --- EL SWITCH DE HISTÓRICO ESTÁ AQUÍ --- */}
             {showHistoricoSwitch && onHistoricoChange && (
-              <Box
-                sx={{
-                  flex: "1 1 200px",
-                  alignSelf: "center",
-                  minWidth: "220px",
-                  display: "flex",
-                  justifyContent: "center",
-                }}
+              // --- INICIO DE LA MODIFICACIÓN (Ajuste para 2 columnas) ---
+              <Grid
+                item
+                xs={12}
+                sm={12}
+                md={6}
+                lg={6}
+                sx={{ display: "flex", alignItems: "flex-end" }}
               >
+                {/* --- FIN DE LA MODIFICACIÓN --- */}
                 <FormControlLabel
                   control={
                     <Switch
                       checked={historicoChecked}
                       onChange={onHistoricoChange}
+                      color="primary"
                     />
                   }
                   label="Mostrar histórico completo"
+                  sx={{ mb: 1 }} // Ajuste de margen
                 />
-              </Box>
+              </Grid>
             )}
-            {/* --- FIN --- */}
+          </Grid>
+          <Divider sx={{ my: 2 }} /> {/* <-- Línea divisoria */}
+          {/* Botones de acción de filtros */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 2,
+              mt: 2,
+            }}
+          >
+            <Button
+              variant="outlined"
+              onClick={limpiarFiltros}
+              sx={{ height: "40px" }}
+            >
+              Limpiar Filtros
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setFiltrosVisibles(false)}
+              sx={{ height: "40px" }}
+            >
+              Aplicar Filtros
+            </Button>
           </Box>
-        </AccordionDetails>
-      </Accordion>
+        </Paper>
+      </Collapse>
 
       {esMovil ? (
         <Box>
@@ -445,43 +506,46 @@ export default function DataTable({
           ))}
         </Box>
       ) : (
-        <Card>
-          <CardHeader title={titulosEntidad[entidad]} />
-          <CardContent sx={{ p: { xs: 1, md: 2 } }}>
-            <DataGrid
-              rows={rowsFiltrados}
-              columns={columnasConAcciones}
-              autoHeight
-              disableColumnMenu
-              checkboxSelection={false}
-              disableRowSelectionOnClick
-              getRowId={(row) => row.id}
-              getRowClassName={(params) =>
-                params.id === highlightedId ? "highlight" : ""
-              }
-              initialState={{
-                sorting: { sortModel: [{ field: "id", sort: "desc" }] },
-                pagination: { paginationModel: { page: 0, pageSize: 5 } },
-              }}
-              pageSizeOptions={[5, 10]}
-              sx={{
-                border: 0,
-                "& .MuiDataGrid-columnHeaders": {
-                  backgroundColor: theme.palette.grey[100],
-                },
-                "& .MuiDataGrid-row:hover": {
-                  backgroundColor: theme.palette.action.hover,
-                },
-                "& .highlight": {
-                  animation: `${highlightAnimation} 4s ease-out`,
-                },
-              }}
-              localeText={
-                esESGrid.components.MuiDataGrid.defaultProps.localeText
-              }
-            />
-          </CardContent>
-        </Card>
+        <Paper
+          variant="outlined"
+          sx={{
+            width: "100%",
+            overflow: "hidden",
+            border: "1px solid #e0e0e0",
+            backgroundColor: "white",
+          }}
+        >
+          <DataGrid
+            rows={rowsFiltrados}
+            columns={columnasConAcciones}
+            autoHeight
+            disableColumnMenu
+            checkboxSelection={false}
+            disableRowSelectionOnClick
+            getRowId={(row) => row.id}
+            getRowClassName={(params) =>
+              params.id === highlightedId ? "highlight" : ""
+            }
+            initialState={{
+              sorting: { sortModel: [{ field: "id", sort: "desc" }] },
+              pagination: { paginationModel: { page: 0, pageSize: 5 } },
+            }}
+            pageSizeOptions={[5, 10]}
+            sx={{
+              border: 0,
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: theme.palette.grey[100],
+              },
+              "& .MuiDataGrid-row:hover": {
+                backgroundColor: theme.palette.action.hover,
+              },
+              "& .highlight": {
+                animation: `${highlightAnimation} 4s ease-out`,
+              },
+            }}
+            localeText={esESGrid.components.MuiDataGrid.defaultProps.localeText}
+          />
+        </Paper>
       )}
     </Box>
   );

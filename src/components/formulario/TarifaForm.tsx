@@ -13,6 +13,7 @@ import {
   Alert,
   // Quitar FormControlLabel y Switch de aquí si no se usan en otro lado
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add"; // <-- Importar AddIcon
 import {
   obtenerTransportistas,
   Transportista,
@@ -354,24 +355,25 @@ export const FormCrearTarifa: React.FC = () => {
 
   return (
     <div>
-      {/* --- BOTÓN MOVIDO --- */}
+      {/* --- INICIO DE LA MODIFICACIÓN --- */}
       {!showForm && !isLoading && !loadingError && (
         <Box
           sx={{
             display: "flex",
-            justifyContent: "center",
+            justifyContent: "flex-end", // <-- Alineado a la derecha
             mb: 2,
           }}
         >
           <BotonPrimario
             onClick={handleCrearClick}
             disabled={!dependenciasCargadas}
+            startIcon={<AddIcon />} // <-- Ícono añadido
           >
-            Crear nueva tarifa
+            Nueva Tarifa {/* <-- Texto cambiado */}
           </BotonPrimario>
         </Box>
       )}
-      {/* --- FIN DEL CAMBIO --- */}
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       {showForm && (
         <FormularioDinamico

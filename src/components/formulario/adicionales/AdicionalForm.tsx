@@ -8,6 +8,7 @@ import DataTable from "../../tablas/tablaDinamica";
 import { Adicional } from "../../../services/adicionalService"; // Importar el tipo Adicional
 import { ModalPromoverAdicional } from "./ModalPromoverAdicional";
 import DialogoConfirmacion from "../../DialogoConfirmacion";
+import AddIcon from "@mui/icons-material/Add"; // <-- Importar AddIcon
 import { MessageState, useCrud } from "../../hook/useCrud";
 import { CrudService } from "../../../services/crudService";
 import { getHumanReadableError } from "../../../utils/errorUtils";
@@ -214,17 +215,30 @@ export const AdicionalForm: React.FC = () => {
 
   return (
     <div>
-      <Box sx={{ display: "flex", gap: 2, mb: 2, justifyContent: "center" }}>
-        <BotonPrimario onClick={actions.handleCreateNew} disabled={isSaving}>
-          Crear Adicional
-        </BotonPrimario>
+      {/* --- INICIO DE LA MODIFICACIÓN --- */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mb: 2,
+          justifyContent: "flex-end", // <-- Alineado a la derecha
+        }}
+      >
         <BotonSecundario
           onClick={() => setModalPromoverAbierto(true)}
           disabled={isSaving}
         >
           Promover Flotante
         </BotonSecundario>
+        <BotonPrimario
+          onClick={actions.handleCreateNew}
+          disabled={isSaving}
+          startIcon={<AddIcon />} // <-- Ícono añadido
+        >
+          Crear Adicional
+        </BotonPrimario>
       </Box>
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       {showForm && (
         <FormularioDinamico

@@ -81,8 +81,13 @@ export default function Sidebar({
       <Toolbar
         sx={{
           justifyContent: "center",
-          minHeight: "80px",
+          // --- INICIO DE LA MODIFICACIÓN 1 (Espacio Arriba) ---
+          minHeight: "90px", // (era 80px)
+          // --- FIN DE LA MODIFICACIÓN 1 ---
           cursor: "pointer",
+          // --- INICIO DE LA MODIFICACIÓN 2 (Espacio Abajo) ---
+          mb: 1.5, // (era 1)
+          // --- FIN DE LA MODIFICACIÓN 2 ---
         }}
         onClick={handleLogoClick}
       >
@@ -95,7 +100,9 @@ export default function Sidebar({
             src={"/img/acmelogo.png"}
             alt="Logística ACME"
             sx={{
-              width: isCollapsed ? 60 : 200,
+              // --- INICIO DE LA MODIFICACIÓN 3 (Tamaño) ---
+              width: isCollapsed ? 60 : 230, // (era 60 : 220)
+              // --- FIN DE LA MODIFICACIÓN 3 ---
               transition: "width 0.2s ease-in-out",
             }}
           />
@@ -105,11 +112,8 @@ export default function Sidebar({
       {/* Esta es la línea divisoria que agregamos */}
       <Divider />
 
-      {/* --- INICIO DE LA CORRECCIÓN --- */}
       {/* Cambiamos pt: 1 por pt: 2 para más espacio */}
       <List sx={{ flexGrow: 1, p: 1, pt: 2, overflowY: "auto" }}>
-        {/* --- FIN DE LA CORRECCIÓN --- */}
-
         {menuItems.map((item) => {
           if (item.key === "inicio") {
             return (
