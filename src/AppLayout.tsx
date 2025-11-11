@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import Sidebar from "./components/Sidebar/Sidebar";
 import {
   Box,
-  Paper,
+  Paper, // <-- Este 'Paper' ya no lo usamos para envolver
   useMediaQuery,
   useTheme,
   IconButton,
-  Button, // Importamos Button para el nuevo botón
+  Button,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { ChevronLeft, ChevronRight } from "lucide-react"; // Para el nuevo botón
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -25,7 +25,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     setIsCollapsed(!isCollapsed);
   };
 
-  // Anchos del sidebar de MUI
   const drawerWidth = 240;
   const collapsedDrawerWidth = 80;
 
@@ -44,7 +43,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         isCollapsed={isCollapsed}
       />
 
-      {/* Botón de colapso (el nuevo que te gusta) */}
+      {/* ... (El código de los botones de colapso y menú móvil no cambia) ... */}
       {!isMobile && (
         <Button
           onClick={handleToggleCollapse}
@@ -80,7 +79,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </Button>
       )}
 
-      {/* Botón de menú móvil (este se mantiene) */}
       {isMobile && !sidebarVisible && (
         <IconButton
           aria-label="open drawer"
@@ -101,22 +99,22 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </IconButton>
       )}
 
-      {/* Contenido principal (aquí se renderizarán tus páginas) */}
+      {/* --- INICIO DE LA MODIFICACIÓN --- */}
+      {/* Contenido principal (sin el <Paper> wrapper) */}
       <Box
         component="main"
-        sx={{ flexGrow: 1, p: 3, width: "100%", overflowX: "hidden" }}
+        sx={{
+          flexGrow: 1,
+          p: 3, // Padding general (como en Viajes)
+          pt: { xs: 8, md: 3 }, // Padding top (8 en móvil para el botón, 3 en desktop)
+          width: "100%",
+          overflowX: "hidden",
+        }}
       >
-        <Paper
-          sx={{
-            p: { xs: 2, md: 4 },
-            pt: { xs: 8, md: 4 }, // Padding top para el botón móvil
-            borderRadius: "8px",
-            boxShadow: "none",
-          }}
-        >
-          {children} {/* <-- Aquí se renderiza la página (ej. CrearTarifa) */}
-        </Paper>
+        {/* Ya no envolvemos {children} en un <Paper> */}
+        {children}
       </Box>
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
     </Box>
   );
 };

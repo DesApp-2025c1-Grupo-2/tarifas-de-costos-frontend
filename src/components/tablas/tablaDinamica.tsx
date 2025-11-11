@@ -1,14 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-// --- INICIO MODIFICACIÓN 1: Importar Divider y Grid ---
-import {
-  Paper,
-  Collapse,
-  Alert,
-  Divider, // <-- Importar Divider
-  Grid, // <-- Importar Grid
-} from "@mui/material";
-// --- FIN MODIFICACIÓN 1 ---
+import { Paper, Collapse, Alert, Divider, Grid } from "@mui/material";
 import { columnas, Entidad } from "./columnas";
 import {
   Box,
@@ -19,17 +11,17 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
-  // --- Se quitan imports de Accordion ---
   Tooltip,
   IconButton,
-  FormControlLabel, // <-- Importar
-  Switch, // <-- Importar
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList"; // <-- Importar ícono de Filtro
+import FilterListIcon from "@mui/icons-material/FilterList";
 import HistoryIcon from "@mui/icons-material/History";
 import EntityCard, { CardConfig } from "./EntityCard";
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
 import { keyframes } from "@emotion/react";
+import { Funnel, X } from "lucide-react";
 
 interface DataTableProps {
   rows: any[];
@@ -46,6 +38,7 @@ interface DataTableProps {
   onHistoricoChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+// ... (cardConfigs no cambia) ...
 const cardConfigs: Record<Entidad, CardConfig> = {
   tarifa: {
     titleField: "transportistaNombre",
@@ -149,6 +142,7 @@ export default function DataTable({
   const [filtros, setFiltros] = useState<{ [key: string]: string }>({});
   const [filtrosVisibles, setFiltrosVisibles] = useState(false);
 
+  // ... (rowsFiltrados no cambia) ...
   const rowsFiltrados = useMemo(() => {
     if (!rows) return [];
     const filteredRows =
@@ -167,6 +161,7 @@ export default function DataTable({
     );
   }, [rows, entidad, filtros, columnasBase]);
 
+  // ... (valoresUnicosPorColumna no cambia) ...
   const valoresUnicosPorColumna = useMemo(() => {
     const valores: { [key: string]: (string | number)[] } = {};
     if (!columnasBase) return valores;
@@ -186,6 +181,7 @@ export default function DataTable({
 
   const limpiarFiltros = () => setFiltros({});
 
+  // ... (columnasConAcciones no cambia) ...
   const columnasConAcciones: GridColDef[] = useMemo(() => {
     if (!columnasBase) return [];
     let cols = [...columnasBase];
@@ -338,7 +334,7 @@ export default function DataTable({
     );
   }
 
-  // Mapeo de campos a títulos de filtro
+  // ... (filterTitles no cambia) ...
   const filterTitles: { [key: string]: string } = {
     // Tarifas
     id: "ID",
@@ -384,11 +380,15 @@ export default function DataTable({
           sx={{
             backgroundColor: "white",
             color: theme.palette.text.primary,
-            borderColor: "#e0e0e0",
             "&:hover": {
               backgroundColor: "#f5f5f5",
               borderColor: "#ccc",
             },
+            boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.1)",
+            borderRadius: "8px",
+            border: "0.5px solid #C7C7C7",
+            padding: "8px 20px",
+            textTransform: "none",
           }}
         >
           Filtros
@@ -397,14 +397,19 @@ export default function DataTable({
 
       <Collapse in={filtrosVisibles}>
         <Paper
-          variant="outlined"
-          sx={{ p: 3, mb: 3, backgroundColor: "white" }}
+          elevation={3}
+          sx={{
+            p: 2.5,
+            mb: 3,
+            backgroundColor: "white",
+            borderRadius: 2,
+            boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.1)",
+            border: "1px solid #c7c7c7",
+          }}
         >
-          <Grid container spacing={3} sx={{ mb: 2 }}>
+          <Grid container spacing={2} sx={{ mb: 2 }}>
             {columnasBase.map((col) => (
-              // --- INICIO DE LA MODIFICACIÓN (2 Columnas) ---
-              <Grid item xs={12} sm={12} md={6} lg={6} key={col.field}>
-                {/* --- FIN DE LA MODIFICACIÓN --- */}
+              <Grid item xs={12} sm={6} md={3} key={col.field}>
                 <Typography
                   variant="caption"
                   color="textSecondary"
@@ -413,7 +418,9 @@ export default function DataTable({
                   {filterTitles[col.field] || col.headerName}
                 </Typography>
                 <FormControl fullWidth variant="outlined">
+                  {/* --- INICIO DE LA CORRECCIÓN --- */}
                   <Autocomplete
+                    size="medium" // <-- AQUÍ ESTÁ LA NUEVA LÓGICA
                     options={valoresUnicosPorColumna[col.field] || []}
                     getOptionLabel={(option) => String(option)}
                     onInputChange={(_, newValue) =>
@@ -421,29 +428,32 @@ export default function DataTable({
                     }
                     renderInput={(params) => (
                       <TextField
-                        {...params}
+                        {...params} // 'params' ahora incluye size="medium"
                         label=""
                         variant="outlined"
-                        size="medium" // <-- Campos más altos
+                        // No es necesario 'size' aquí, se hereda de 'params'
                       />
                     )}
                     fullWidth
                   />
+                  {/* --- FIN DE LA CORRECCIÓN --- */}
                 </FormControl>
               </Grid>
             ))}
 
             {showHistoricoSwitch && onHistoricoChange && (
-              // --- INICIO DE LA MODIFICACIÓN (Ajuste para 2 columnas) ---
               <Grid
                 item
                 xs={12}
-                sm={12}
-                md={6}
-                lg={6}
-                sx={{ display: "flex", alignItems: "flex-end" }}
+                sm={6}
+                md={3}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                  pt: { xs: 0, md: 3 },
+                }}
               >
-                {/* --- FIN DE LA MODIFICACIÓN --- */}
                 <FormControlLabel
                   control={
                     <Switch
@@ -453,35 +463,67 @@ export default function DataTable({
                     />
                   }
                   label="Mostrar histórico completo"
-                  sx={{ mb: 1 }} // Ajuste de margen
+                  sx={{ mb: 1 }}
                 />
               </Grid>
             )}
           </Grid>
-          <Divider sx={{ my: 2 }} /> {/* <-- Línea divisoria */}
-          {/* Botones de acción de filtros */}
+
           <Box
+            display="flex"
+            mt={2}
             sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 2,
-              mt: 2,
+              flexDirection: { xs: "column", sm: "row" },
+              justifyContent: { xs: "flex-start", md: "flex-end" },
+              gap: 1,
+              borderTop: "1px solid #EAEAEA",
+              pt: 2,
             }}
           >
             <Button
               variant="outlined"
+              color="primary"
+              startIcon={<X size={16} />}
+              sx={{
+                borderRadius: "8px",
+                padding: "10px 20px",
+                textTransform: "none",
+                borderColor: "#D0D0D5",
+                color: "#5A5A65",
+                fontWeight: 600,
+                fontSize: "0.9rem",
+                "&:hover": {
+                  backgroundColor: "#F6F6F8",
+                  borderColor: "#B0B0B0",
+                },
+                width: { xs: "100%", md: "auto" },
+              }}
               onClick={limpiarFiltros}
-              sx={{ height: "40px" }}
             >
-              Limpiar Filtros
+              Limpiar filtros
             </Button>
             <Button
-              variant="contained"
+              variant="text"
               color="primary"
+              startIcon={<Funnel size={16} />}
+              sx={{
+                borderRadius: "8px",
+                padding: "10px 20px",
+                textTransform: "none",
+                backgroundColor: "#E65F2B",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: "0.9rem",
+                boxShadow: "none",
+                "&:hover": {
+                  backgroundColor: "#C94715",
+                  boxShadow: "none",
+                },
+                width: { xs: "100%", md: "auto" },
+              }}
               onClick={() => setFiltrosVisibles(false)}
-              sx={{ height: "40px" }}
             >
-              Aplicar Filtros
+              Aplicar filtros
             </Button>
           </Box>
         </Paper>
