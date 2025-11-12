@@ -15,13 +15,23 @@ import {
   IconButton,
   FormControlLabel,
   Switch,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  ListSubheader
 } from "@mui/material";
+import { BotonDetalles, BotonEditar, BotonEliminar} from "../Botones";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import HistoryIcon from "@mui/icons-material/History";
 import EntityCard, { CardConfig } from "./EntityCard";
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
 import { keyframes } from "@emotion/react";
 import { Funnel, X } from "lucide-react";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import VisibilityOutlinedIcon from "@mui/icons-material/Visibility";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlineIcon from "@mui/icons-material/Delete";
 
 interface DataTableProps {
   rows: any[];
@@ -38,7 +48,6 @@ interface DataTableProps {
   onHistoricoChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-// ... (cardConfigs no cambia) ...
 const cardConfigs: Record<Entidad, CardConfig> = {
   tarifa: {
     titleField: "transportistaNombre",
@@ -142,7 +151,6 @@ export default function DataTable({
   const [filtros, setFiltros] = useState<{ [key: string]: string }>({});
   const [filtrosVisibles, setFiltrosVisibles] = useState(false);
 
-  // ... (rowsFiltrados no cambia) ...
   const rowsFiltrados = useMemo(() => {
     if (!rows) return [];
     const filteredRows =
@@ -161,7 +169,6 @@ export default function DataTable({
     );
   }, [rows, entidad, filtros, columnasBase]);
 
-  // ... (valoresUnicosPorColumna no cambia) ...
   const valoresUnicosPorColumna = useMemo(() => {
     const valores: { [key: string]: (string | number)[] } = {};
     if (!columnasBase) return valores;
@@ -181,7 +188,6 @@ export default function DataTable({
 
   const limpiarFiltros = () => setFiltros({});
 
-  // ... (columnasConAcciones no cambia) ...
   const columnasConAcciones: GridColDef[] = useMemo(() => {
     if (!columnasBase) return [];
     let cols = [...columnasBase];
@@ -223,94 +229,118 @@ export default function DataTable({
       cols.push({
         field: "acciones",
         headerName: "Acciones",
-        width: 280,
+        width: 100,
         sortable: false,
-        align: "right",
-        headerAlign: "right",
-        renderCell: (params) => (
-          <Box
-            sx={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              gap: 1,
-            }}
-          >
-            {entidad === "tarifa" && handleMostrarHistorial && (
-              <Tooltip title="Ver Historial">
+        align: "center",
+        headerAlign: "center",
+        
+        renderCell: (params) => {
+          const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+          const open = Boolean(anchorEl);
+          
+          const theme = useTheme();
+          const editColors = (theme.palette as any).actionButtons.edit;
+          const deleteColors = (theme.palette as any).actionButtons.delete;
+          const detailsColors = (theme.palette as any).actionButtons.details;
+
+          const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+            setAnchorEl(event.currentTarget);
+          };
+
+          const handleClose = () => {
+            setAnchorEl(null);
+          };
+
+          const handleViewClick = () => {
+            if (handleView) handleView(params.row);
+            handleClose();
+          };
+
+          const handleEditClick = () => {
+            if (handleEdit) handleEdit(params.row);
+            handleClose();
+          };
+
+          const handleDeleteClick = () => {
+            if (handleDelete) handleDelete(params.row);
+            handleClose();
+          };
+
+          const handleHistoryClick = () => {
+            if (handleMostrarHistorial) handleMostrarHistorial(params.row.id);
+            handleClose();
+          }
+
+          const actionCount = [handleView, handleEdit, handleDelete, (entidad === "tarifa" && handleMostrarHistorial)].filter(Boolean).length;
+
+          if (actionCount === 0) {
+            return null;
+          }
+
+          return (
+            <Box>
+              <Tooltip title="Acciones">
                 <IconButton
-                  onClick={() => handleMostrarHistorial(params.row.id)}
-                  size="small"
+                  aria-label="acciones"
+                  id="acciones-button"
+                  aria-controls={open ? 'acciones-menu' : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open ? 'true' : undefined}
+                  onClick={handleClick}
                   disabled={actionsDisabled}
                 >
-                  <HistoryIcon />
+                  <MoreHorizIcon />
                 </IconButton>
               </Tooltip>
-            )}
-            {handleView && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => handleView(params.row)}
-                disabled={actionsDisabled}
-                sx={{
-                  backgroundColor: (theme.palette as any).actionButtons.details
-                    .background,
-                  borderColor: (theme.palette as any).actionButtons.details
-                    .border,
-                  color: (theme.palette as any).actionButtons.details.text,
-                  "&:hover": {
-                    backgroundColor: "#e0e0e0",
-                    borderColor: "#bdbdbd",
-                  },
+              <Menu
+                id="acciones-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                MenuListProps={{
+                  'aria-labelledby': 'acciones-button',
+                  subheader: <ListSubheader component="div">Acciones</ListSubheader>,
                 }}
               >
-                Ver
-              </Button>
-            )}
-            {handleEdit && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => handleEdit(params.row)}
-                disabled={actionsDisabled}
-                sx={{
-                  backgroundColor: (theme.palette as any).actionButtons.edit
-                    .background,
-                  borderColor: (theme.palette as any).actionButtons.edit.border,
-                  color: (theme.palette as any).actionButtons.edit.text,
-                  "&:hover": {
-                    backgroundColor: "#c7dcfc",
-                  },
-                }}
-              >
-                Editar
-              </Button>
-            )}
-            {handleDelete && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => handleDelete(params.row)}
-                disabled={actionsDisabled}
-                sx={{
-                  backgroundColor: (theme.palette as any).actionButtons.delete
-                    .background,
-                  borderColor: (theme.palette as any).actionButtons.delete
-                    .border,
-                  color: (theme.palette as any).actionButtons.delete.text,
-                  "&:hover": {
-                    backgroundColor: "rgba(255, 53, 53, 0.4)",
-                  },
-                }}
-              >
-                Eliminar
-              </Button>
-            )}
-          </Box>
-        ),
+                {handleEdit && (
+                  <MenuItem onClick={handleEditClick} sx={{ color: editColors.text }}>
+                    <ListItemIcon>
+                      <EditIcon fontSize="small" sx={{ color: editColors.text }} />
+                    </ListItemIcon>
+                    <ListItemText>Editar</ListItemText>
+                  </MenuItem>
+                )}
+
+                {handleDelete && (
+                  <MenuItem onClick={handleDeleteClick} sx={{ color: deleteColors.text }}>
+                    <ListItemIcon>
+                      <DeleteOutlineIcon fontSize="small" sx={{ color: deleteColors.text }} />
+                    </ListItemIcon>
+                    <ListItemText>Eliminar</ListItemText>
+                  </MenuItem>
+                )}
+                
+                {handleView && (
+                  <MenuItem onClick={handleViewClick} sx={{ color: detailsColors.text }}>
+                    <ListItemIcon>
+                      <VisibilityOutlinedIcon fontSize="small" sx={{ color: detailsColors.text }} />
+                    </ListItemIcon>
+                    <ListItemText>Detalles</ListItemText>
+                  </MenuItem>
+                )}
+                
+                {entidad === "tarifa" && handleMostrarHistorial && (
+                  <MenuItem onClick={handleHistoryClick}>
+                    <ListItemIcon>
+                      <HistoryIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Ver Historial</ListItemText>
+                  </MenuItem>
+                )}
+              </Menu>
+            </Box>
+          );
+        },
       });
     }
     return cols;
@@ -322,7 +352,6 @@ export default function DataTable({
     handleView,
     handleMostrarAdicionales,
     handleMostrarHistorial,
-    theme,
     actionsDisabled,
   ]);
 
@@ -334,7 +363,6 @@ export default function DataTable({
     );
   }
 
-  // ... (filterTitles no cambia) ...
   const filterTitles: { [key: string]: string } = {
     // Tarifas
     id: "ID",
@@ -418,9 +446,8 @@ export default function DataTable({
                   {filterTitles[col.field] || col.headerName}
                 </Typography>
                 <FormControl fullWidth variant="outlined">
-                  {/* --- INICIO DE LA CORRECCIÓN --- */}
                   <Autocomplete
-                    size="medium" // <-- AQUÍ ESTÁ LA NUEVA LÓGICA
+                    size="medium"
                     options={valoresUnicosPorColumna[col.field] || []}
                     getOptionLabel={(option) => String(option)}
                     onInputChange={(_, newValue) =>
@@ -428,15 +455,13 @@ export default function DataTable({
                     }
                     renderInput={(params) => (
                       <TextField
-                        {...params} // 'params' ahora incluye size="medium"
+                        {...params}
                         label=""
                         variant="outlined"
-                        // No es necesario 'size' aquí, se hereda de 'params'
                       />
                     )}
                     fullWidth
                   />
-                  {/* --- FIN DE LA CORRECCIÓN --- */}
                 </FormControl>
               </Grid>
             ))}

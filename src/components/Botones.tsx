@@ -76,3 +76,97 @@ export function BotonSecundario({
     </Button>
   );
 }
+
+/**
+ * Botón para "Ver Detalles" con los estilos de la paleta actionButtons.details
+ */
+export function BotonDetalles({
+  children,
+  onClick,
+  ...props
+}: BotonConHijosProps) {
+  const theme = useTheme();
+  const styles = (theme.palette as any).actionButtons.details;
+
+  return (
+    <Button
+      variant="outlined"
+      size="small"
+      onClick={onClick}
+      sx={{
+        backgroundColor: styles.background,
+        borderColor: styles.border,
+        color: styles.text,
+        "&:hover": {
+          backgroundColor: "#e0e0e0",
+          borderColor: "#bdbdbd",
+        },
+      }}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
+}
+
+/**
+ * Botón para "Editar" con los estilos de la paleta actionButtons.edit
+ */
+export function BotonEditar({
+  children,
+  onClick,
+  ...props
+}: BotonConHijosProps) {
+  const theme = useTheme();
+  const styles = (theme.palette as any).actionButtons.edit;
+
+  return (
+    <Button
+      variant="outlined"
+      size="small"
+      onClick={onClick}
+      sx={{
+        backgroundColor: styles.background,
+        borderColor: styles.border,
+        color: styles.text,
+        "&:hover": {
+          backgroundColor: "#c7dcfc",
+        },
+      }}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
+}
+
+/**
+ * Botón para "Eliminar" con los estilos de la paleta actionButtons.delete
+ */
+export function BotonEliminar({
+  children,
+  onClick,
+  ...props
+}: BotonConHijosProps) {
+  const theme = useTheme();
+  const styles = (theme.palette as any).actionButtons.delete;
+
+  return (
+    <Button
+      variant="outlined"
+      size="small"
+      onClick={onClick}
+      sx={{
+        backgroundColor: styles.background,
+        borderColor: styles.border,
+        color: styles.text,
+        "&:hover": {
+          backgroundColor: "rgba(255, 53, 53, 0.4)",
+        },
+      }}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
+}
