@@ -41,7 +41,8 @@ export const FormCrearCarga: React.FC = () => {
 
   const handleFormSubmit = (formValues: Record<string, any>) => {
     const data: Omit<Carga, "id"> = {
-      ...(editingItem ? editingItem : { activo: true }),
+      ...(editingItem ?? {}),
+      activo: true,
       nombre: formValues.nombre,
       descripcion: formValues.descripcion,
     };

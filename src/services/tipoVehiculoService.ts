@@ -1,37 +1,25 @@
-import { API_BASE_URL } from '../config/api';
-import { apiClient } from './apiClient'; // 👈 1. Importar el apiClient
+import { apiClient } from './apiClient';
 
-// --- TIPOS (Sin cambios) ---
 export type TipoVehiculo = {
-  activo: boolean;
-  id: number;
+  activo: boolean; // Se mantiene por si se usa en otros lados, aunque el filtro sea por deletedAt
+  id: string;
   nombre: string;
-  capacidadPesoKG: number;
-  capacidadVolumenM3: number;
   descripcion: string;
+  licencia_permitida: string;
+  deletedAt?: string | null; // <-- Propiedad añadida
 };
 
-// --- URL (Sin cambios) ---
-const TIPOS_VEHICULO_URL = `${API_BASE_URL}/tipos-vehiculo`;
+const TIPOS_VEHICULO_URL = '/api/tipos-vehiculo';
 
-// --- FUNCIONES (Refactorizadas) ---
+export const obtenerTiposVehiculo = () =>
+  apiClient.get<TipoVehiculo[]>(TIPOS_VEHICULO_URL);
 
-// 👇 2. Reemplazado fetch con apiClient.get
-export function obtenerTiposVehiculo(): Promise<TipoVehiculo[]> {
-  return apiClient.get<TipoVehiculo[]>(TIPOS_VEHICULO_URL);
-}
+// Se excluye deletedAt al crear/actualizar ya que es gestionado por el backend
+export const crearTipoVehiculo = (data: Omit<TipoVehiculo, 'id' | 'deletedAt'>) =>
+  apiClient.post<TipoVehiculo>(TIPOS_VEHICULO_URL, data);
 
-// 👇 3. Reemplazado fetch con apiClient.post
-export function crearTipoVehiculo(data: Omit<TipoVehiculo, 'id'>): Promise<TipoVehiculo> {
-  return apiClient.post<TipoVehiculo>(TIPOS_VEHICULO_URL, data);
-}
+export const actualizarTipoVehiculo = (id: number | string, data: Omit<TipoVehiculo, 'id' | 'deletedAt'>) =>
+  apiClient.put<TipoVehiculo>(`${TIPOS_VEHICULO_URL}/${id}`, data);
 
-// 👇 4. Reemplazado fetch con apiClient.put
-export function actualizarTipoVehiculo(id: string | number, data: Omit<TipoVehiculo, 'id'>): Promise<TipoVehiculo> {
-  return apiClient.put<TipoVehiculo>(`${TIPOS_VEHICULO_URL}/${id}`, data);
-}
-
-// 👇 5. Reemplazado fetch con apiClient.baja
-export function eliminarTipoVehiculo(id: string | number): Promise<void> {
-  return apiClient.baja(`${TIPOS_VEHICULO_URL}/${id}/baja`);
-}
+export const eliminarTipoVehiculo = (id: number | string) =>
+  apiClient.baja(`${TIPOS_VEHICULO_URL}/${id}/baja`);

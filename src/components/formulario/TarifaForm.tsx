@@ -43,7 +43,10 @@ export const FormCrearTarifa: React.FC = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [idAEliminar, setIdAEliminar] = useState<number | null>(null);
   const [highlightedId, setHighlightedId] = useState<number | null>(null);
-  const [historialTarifaId, setHistorialTarifaId] = useState<number | null>(null);
+  const [historialTarifaId, setHistorialTarifaId] = useState<number | null>(
+    null
+  );
+  const [dependenciasCargadas, setDependenciasCargadas] = useState(false);
 
   const cargarTarifas = async () => {
     setIsLoading(true);
@@ -83,75 +86,100 @@ export const FormCrearTarifa: React.FC = () => {
         obtenerCargas(),
         obtenerAdicionales(),
       ]);
-      setTransportistas(transportistasData.filter((t) => t.activo));
-      setTipoVehiculos(vehiculosData.filter((v) => v.activo));
+      setTransportistas(transportistasData.filter((t) => t.activo !== false));
+      setTipoVehiculos(vehiculosData.filter((v) => v.activo !== false && !v.deletedAt));
       setZonas(zonasData.filter((z) => z.activo));
       setCargas(cargasData.filter((c) => c.activo));
+      // Filtrar aquí para opciones del selector: solo los NO globales y activos
       setAdicionalesDb(adicionalesData.filter((a) => a.activo && !a.esGlobal));
-      return true;
+      setDependenciasCargadas(true);
     } catch (error) {
-      alert("Error al cargar datos para el formulario. Intente de nuevo.");
-      return false;
-    }
-  };
-
-  const handleCrearClick = async () => {
-    const exito = await cargarDependencias();
-    if (exito) {
-      setEditingItem(null);
-      setShowForm(true);
-    }
-  };
-
-  const handleEdit = async (tarifa: Tarifa) => {
-    const exito = await cargarDependencias();
-    if (exito) {
-      setEditingItem(tarifa);
-      setShowForm(true);
+      setMessage({
+        text: "Error al cargar datos para el formulario. Intente de nuevo.",
+        severity: "error",
+      });
     }
   };
 
   useEffect(() => {
     cargarTarifas();
+    cargarDependencias();
   }, []);
 
+  const handleCrearClick = () => {
+    setEditingItem(null);
+    setShowForm(true);
+  };
+
+  const handleEdit = (tarifa: Tarifa) => {
+    setEditingItem(tarifa);
+    setShowForm(true);
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingItem(null);
+  };
+
   const handleSubmit = async (formValues: Record<string, any>) => {
+    setMessage(null); // Limpiar mensajes previos
     const adicionalesPayload = (formValues["adicionales"] || []).map(
       (a: any) => {
+        // Asegurarse de que 'a' tenga las propiedades esperadas
         const adicionalData: any = {
           adicional: {
             nombre: a.nombre,
             descripcion: a.descripcion,
-            costoDefault: a.precio,
-            activo: true,
-            esGlobal: a.esGlobal !== undefined ? a.esGlobal : true,
+            costoDefault: a.precio, // precio viene del mapeo de opciones
+            activo: true, // Asumimos activo al asignar
+            // Enviar el estado esGlobal que tiene 'a' en el formulario
+            esGlobal: a.esGlobal === true, // Correcta conversión boolean
           },
           costoEspecifico: parseFloat(a.costoEspecifico ?? a.precio ?? "0"),
         };
+        // Solo enviar ID si es un adicional existente (ID > 0)
         if (a.id > 0) {
           adicionalData.adicional.id = a.id;
+        } else {
+            // Si el ID es negativo (nuevo adicional creado en el modal),
+            // NO enviamos el ID para que el backend lo cree.
+            // Opcional: Podrías querer enviar los datos sin el ID aquí
+            // delete adicionalData.adicional.id; // Podría no ser necesario si el backend ignora ID<=0
         }
-
         return adicionalData;
       }
     );
 
+
     const payload = {
-      nombreTarifa: formValues.nombreTarifa,
-      transportista: { id: Number(formValues.transportistaId) },
-      tipoVehiculo: { id: Number(formValues.tipoVehiculoId) },
-      zonaViaje: { id: Number(formValues.zonaId) },
-      tipoCargaTarifa: { id: Number(formValues.tipoCargaId) },
-      valorBase: parseFloat(formValues.valorBase || "0"),
-      adicionales: adicionalesPayload,
+        nombreTarifa: formValues.nombreTarifa,
+        transportistaId: formValues.transportistaId,
+        tipoVehiculoId: formValues.tipoVehiculoId,
+        zonaViaje: { id: Number(formValues.zonaId || 0) },
+        tipoCargaTarifa: { id: Number(formValues.tipoCargaId || 0) },
+        valorBase: parseFloat(formValues.valorBase || "0"),
+        adicionales: adicionalesPayload,
+        // Incluir esVigente explícitamente al actualizar o crear
+        esVigente: editingItem ? editingItem.esVigente ?? true : true,
     };
+
+    // Validar que los IDs de relaciones no sean 0 antes de enviar
+    if (!payload.transportistaId || !payload.tipoVehiculoId || !payload.zonaViaje.id || !payload.tipoCargaTarifa.id) {
+        setMessage({ text: "Transportista, Vehículo, Zona y Carga son obligatorios.", severity: "error" });
+        return;
+    }
+     if (payload.valorBase <= 0) {
+        setMessage({ text: "El Costo Base debe ser mayor a cero.", severity: "error" });
+        return;
+    }
+
 
     try {
       let changedItem: Tarifa;
       if (editingItem && editingItem.id) {
         changedItem = await tarifaService.actualizarTarifa(
           editingItem.id,
-          payload
+          payload // El payload ahora incluye esVigente
         );
         setMessage({
           text: "Tarifa actualizada con éxito",
@@ -161,27 +189,25 @@ export const FormCrearTarifa: React.FC = () => {
         changedItem = await tarifaService.crearTarifa(payload);
         setMessage({ text: "Tarifa creada con éxito", severity: "success" });
       }
-      setShowForm(false);
-      setEditingItem(null);
-      await cargarTarifas();
-      await cargarDependencias();
+      handleCancel();
+      await cargarTarifas(); // Recargar la lista principal
       setHighlightedId(changedItem.id);
       setTimeout(() => setHighlightedId(null), 4000);
     } catch (err) {
       const error = err as Error;
+      console.error("Error al guardar tarifa:", error); // Log del error
       setMessage({
         text: `Error al guardar la tarifa: ${error.message}`,
         severity: "error",
       });
     } finally {
-      setTimeout(() => setMessage(null), 5000);
+      // No limpiar mensaje de éxito inmediatamente
+       if (message?.severity !== 'error') {
+            setTimeout(() => setMessage(null), 5000);
+       }
     }
   };
 
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingItem(null);
-  };
 
   const handleView = (tarifa: Tarifa) =>
     setViewingTarifa(tarifa as TarifaDetallada);
@@ -239,7 +265,7 @@ export const FormCrearTarifa: React.FC = () => {
         clave: "transportistaId",
         opciones: transportistas.map((t) => ({
           id: t.id,
-          nombre: `${t.nombreEmpresa} - ${t.contactoNombre} (${t.cuit})`,
+          nombre: `${t.nombre_comercial} (${t.cuit})`, // Simplificado para claridad
         })),
         requerido: true,
       },
@@ -274,11 +300,13 @@ export const FormCrearTarifa: React.FC = () => {
         tipo: "adicionales",
         nombre: "Adicionales",
         clave: "adicionales",
+        // Mapeo corregido para incluir esGlobal
         opciones: adicionalesDb.map((a) => ({
           id: a.id,
           nombre: a.nombre,
           descripcion: a.descripcion,
           precio: Number(a.costoDefault) || 0,
+          esGlobal: a.esGlobal, // <-- INCLUIR esGlobal AQUÍ
         })),
       },
       { tipo: "resultado", nombre: "COSTO TOTAL:", clave: "total" },
@@ -286,15 +314,17 @@ export const FormCrearTarifa: React.FC = () => {
     [transportistas, tipoVehiculos, zonas, cargas, adicionalesDb]
   );
 
+
   const initialFormValues = editingItem
     ? {
         id: editingItem.id,
         nombreTarifa: editingItem.nombreTarifa,
-        transportistaId: editingItem.transportistaId?.toString(),
-        tipoVehiculoId: editingItem.tipoVehiculoId?.toString(),
-        zonaId: editingItem.zonaId?.toString(),
-        tipoCargaId: editingItem.tipoCargaId?.toString(),
+        transportistaId: String(editingItem.transportistaId || ""),
+        tipoVehiculoId: String(editingItem.tipoVehiculoId || ""),
+        zonaId: String(editingItem.zonaId || ""),
+        tipoCargaId: String(editingItem.tipoCargaId || ""),
         valorBase: editingItem.valorBase,
+        // Mapear adicionales existentes para el formulario
         adicionales:
           editingItem.adicionales?.map((ad) => ({
             id: ad.adicional.id,
@@ -302,15 +332,22 @@ export const FormCrearTarifa: React.FC = () => {
             descripcion: ad.adicional.descripcion,
             precio: ad.adicional.costoDefault,
             costoEspecifico: ad.costoEspecifico,
+            // Incluir el estado esGlobal del adicional original
+            // Asumimos que adicionalesDb contiene la info actualizada de esGlobal
+            esGlobal: adicionalesDb.find(adb => adb.id === ad.adicional.id)?.esGlobal ?? false, // Default a false si no se encuentra
           })) || [],
       }
     : null;
+
 
   return (
     <div>
       {!showForm && !isLoading && !loadingError && (
         <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-          <BotonPrimario onClick={handleCrearClick}>
+          <BotonPrimario
+            onClick={handleCrearClick}
+            disabled={!dependenciasCargadas}
+          >
             Crear nueva tarifa
           </BotonPrimario>
         </Box>
@@ -342,6 +379,7 @@ export const FormCrearTarifa: React.FC = () => {
           handleMostrarAdicionales={handleMostrarAdicionales}
           handleMostrarHistorial={handleMostrarHistorial}
           highlightedId={highlightedId}
+          actionsDisabled={!dependenciasCargadas} // Deshabilitar acciones si las dependencias no cargaron
         />
       )}
       <ModalVerTarifa
@@ -360,8 +398,9 @@ export const FormCrearTarifa: React.FC = () => {
         onConfirm={confirmarEliminacion}
         titulo="Confirmar baja de tarifa"
         descripcion="¿Estás seguro de que deseas dar de baja esta tarifa?"
+        textoConfirmar="Dar de Baja"
       />
-       <ModalHistorialTarifa
+      <ModalHistorialTarifa
         open={!!historialTarifaId}
         onClose={handleCerrarHistorial}
         tarifaId={historialTarifaId}
@@ -371,6 +410,7 @@ export const FormCrearTarifa: React.FC = () => {
           <Alert
             severity={message.severity}
             sx={{ width: "100%", maxWidth: "600px" }}
+            onClose={()=> setMessage(null)} // Permitir cerrar mensaje
           >
             {message.text}
           </Alert>

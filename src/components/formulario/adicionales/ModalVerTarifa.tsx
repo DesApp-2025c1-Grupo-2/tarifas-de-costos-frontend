@@ -39,7 +39,11 @@ export const ModalVerTarifa: React.FC<Props> = ({ open, onClose, tarifa }) => {
   }
 
   const formatCurrency = (value: number | undefined) => {
-    return `$${(value || 0).toFixed(2)}`;
+    const number = Number(value) || 0;
+    return `$${number.toLocaleString("es-AR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   return (

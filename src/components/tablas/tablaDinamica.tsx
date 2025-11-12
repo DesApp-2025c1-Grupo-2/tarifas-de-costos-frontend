@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
+import { Card, CardHeader, CardContent, Alert } from "@mui/material";
 import { columnas, Entidad } from "./columnas";
 import {
   Box,
@@ -18,7 +18,7 @@ import {
   IconButton,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import HistoryIcon from '@mui/icons-material/History';
+import HistoryIcon from "@mui/icons-material/History";
 import EntityCard, { CardConfig } from "./EntityCard";
 import { esES as esESGrid } from "@mui/x-data-grid/locales";
 import { keyframes } from "@emotion/react";
@@ -31,9 +31,9 @@ interface DataTableProps {
   handleView?: (row: any) => void;
   handleMostrarAdicionales?: (adicionales: any[]) => void;
   handleMostrarHistorial?: (tarifaId: number) => void;
-  highlightedId?: number | null;
+  highlightedId?: number | string | null;
+  actionsDisabled?: boolean;
 }
-
 
 const cardConfigs: Record<Entidad, CardConfig> = {
   tarifa: {
@@ -58,12 +58,21 @@ const cardConfigs: Record<Entidad, CardConfig> = {
       contactoTelefono: "Teléfono",
     },
   },
+  vehiculo: {
+    titleField: "patente",
+    subtitleField: "marca",
+    detailFields: ["modelo", "anio", "tipoVehiculoNombre"],
+    fieldLabels: {
+      marca: "Marca",
+      modelo: "Modelo",
+      anio: "Año",
+      tipoVehiculoNombre: "Tipo",
+    },
+  },
   tipoDeVehiculo: {
     titleField: "nombre",
-    detailFields: ["capacidadPesoKG", "capacidadVolumenM3", "descripcion"],
+    detailFields: ["descripcion"],
     fieldLabels: {
-      capacidadPesoKG: "Peso (KG)",
-      capacidadVolumenM3: "Volumen (M³)",
       descripcion: "Descripción",
     },
   },
@@ -91,6 +100,28 @@ const cardConfigs: Record<Entidad, CardConfig> = {
       descripcion: "Descripción",
     },
   },
+  combustible: {
+        titleField: "vehiculoNombre",
+        subtitleField: "precioTotal", // Cambiado
+        detailFields: ["fecha", "numeroTicket", "litrosCargados"], // Actualizado
+        fieldLabels: {
+          precioTotal: "Precio Total",
+          fecha: "Fecha",
+          numeroTicket: "Ticket Nro.",
+          litrosCargados: "Litros",
+        },
+  },
+};
+
+const titulosEntidad: Record<Entidad, string> = {
+  tarifa: "Tarifas",
+  transportista: "Transportistas",
+  vehiculo: "Vehículos",
+  tipoDeVehiculo: "Tipos de Vehículo",
+  tipoDeCarga: "Tipos de Carga",
+  zona: "Zonas",
+  adicional: "Adicionales",
+  combustible: "Cargas de Combustible",
 };
 
 const highlightAnimation = keyframes`
@@ -107,6 +138,7 @@ export default function DataTable({
   handleMostrarAdicionales,
   handleMostrarHistorial,
   highlightedId,
+  actionsDisabled = false,
 }: DataTableProps) {
   const theme = useTheme();
   const esMovil = useMediaQuery(theme.breakpoints.down("md"));
@@ -114,11 +146,11 @@ export default function DataTable({
   const [filtros, setFiltros] = useState<{ [key: string]: string }>({});
 
   const rowsFiltrados = useMemo(() => {
+    if (!rows) return [];
     const filteredRows =
       entidad === "tarifa"
         ? rows.filter((row) => row.esVigente !== false)
         : rows.filter((row) => row.activo !== false);
-
     return filteredRows.filter((row) =>
       columnasBase.every((col) => {
         const valFiltro = filtros[col.field];
@@ -133,6 +165,7 @@ export default function DataTable({
 
   const valoresUnicosPorColumna = useMemo(() => {
     const valores: { [key: string]: (string | number)[] } = {};
+    if (!columnasBase) return valores;
     columnasBase.forEach((col) => {
       const field = col.field;
       const unicos = Array.from(
@@ -150,6 +183,7 @@ export default function DataTable({
   const limpiarFiltros = () => setFiltros({});
 
   const columnasConAcciones: GridColDef[] = useMemo(() => {
+    if (!columnasBase) return [];
     let cols = [...columnasBase];
 
     if (entidad === "tarifa" && handleMostrarAdicionales) {
@@ -179,60 +213,106 @@ export default function DataTable({
       });
     }
 
-    cols.push({
-      field: "acciones",
-      headerName: "Acciones",
-      width: 280,
-      sortable: false,
-      renderCell: (params) => (
-        <Box
-          sx={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            gap: 1,
-          }}
-        >
-          {handleView && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => handleView(params.row)}
-            >
-              Ver
-            </Button>
-          )}
-          {handleEdit && (
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => handleEdit(params.row)}
-            >
-              Editar
-            </Button>
-          )}
-          {entidad === 'tarifa' && handleMostrarHistorial && (
-            <Tooltip title="Ver Historial">
-              <IconButton onClick={() => handleMostrarHistorial(params.row.id)} size="small">
-                <HistoryIcon />
-              </IconButton>
-            </Tooltip>
-          )}
-          {handleDelete && (
-            <Button
-              variant="contained"
-              size="small"
-              color="error"
-              onClick={() => handleDelete(params.row)}
-            >
-              Eliminar
-            </Button>
-          )}
-        </Box>
-      ),
-    });
+    if (
+      entidad === "tarifa" ||
+      entidad === "adicional" ||
+      entidad === "zona" ||
+      entidad === "tipoDeCarga" ||
+      entidad === "combustible"
+    ) {
+      cols.push({
+        field: "acciones",
+        headerName: "Acciones",
+        width: 280,
+        sortable: false,
+        align: "right",
+        headerAlign: "right",
+        renderCell: (params) => (
+          <Box
+            sx={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 1,
+            }}
+          >
+            {entidad === "tarifa" && handleMostrarHistorial && (
+              <Tooltip title="Ver Historial">
+                <IconButton
+                  onClick={() => handleMostrarHistorial(params.row.id)}
+                  size="small"
+                  disabled={actionsDisabled}
+                >
+                  <HistoryIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            {handleView && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => handleView(params.row)}
+                disabled={actionsDisabled}
+                sx={{
+                  backgroundColor: (theme.palette as any).actionButtons.details
+                    .background,
+                  borderColor: (theme.palette as any).actionButtons.details
+                    .border,
+                  color: (theme.palette as any).actionButtons.details.text,
+                  "&:hover": {
+                    backgroundColor: "#e0e0e0",
+                    borderColor: "#bdbdbd",
+                  },
+                }}
+              >
+                Ver
+              </Button>
+            )}
+            {handleEdit && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => handleEdit(params.row)}
+                disabled={actionsDisabled}
+                sx={{
+                  backgroundColor: (theme.palette as any).actionButtons.edit
+                    .background,
+                  borderColor: (theme.palette as any).actionButtons.edit.border,
+                  color: (theme.palette as any).actionButtons.edit.text,
+                  "&:hover": {
+                    backgroundColor: "#c7dcfc",
+                  },
+                }}
+              >
+                Editar
+              </Button>
+            )}
+            {handleDelete && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => handleDelete(params.row)}
+                disabled={actionsDisabled}
+                sx={{
+                  backgroundColor: (theme.palette as any).actionButtons.delete
+                    .background,
+                  borderColor: (theme.palette as any).actionButtons.delete
+                    .border,
+                  color: (theme.palette as any).actionButtons.delete.text,
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 53, 53, 0.4)",
+                  },
+                }}
+              >
+                Eliminar
+              </Button>
+            )}
+          </Box>
+        ),
+      });
+    }
     return cols;
   }, [
     columnasBase,
@@ -242,7 +322,17 @@ export default function DataTable({
     handleView,
     handleMostrarAdicionales,
     handleMostrarHistorial,
+    theme,
+    actionsDisabled,
   ]);
+
+  if (!columnasBase) {
+    return (
+      <Alert severity="warning">
+        No hay una configuración de columnas para la entidad: '{entidad}'.
+      </Alert>
+    );
+  }
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -299,40 +389,55 @@ export default function DataTable({
               key={row.id}
               item={row}
               config={cardConfigs[entidad]}
-              onView={handleView!}
-              onEdit={handleEdit!}
-              onDelete={handleDelete!}
-              onHistory={entidad === 'tarifa' ? handleMostrarHistorial : undefined}
+              onView={handleView ? () => handleView(row) : undefined}
+              onEdit={handleEdit ? () => handleEdit(row) : undefined}
+              onDelete={handleDelete ? () => handleDelete(row) : undefined}
+              onHistory={
+                entidad === "tarifa" && handleMostrarHistorial
+                  ? () => handleMostrarHistorial(row.id)
+                  : undefined
+              }
             />
           ))}
         </Box>
       ) : (
-        <Paper sx={{ p: { xs: 1, md: 2 } }}>
-          <DataGrid
-            rows={rowsFiltrados}
-            columns={columnasConAcciones}
-            autoHeight
-            disableColumnMenu
-            checkboxSelection={false}
-            disableRowSelectionOnClick
-            getRowId={(row) => row.id}
-            getRowClassName={(params) =>
-              params.id === highlightedId ? "highlight" : ""
-            }
-            initialState={{
-              sorting: { sortModel: [{ field: "id", sort: "desc" }] },
-              pagination: { paginationModel: { page: 0, pageSize: 5 } },
-            }}
-            pageSizeOptions={[5, 10]}
-            sx={{
-              border: 0,
-              "& .highlight": {
-                animation: `${highlightAnimation} 4s ease-out`,
-              },
-            }}
-            localeText={esESGrid.components.MuiDataGrid.defaultProps.localeText}
-          />
-        </Paper>
+        <Card>
+          <CardHeader title={titulosEntidad[entidad]} />
+          <CardContent sx={{ p: { xs: 1, md: 2 } }}>
+            <DataGrid
+              rows={rowsFiltrados}
+              columns={columnasConAcciones}
+              autoHeight
+              disableColumnMenu
+              checkboxSelection={false}
+              disableRowSelectionOnClick
+              getRowId={(row) => row.id}
+              getRowClassName={(params) =>
+                params.id === highlightedId ? "highlight" : ""
+              }
+              initialState={{
+                sorting: { sortModel: [{ field: "id", sort: "desc" }] },
+                pagination: { paginationModel: { page: 0, pageSize: 5 } },
+              }}
+              pageSizeOptions={[5, 10]}
+              sx={{
+                border: 0,
+                "& .MuiDataGrid-columnHeaders": {
+                  backgroundColor: theme.palette.grey[100],
+                },
+                "& .MuiDataGrid-row:hover": {
+                  backgroundColor: theme.palette.action.hover,
+                },
+                "& .highlight": {
+                  animation: `${highlightAnimation} 4s ease-out`,
+                },
+              }}
+              localeText={
+                esESGrid.components.MuiDataGrid.defaultProps.localeText
+              }
+            />
+          </CardContent>
+        </Card>
       )}
     </Box>
   );
