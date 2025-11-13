@@ -3,9 +3,9 @@ import {
   Box,
   Alert,
   Typography,
-  Paper,
   Button,
   CircularProgress,
+  DialogActions, // <-- Importado
 } from "@mui/material";
 import FormularioDinamico, { Campo } from "../FormularioDinamico";
 import { BotonPrimario, BotonSecundario } from "../../Botones";
@@ -212,24 +212,26 @@ export const AdicionalForm: React.FC = () => {
 
   return (
     <div>
-      {!showForm && (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
+      {/* --- INICIO DE LA MODIFICACIÓN: TÍTULO Y BOTONES --- */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h5"
+          component="h1"
+          gutterBottom
+          sx={{ mb: 0, fontWeight: "bold" }}
         >
-          <Typography
-            variant="h5"
-            component="h1"
-            gutterBottom
-            sx={{ mb: 0, fontWeight: "bold" }}
-          >
-            Gestionar Adicionales
-          </Typography>
+          Gestionar Adicionales
+        </Typography>
 
+        {/* Los botones desaparecen si el modal está abierto */}
+        {!showForm && (
           <Box sx={{ display: "flex", gap: 2 }}>
             <BotonSecundario
               onClick={() => setModalPromoverAbierto(true)}
@@ -245,59 +247,40 @@ export const AdicionalForm: React.FC = () => {
               Crear Adicional
             </BotonPrimario>
           </Box>
-        </Box>
-      )}
+        )}
+      </Box>
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
-      {/* --- INICIO DE LA MODIFICACIÓN --- */}
-      {showForm && (
-        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 2, md: 4 },
-              mb: 3,
-              borderRadius: "8px",
-              backgroundColor: "white",
-              width: "100%",
-              maxWidth: "900px", // <-- Ancho máximo
-            }}
+      {/* --- INICIO DE LA MODIFICACIÓN: FORMULARIO MODAL --- */}
+      <FormularioDinamico
+        titulo={editingItem ? "Editar Adicional" : "Registrar Nuevo Adicional"}
+        campos={camposAdicional}
+        onSubmit={handleFormSubmit}
+        initialValues={editingItem}
+        // Props de Modal
+        modal={true}
+        open={showForm}
+        onClose={actions.handleCancel}
+      >
+        {/* Botones pasados como children */}
+        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+          <Button
+            onClick={actions.handleCancel}
+            variant="outlined"
+            disabled={isSaving}
           >
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ mb: 3, fontWeight: "bold" }}
-            >
-              {editingItem ? "Editar Adicional" : "Registrar Nuevo Adicional"}
-            </Typography>
-
-            <FormularioDinamico
-              campos={camposAdicional}
-              onSubmit={handleFormSubmit}
-              initialValues={editingItem}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  justifyContent: "center",
-                  mt: 3,
-                }}
-              >
-                <Button
-                  onClick={actions.handleCancel}
-                  variant="outlined"
-                  disabled={isSaving}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" variant="contained" disabled={isSaving}>
-                  {isSaving ? <CircularProgress size={24} /> : "Guardar"}
-                </Button>
-              </Box>
-            </FormularioDinamico>
-          </Paper>
-        </Box>
-      )}
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            form="formulario-dinamico"
+            variant="contained"
+            disabled={isSaving}
+          >
+            {isSaving ? <CircularProgress size={24} /> : "Guardar"}
+          </Button>
+        </DialogActions>
+      </FormularioDinamico>
       {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       <ModalPromoverAdicional
@@ -306,16 +289,16 @@ export const AdicionalForm: React.FC = () => {
         onPromover={handlePromoverSubmit}
       />
 
-      {!showForm && (
-        <DataTable
-          entidad="adicional"
-          rows={adicionalesConstantes}
-          handleEdit={actions.handleEdit}
-          handleDelete={handleDelete}
-          highlightedId={highlightedId}
-          actionsDisabled={isSaving}
-        />
-      )}
+      {/* --- INICIO DE LA MODIFICACIÓN: TABLA SIEMPRE VISIBLE --- */}
+      <DataTable
+        entidad="adicional"
+        rows={adicionalesConstantes}
+        handleEdit={actions.handleEdit}
+        handleDelete={handleDelete}
+        highlightedId={highlightedId}
+        actionsDisabled={isSaving}
+      />
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       <DialogoConfirmacion
         open={confirmOpen}

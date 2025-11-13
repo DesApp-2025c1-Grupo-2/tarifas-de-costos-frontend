@@ -366,24 +366,28 @@ export const FormCrearTarifa: React.FC = () => {
 
   return (
     <div>
-      {!showForm && !isLoading && !loadingError && (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h5"
+          component="h1"
+          gutterBottom
+          sx={{ mb: 0, fontWeight: "bold" }}
         >
-          <Typography
-            variant="h5"
-            component="h1"
-            gutterBottom
-            sx={{ mb: 0, fontWeight: "bold" }}
-          >
-            Gestionar Tarifas
-          </Typography>
+          {showForm
+            ? editingItem
+              ? "Editar Tarifa"
+              : "Registrar nueva Tarifa"
+            : "Gestionar Tarifas"}
+        </Typography>
 
+        {!showForm && !isLoading && !loadingError && (
           <BotonPrimario
             onClick={handleCrearClick}
             disabled={!dependenciasCargadas || isSaving}
@@ -391,12 +395,12 @@ export const FormCrearTarifa: React.FC = () => {
           >
             Nueva Tarifa
           </BotonPrimario>
-        </Box>
-      )}
+        )}
+      </Box>
 
       {/* --- INICIO DE LA MODIFICACIÓN --- */}
       {showForm && (
-        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+        <Box sx={{ width: "100%" }}>
           <Paper
             elevation={0}
             sx={{
@@ -405,46 +409,41 @@ export const FormCrearTarifa: React.FC = () => {
               borderRadius: "8px",
               backgroundColor: "white",
               width: "100%",
-              maxWidth: "900px", // <-- Ancho máximo
+              // maxWidth: "900px", // <-- ELIMINADO DE AQUÍ
             }}
           >
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ mb: 3, fontWeight: "bold" }}
-            >
-              {editingItem ? "Editar Tarifa" : "Registrar nueva Tarifa"}
-            </Typography>
-
-            <FormularioDinamico
-              campos={camposTarifa}
-              onSubmit={handleSubmit}
-              initialValues={initialFormValues}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  justifyContent: "center",
-                  mt: 3,
-                }}
+            {/* Box interno para centrar y limitar el ancho del formulario */}
+            <Box sx={{ maxWidth: "900px", margin: "0 auto" }}>
+              <FormularioDinamico
+                campos={camposTarifa}
+                onSubmit={handleSubmit}
+                initialValues={initialFormValues}
               >
-                <Button
-                  onClick={handleCancel}
-                  variant="outlined"
-                  disabled={isSaving}
+                <Box
+                  sx={{
+                    display: "flex",
+                    gap: 2,
+                    justifyContent: "center",
+                    mt: 3,
+                  }}
                 >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={isSaving || !dependenciasCargadas}
-                >
-                  {isSaving ? <CircularProgress size={24} /> : "Guardar"}
-                </Button>
-              </Box>
-            </FormularioDinamico>
+                  <Button
+                    onClick={handleCancel}
+                    variant="outlined"
+                    disabled={isSaving}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={isSaving || !dependenciasCargadas}
+                  >
+                    {isSaving ? <CircularProgress size={24} /> : "Guardar"}
+                  </Button>
+                </Box>
+              </FormularioDinamico>
+            </Box>
           </Paper>
         </Box>
       )}

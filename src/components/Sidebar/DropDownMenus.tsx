@@ -79,6 +79,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
               px: 2.5,
               mb: 1,
               borderRadius: 2,
+              py: 0.5, // <-- MODIFICACIÓN: Añadido padding vertical
 
               // 1. Estado Inactivo (Default)
               backgroundColor: "transparent",
@@ -126,6 +127,9 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
               sx={{
                 opacity: isCollapsed ? 0 : 1,
                 color: "inherit", // Hereda el color del ListItemButton
+                "& .MuiTypography-root": {
+                  fontSize: "0.875rem", // <-- Letra más chica (14px)
+                },
               }}
             />
           </ListItemButton>

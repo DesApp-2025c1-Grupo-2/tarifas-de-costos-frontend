@@ -10,9 +10,9 @@ import {
   Box,
   Alert,
   Typography,
-  Paper,
   Button,
   CircularProgress,
+  DialogActions,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DialogoConfirmacion from "../DialogoConfirmacion";
@@ -127,98 +127,80 @@ export const FormCrearCarga: React.FC = () => {
 
   return (
     <div>
-      {!showForm && (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
+      {/* El título principal se mantiene siempre fuera */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h5"
+          component="h1"
+          gutterBottom
+          sx={{ mb: 0, fontWeight: "bold" }}
         >
-          <Typography
-            variant="h5"
-            component="h1"
-            gutterBottom
-            sx={{ mb: 0, fontWeight: "bold" }}
-          >
-            Gestionar Tipos de Carga
-          </Typography>
+          Gestionar Tipos de Carga
+        </Typography>
 
-          <BotonPrimario
-            onClick={actions.handleCreateNew}
-            startIcon={<AddIcon />}
+        {/* El botón de "Nuevo" solo se muestra con la tabla */}
+        {/* CORRECCIÓN: Se quita !showForm para que el botón esté siempre, 
+           ya que la tabla siempre está visible */}
+        <BotonPrimario
+          onClick={actions.handleCreateNew}
+          startIcon={<AddIcon />}
+          disabled={isSaving}
+        >
+          Nuevo Tipo de Carga
+        </BotonPrimario>
+      </Box>
+
+      {/* El FormularioDinamico (modal) se renderiza siempre, 
+          pero su visibilidad la controla 'open={showForm}' */}
+      <FormularioDinamico
+        titulo={
+          editingItem ? "Editar Tipo de Carga" : "Registrar nuevo Tipo de Carga"
+        }
+        campos={camposCarga}
+        onSubmit={handleFormSubmit}
+        initialValues={editingItem}
+        modal={true}
+        open={showForm}
+        onClose={actions.handleCancel}
+      >
+        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+          <Button
+            onClick={actions.handleCancel}
+            variant="outlined"
             disabled={isSaving}
           >
-            Nuevo Tipo de Carga
-          </BotonPrimario>
-        </Box>
-      )}
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            form="formulario-dinamico"
+            variant="contained"
+            disabled={isSaving}
+          >
+            {isSaving ? <CircularProgress size={24} /> : "Guardar"}
+          </Button>
+        </DialogActions>
+      </FormularioDinamico>
 
       {/* --- INICIO DE LA MODIFICACIÓN --- */}
-      {showForm && (
-        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 2, md: 4 },
-              mb: 3,
-              borderRadius: "8px",
-              backgroundColor: "white",
-              width: "100%",
-              maxWidth: "900px", // <-- Ancho máximo
-            }}
-          >
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ mb: 3, fontWeight: "bold" }}
-            >
-              {editingItem
-                ? "Editar Tipo de Carga"
-                : "Registrar nuevo Tipo de Carga"}
-            </Typography>
-
-            <FormularioDinamico
-              campos={camposCarga}
-              onSubmit={handleFormSubmit}
-              initialValues={editingItem}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  justifyContent: "center",
-                  mt: 3,
-                }}
-              >
-                <Button
-                  onClick={actions.handleCancel}
-                  variant="outlined"
-                  disabled={isSaving}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" variant="contained" disabled={isSaving}>
-                  {isSaving ? <CircularProgress size={24} /> : "Guardar"}
-                </Button>
-              </Box>
-            </FormularioDinamico>
-          </Paper>
-        </Box>
-      )}
+      {/* La tabla ahora se renderiza siempre. 
+          Ya no está envuelta en !showForm */}
+      <DataTable
+        entidad="tipoDeCarga"
+        rows={items}
+        handleEdit={actions.handleEdit}
+        handleDelete={handleDelete}
+        highlightedId={highlightedId}
+        actionsDisabled={isSaving}
+      />
       {/* --- FIN DE LA MODIFICACIÓN --- */}
-
-      {!showForm && (
-        <DataTable
-          entidad="tipoDeCarga"
-          rows={items}
-          handleEdit={actions.handleEdit}
-          handleDelete={handleDelete}
-          highlightedId={highlightedId}
-          actionsDisabled={isSaving}
-        />
-      )}
 
       <DialogoConfirmacion
         open={confirmOpen}

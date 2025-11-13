@@ -6,8 +6,8 @@ import {
   FormControlLabel,
   Switch,
   Typography,
-  Paper,
   Button,
+  DialogActions, // <-- Importado
 } from "@mui/material";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
@@ -206,24 +206,26 @@ export const CombustibleForm: React.FC = () => {
 
   return (
     <div>
-      {!showForm && (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
+      {/* --- INICIO DE LA MODIFICACIÓN: TÍTULO Y BOTONES --- */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h5"
+          component="h1"
+          gutterBottom
+          sx={{ mb: 0, fontWeight: "bold" }}
         >
-          <Typography
-            variant="h5"
-            component="h1"
-            gutterBottom
-            sx={{ mb: 0, fontWeight: "bold" }}
-          >
-            Gestionar Cargas de Combustible
-          </Typography>
+          Gestionar Cargas de Combustible
+        </Typography>
 
+        {/* Botón desaparece si el modal está abierto */}
+        {!showForm && (
           <BotonPrimario
             onClick={handleCreateNew}
             disabled={isLoading || isSaving}
@@ -231,78 +233,56 @@ export const CombustibleForm: React.FC = () => {
           >
             Nueva Carga
           </BotonPrimario>
-        </Box>
-      )}
-
-      {/* --- INICIO DE LA MODIFICACIÓN --- */}
-      {showForm && (
-        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 2, md: 4 },
-              mb: 3,
-              borderRadius: "8px",
-              backgroundColor: "white",
-              width: "100%",
-              maxWidth: "900px", // <-- Ancho máximo
-            }}
-          >
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ mb: 3, fontWeight: "bold" }}
-            >
-              {editingItem ? "Editar Carga" : "Registrar Nueva Carga"}
-            </Typography>
-
-            <FormularioDinamico
-              campos={campos}
-              initialValues={editingItem}
-              onSubmit={handleSubmit}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  justifyContent: "center",
-                  mt: 3,
-                }}
-              >
-                <Button
-                  onClick={handleCancel}
-                  variant="outlined"
-                  disabled={isSaving}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" variant="contained" disabled={isSaving}>
-                  {isSaving ? <CircularProgress size={24} /> : "Guardar"}
-                </Button>
-              </Box>
-            </FormularioDinamico>
-          </Paper>
-        </Box>
-      )}
+        )}
+      </Box>
       {/* --- FIN DE LA MODIFICACIÓN --- */}
 
-      {!showForm &&
-        (isLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <DataTable
-            entidad="combustible"
-            rows={enrichedRows}
-            handleEdit={handleEdit}
-            handleDelete={handleDelete}
-            showHistoricoSwitch={true}
-            historicoChecked={mostrarHistorico}
-            onHistoricoChange={(e) => setMostrarHistorico(e.target.checked)}
-            actionsDisabled={isSaving}
-          />
-        ))}
+      {/* --- INICIO DE LA MODIFICACIÓN: FORMULARIO MODAL --- */}
+      <FormularioDinamico
+        titulo={editingItem ? "Editar Carga" : "Registrar Nueva Carga"}
+        campos={campos}
+        initialValues={editingItem}
+        onSubmit={handleSubmit}
+        // Props de Modal
+        modal={true}
+        open={showForm}
+        onClose={handleCancel}
+      >
+        {/* Botones pasados como children */}
+        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+          <Button onClick={handleCancel} variant="outlined" disabled={isSaving}>
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            form="formulario-dinamico"
+            variant="contained"
+            disabled={isSaving}
+          >
+            {isSaving ? <CircularProgress size={24} /> : "Guardar"}
+          </Button>
+        </DialogActions>
+      </FormularioDinamico>
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
+
+      {/* --- INICIO DE LA MODIFICACIÓN: TABLA/LOADING SIEMPRE VISIBLE --- */}
+      {isLoading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <DataTable
+          entidad="combustible"
+          rows={enrichedRows}
+          handleEdit={handleEdit}
+          handleDelete={handleDelete}
+          showHistoricoSwitch={true}
+          historicoChecked={mostrarHistorico}
+          onHistoricoChange={(e) => setMostrarHistorico(e.target.checked)}
+          actionsDisabled={isSaving}
+        />
+      )}
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       <DialogoConfirmacion
         open={confirmDialogOpen}

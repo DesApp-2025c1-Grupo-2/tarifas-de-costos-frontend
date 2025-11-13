@@ -71,6 +71,7 @@ export default function OptionMenu({
         px: 2.5,
         pl: isSubmenu && !isCollapsed ? 4 : 2.5,
         mb: 1,
+        py: 0.5, // <-- MODIFICACIÓN: Añadido padding vertical
 
         // 1. Estado Inactivo (Default)
         color: colorGris,
@@ -124,6 +125,7 @@ export default function OptionMenu({
           color: "inherit", // Hereda el color del ListItemButton
           "& .MuiTypography-root": {
             fontWeight: isActive ? 500 : 400,
+            fontSize: "0.875rem", // <-- Letra más chica (14px)
           },
         }}
       />
