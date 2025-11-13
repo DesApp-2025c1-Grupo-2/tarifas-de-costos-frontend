@@ -500,11 +500,22 @@ export default function DataTable({
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* ... (Filtros se mantiene igual) ... */}
-      <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-start" }}>
+      {/* =====================================================================
+        INICIO DE LA CORRECCIÓN: Espaciado del Botón de Filtro
+        Se cambió mb: 2 por mb: 1.5
+        =====================================================================
+      */}
+      <Box sx={{ mb: 1.5, display: "flex", justifyContent: "flex-start" }}>
         <Button
           variant="outlined"
-          startIcon={<FilterListIcon />}
+          startIcon={
+            <FilterListIcon
+              sx={{
+                transition: "transform 0.3s ease-in-out",
+                transform: filtrosVisibles ? "rotate(180deg)" : "rotate(0deg)",
+              }}
+            />
+          }
           onClick={() => setFiltrosVisibles(!filtrosVisibles)}
           sx={{
             backgroundColor: "white",
@@ -523,6 +534,54 @@ export default function DataTable({
           Filtros
         </Button>
       </Box>
+
+      {/* =====================================================================
+        INICIO DE LA CORRECCIÓN: Bloque de Filtros Activos (Chips)
+        Se cambió mb: 2 por mb: 1.5
+        Se cambió p: 1.5 por p: 1
+        =====================================================================
+      */}
+      {activeFilters.length > 0 && (
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 1,
+            mb: 1.5, // <-- CAMBIADO
+            backgroundColor: "#F6F7FB",
+            borderRadius: "8px",
+            p: 1, // <-- CAMBIADO
+          }}
+        >
+          {activeFilters.map((filter) => (
+            <Chip
+              key={filter.key}
+              label={`${filter.label}: ${filter.value}`}
+              onDelete={() => handleRemoveFilter(filter.key)}
+              size="medium"
+              variant="outlined"
+              sx={{
+                fontSize: "0.800rem",
+                fontWeight: 500,
+                backgroundColor: "#f7f7f7ff",
+                borderColor: "#b4b4b4ff",
+                "& .MuiChip-deleteIcon": {
+                  color: "#474747ff",
+                  "&:hover": {
+                    color: "#ffffffff",
+                  },
+                },
+              }}
+            />
+          ))}
+        </Box>
+      )}
+      {/* =====================================================================
+        FIN DE LA CORRECCIÓN
+        =====================================================================
+      */}
+
       <Collapse in={filtrosVisibles}>
         <Paper
           elevation={3}
@@ -667,45 +726,6 @@ export default function DataTable({
         </Paper>
       </Collapse>
       {/* ... (Fin Filtros) ... */}
-
-      {/* --- INICIO DE LA MODIFICACIÓN: FILTROS ACTIVOS --- */}
-      {activeFilters.length > 0 && !filtrosVisibles && (
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            gap: 1,
-            mb: 2,
-            backgroundColor: "#f5f5f5", // <-- 1. FONDO GRIS CLARO
-            borderRadius: "8px", // <-- Bordes redondeados
-          }}
-        >
-          {activeFilters.map((filter) => (
-            <Chip
-              key={filter.key}
-              label={`${filter.label}: ${filter.value}`}
-              onDelete={() => handleRemoveFilter(filter.key)}
-              size="medium"
-              variant="outlined"
-              sx={{
-                fontWeight: 500,
-                backgroundColor: "#eeeeee",
-                borderColor: "#d0d0d0",
-                // <-- 2. ESTILOS PARA LA X (deleteIcon)
-                "& .MuiChip-deleteIcon": {
-                  // Gris oscuro
-                  color: "#474747ff",
-                  "&:hover": {
-                    color: "#a5a5a5ff", // Gris más oscuro en hover
-                  },
-                },
-              }}
-            />
-          ))}
-        </Box>
-      )}
-      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       {/* --- (Contenido de Tabla/Cards) --- */}
       {esMovil ? (
