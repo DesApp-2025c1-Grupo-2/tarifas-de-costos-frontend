@@ -541,6 +541,7 @@ export default function DataTable({
               display: "grid",
               gap: 2,
               mb: 2,
+
               gridTemplateColumns: {
                 xs: "1fr",
                 sm: "repeat(2, 1fr)",

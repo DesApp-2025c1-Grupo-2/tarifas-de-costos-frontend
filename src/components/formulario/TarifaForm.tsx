@@ -11,10 +11,11 @@ import {
   CircularProgress,
   Box,
   Alert,
-  Typography, // <-- 1. ASEGÚRATE DE IMPORTAR TYPOGRAPHY
-  // Quitar FormControlLabel y Switch de aquí si no se usan en otro lado
+  Typography,
+  Paper,
+  Button,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add"; // <-- Importar AddIcon
+import AddIcon from "@mui/icons-material/Add";
 import {
   obtenerTransportistas,
   Transportista,
@@ -41,6 +42,7 @@ export const FormCrearTarifa: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState<MessageState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [viewingTarifa, setViewingTarifa] = useState<TarifaDetallada | null>(
     null
@@ -90,6 +92,7 @@ export const FormCrearTarifa: React.FC = () => {
 
   const cargarDependencias = async () => {
     try {
+      setIsLoading(true);
       const [
         transportistasData,
         vehiculosData,
@@ -117,6 +120,7 @@ export const FormCrearTarifa: React.FC = () => {
         severity: "error",
       });
     }
+    // No quitamos isLoading aquí
   };
 
   useEffect(() => {
@@ -143,6 +147,7 @@ export const FormCrearTarifa: React.FC = () => {
   };
 
   const handleSubmit = async (formValues: Record<string, any>) => {
+    setIsSaving(true);
     setMessage(null);
     const adicionalesPayload = (formValues["adicionales"] || []).map(
       (a: any) => {
@@ -184,6 +189,7 @@ export const FormCrearTarifa: React.FC = () => {
         text: "Transportista, Vehículo, Zona y Carga son obligatorios.",
         severity: "error",
       });
+      setIsSaving(false);
       return;
     }
     if (payload.valorBase <= 0) {
@@ -191,6 +197,7 @@ export const FormCrearTarifa: React.FC = () => {
         text: "El Costo Base debe ser mayor a cero.",
         severity: "error",
       });
+      setIsSaving(false);
       return;
     }
 
@@ -221,6 +228,7 @@ export const FormCrearTarifa: React.FC = () => {
         severity: "error",
       });
     } finally {
+      setIsSaving(false);
       if (message?.severity !== "error") {
         setTimeout(() => setMessage(null), 5000);
       }
@@ -241,6 +249,7 @@ export const FormCrearTarifa: React.FC = () => {
 
   const confirmarEliminacion = async () => {
     if (idAEliminar !== null) {
+      setIsSaving(true);
       try {
         await tarifaService.eliminarTarifa(idAEliminar);
         setMessage({
@@ -256,6 +265,7 @@ export const FormCrearTarifa: React.FC = () => {
       } finally {
         setConfirmDialogOpen(false);
         setIdAEliminar(null);
+        setIsSaving(false);
         setTimeout(() => setMessage(null), 3000);
       }
     }
@@ -356,7 +366,6 @@ export const FormCrearTarifa: React.FC = () => {
 
   return (
     <div>
-      {/* --- INICIO DE LA MODIFICACIÓN --- */}
       {!showForm && !isLoading && !loadingError && (
         <Box
           sx={{
@@ -370,57 +379,101 @@ export const FormCrearTarifa: React.FC = () => {
             variant="h5"
             component="h1"
             gutterBottom
-            sx={{ mb: 0, fontWeight: "bold" }} // <-- AÑADIDO fontWeight
+            sx={{ mb: 0, fontWeight: "bold" }}
           >
             Gestionar Tarifas
           </Typography>
 
           <BotonPrimario
             onClick={handleCrearClick}
-            disabled={!dependenciasCargadas}
+            disabled={!dependenciasCargadas || isSaving}
             startIcon={<AddIcon />}
           >
             Nueva Tarifa
           </BotonPrimario>
         </Box>
       )}
+
+      {/* --- INICIO DE LA MODIFICACIÓN --- */}
+      {showForm && (
+        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2, md: 4 },
+              mb: 3,
+              borderRadius: "8px",
+              backgroundColor: "white",
+              width: "100%",
+              maxWidth: "900px", // <-- Ancho máximo
+            }}
+          >
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{ mb: 3, fontWeight: "bold" }}
+            >
+              {editingItem ? "Editar Tarifa" : "Registrar nueva Tarifa"}
+            </Typography>
+
+            <FormularioDinamico
+              campos={camposTarifa}
+              onSubmit={handleSubmit}
+              initialValues={initialFormValues}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  justifyContent: "center",
+                  mt: 3,
+                }}
+              >
+                <Button
+                  onClick={handleCancel}
+                  variant="outlined"
+                  disabled={isSaving}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={isSaving || !dependenciasCargadas}
+                >
+                  {isSaving ? <CircularProgress size={24} /> : "Guardar"}
+                </Button>
+              </Box>
+            </FormularioDinamico>
+          </Paper>
+        </Box>
+      )}
       {/* --- FIN DE LA MODIFICACIÓN --- */}
 
-      {showForm && (
-        <FormularioDinamico
-          titulo={editingItem ? "Editar Tarifa" : "Registrar nueva Tarifa"}
-          campos={camposTarifa}
-          onSubmit={handleSubmit}
-          modal
-          open={showForm}
-          onClose={handleCancel}
-          initialValues={initialFormValues}
-        />
-      )}
-      {isLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : loadingError ? (
-        <Alert severity="error">{loadingError}</Alert>
-      ) : (
-        <DataTable
-          entidad="tarifa"
-          rows={tarifas}
-          handleEdit={handleEdit}
-          handleDelete={handleDelete}
-          handleView={handleView}
-          handleMostrarAdicionales={handleMostrarAdicionales}
-          handleMostrarHistorial={handleMostrarHistorial}
-          highlightedId={highlightedId}
-          actionsDisabled={!dependenciasCargadas}
-          // --- PROPS PASADOS AL DATATABLE ---
-          showHistoricoSwitch={true}
-          historicoChecked={mostrarHistorico}
-          onHistoricoChange={(e) => setMostrarHistorico(e.target.checked)}
-          // --- FIN ---
-        />
-      )}
+      {!showForm &&
+        (isLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : loadingError ? (
+          <Alert severity="error">{loadingError}</Alert>
+        ) : (
+          <DataTable
+            entidad="tarifa"
+            rows={tarifas}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            handleView={handleView}
+            handleMostrarAdicionales={handleMostrarAdicionales}
+            handleMostrarHistorial={handleMostrarHistorial}
+            highlightedId={highlightedId}
+            actionsDisabled={!dependenciasCargadas || isSaving}
+            showHistoricoSwitch={true}
+            historicoChecked={mostrarHistorico}
+            onHistoricoChange={(e) => setMostrarHistorico(e.target.checked)}
+          />
+        ))}
+
       <ModalVerTarifa
         open={!!viewingTarifa}
         onClose={() => setViewingTarifa(null)}

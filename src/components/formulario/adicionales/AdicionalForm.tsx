@@ -1,14 +1,21 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, Alert, Typography } from "@mui/material"; // <-- AÑADIR TYPOGRAPHY
+import {
+  Box,
+  Alert,
+  Typography,
+  Paper,
+  Button,
+  CircularProgress,
+} from "@mui/material";
 import FormularioDinamico, { Campo } from "../FormularioDinamico";
 import { BotonPrimario, BotonSecundario } from "../../Botones";
-import * as adicionalService from "../../../services/adicionalService"; // Asegúrate que esta ruta es correcta
-import * as reporteService from "../../../services/reporteService"; // Asegúrate que esta ruta es correcta
+import * as adicionalService from "../../../services/adicionalService";
+import * as reporteService from "../../../services/reporteService";
 import DataTable from "../../tablas/tablaDinamica";
-import { Adicional } from "../../../services/adicionalService"; // Importar el tipo Adicional
+import { Adicional } from "../../../services/adicionalService";
 import { ModalPromoverAdicional } from "./ModalPromoverAdicional";
 import DialogoConfirmacion from "../../DialogoConfirmacion";
-import AddIcon from "@mui/icons-material/Add"; // <-- Importar AddIcon
+import AddIcon from "@mui/icons-material/Add";
 import { MessageState, useCrud } from "../../hook/useCrud";
 import { CrudService } from "../../../services/crudService";
 import { getHumanReadableError } from "../../../utils/errorUtils";
@@ -49,7 +56,6 @@ const servicioAdaptado: CrudService<Adicional> = {
 type AdicionalConFrecuencia = Adicional & { cantidad: number };
 
 export const AdicionalForm: React.FC = () => {
-  // --- INICIO CORRECCIÓN 1: Dejar de usar confirmDelete y confirmOpen del hook ---
   const {
     editingItem,
     showForm,
@@ -59,16 +65,12 @@ export const AdicionalForm: React.FC = () => {
     setHighlightedId,
     actions,
   } = useCrud<Adicional>(servicioAdaptado);
-  // --- FIN CORRECCIÓN 1 ---
 
   const [items, setItems] = useState<AdicionalConFrecuencia[]>([]);
   const [modalPromoverAbierto, setModalPromoverAbierto] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  // --- INICIO CORRECCIÓN 2: Añadir estado local para el diálogo de confirmación ---
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [idToDelete, setIdToDelete] = useState<number | string | null>(null);
-  // --- FIN CORRECCIÓN 2 ---
 
   const loadItems = useCallback(async () => {
     try {
@@ -103,7 +105,6 @@ export const AdicionalForm: React.FC = () => {
     loadItems();
   }, [loadItems]);
 
-  // --- INICIO CORRECCIÓN 3: Crear funciones locales de borrado ---
   const handleDelete = (item: Adicional) => {
     setIdToDelete(item.id);
     setConfirmOpen(true);
@@ -112,22 +113,19 @@ export const AdicionalForm: React.FC = () => {
   const localConfirmDelete = async () => {
     if (idToDelete === null) return;
     setIsSaving(true);
-    setMessage(null); // Limpiar mensajes anteriores
+    setMessage(null);
     try {
       await servicioAdaptado.remove(idToDelete);
-      // Mensaje personalizado
       setMessage({
         text: "Adicional dado de baja con éxito.",
         severity: "success",
       });
       await loadItems();
-      // Timeout para el mensaje de éxito
       setTimeout(() => setMessage(null), 4000);
     } catch (err: any) {
       console.error(err);
       const cleanError = getHumanReadableError(err);
       setMessage({ text: cleanError, severity: "error" });
-      // Timeout para el mensaje de error
       setTimeout(() => setMessage(null), 8000);
     } finally {
       setConfirmOpen(false);
@@ -135,7 +133,6 @@ export const AdicionalForm: React.FC = () => {
       setIsSaving(false);
     }
   };
-  // --- FIN CORRECCIÓN 3 ---
 
   const handleFormSubmit = async (formValues: Record<string, any>) => {
     setIsSaving(true);
@@ -215,55 +212,93 @@ export const AdicionalForm: React.FC = () => {
 
   return (
     <div>
-      {/* --- INICIO DE LA MODIFICACIÓN --- */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3, // <-- MODIFICADO (era 2)
-        }}
-      >
-        <Typography
-          variant="h5"
-          component="h1"
-          gutterBottom
-          sx={{ mb: 0, fontWeight: "bold" }} // <-- AÑADIDO fontWeight
+      {!showForm && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
         >
-          Gestionar Adicionales
-        </Typography>
+          <Typography
+            variant="h5"
+            component="h1"
+            gutterBottom
+            sx={{ mb: 0, fontWeight: "bold" }}
+          >
+            Gestionar Adicionales
+          </Typography>
 
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <BotonSecundario
-            onClick={() => setModalPromoverAbierto(true)}
-            disabled={isSaving}
-          >
-            Promover Flotante
-          </BotonSecundario>
-          <BotonPrimario
-            onClick={actions.handleCreateNew}
-            disabled={isSaving}
-            startIcon={<AddIcon />}
-          >
-            Crear Adicional
-          </BotonPrimario>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <BotonSecundario
+              onClick={() => setModalPromoverAbierto(true)}
+              disabled={isSaving}
+            >
+              Promover Flotante
+            </BotonSecundario>
+            <BotonPrimario
+              onClick={actions.handleCreateNew}
+              disabled={isSaving}
+              startIcon={<AddIcon />}
+            >
+              Crear Adicional
+            </BotonPrimario>
+          </Box>
         </Box>
-      </Box>
-      {/* --- FIN DE LA MODIFICACIÓN --- */}
-
-      {showForm && (
-        <FormularioDinamico
-          titulo={
-            editingItem ? "Editar Adicional" : "Registrar Nuevo Adicional"
-          }
-          campos={camposAdicional}
-          onSubmit={handleFormSubmit}
-          initialValues={editingItem}
-          modal
-          open={showForm}
-          onClose={actions.handleCancel}
-        />
       )}
+
+      {/* --- INICIO DE LA MODIFICACIÓN --- */}
+      {showForm && (
+        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2, md: 4 },
+              mb: 3,
+              borderRadius: "8px",
+              backgroundColor: "white",
+              width: "100%",
+              maxWidth: "900px", // <-- Ancho máximo
+            }}
+          >
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{ mb: 3, fontWeight: "bold" }}
+            >
+              {editingItem ? "Editar Adicional" : "Registrar Nuevo Adicional"}
+            </Typography>
+
+            <FormularioDinamico
+              campos={camposAdicional}
+              onSubmit={handleFormSubmit}
+              initialValues={editingItem}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  justifyContent: "center",
+                  mt: 3,
+                }}
+              >
+                <Button
+                  onClick={actions.handleCancel}
+                  variant="outlined"
+                  disabled={isSaving}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="contained" disabled={isSaving}>
+                  {isSaving ? <CircularProgress size={24} /> : "Guardar"}
+                </Button>
+              </Box>
+            </FormularioDinamico>
+          </Paper>
+        </Box>
+      )}
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       <ModalPromoverAdicional
         open={modalPromoverAbierto}
@@ -271,25 +306,25 @@ export const AdicionalForm: React.FC = () => {
         onPromover={handlePromoverSubmit}
       />
 
-      {/* --- INICIO CORRECCIÓN 4: Usar la función de borrado local --- */}
-      <DataTable
-        entidad="adicional"
-        rows={adicionalesConstantes}
-        handleEdit={actions.handleEdit}
-        handleDelete={handleDelete} // <-- Usar la función local
-        highlightedId={highlightedId}
-        actionsDisabled={isSaving}
-      />
+      {!showForm && (
+        <DataTable
+          entidad="adicional"
+          rows={adicionalesConstantes}
+          handleEdit={actions.handleEdit}
+          handleDelete={handleDelete}
+          highlightedId={highlightedId}
+          actionsDisabled={isSaving}
+        />
+      )}
 
       <DialogoConfirmacion
-        open={confirmOpen} // <-- Usar estado local
-        onClose={() => setConfirmOpen(false)} // <-- Usar estado local
-        onConfirm={localConfirmDelete} // <-- Usar función local
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={localConfirmDelete}
         titulo="Confirmar baja de adicional"
         descripcion="¿Estás seguro de que deseas dar de baja este adicional?"
         textoConfirmar="Dar de Baja"
       />
-      {/* --- FIN CORRECCIÓN 4 --- */}
 
       {message && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>

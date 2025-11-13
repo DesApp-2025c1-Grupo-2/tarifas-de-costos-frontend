@@ -3,9 +3,11 @@ import {
   CircularProgress,
   Box,
   Alert,
-  FormControlLabel, // <-- Importar
-  Switch, // <-- Importar
-  Typography, // <-- AÑADIR TYPOGRAPHY
+  FormControlLabel,
+  Switch,
+  Typography,
+  Paper,
+  Button,
 } from "@mui/material";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
@@ -14,7 +16,7 @@ import * as cargaDeCombustibleService from "../../services/cargaDeCombustibleSer
 import { CargaDeCombustible } from "../../services/cargaDeCombustibleService";
 import { obtenerVehiculo, Vehiculo } from "../../services/vehiculoService";
 import { MessageState } from "../hook/useCrud";
-import AddIcon from "@mui/icons-material/Add"; // <-- Importar AddIcon
+import AddIcon from "@mui/icons-material/Add";
 import DialogoConfirmacion from "../DialogoConfirmacion";
 
 const getISODate30DaysAgo = () => {
@@ -31,6 +33,7 @@ export const CombustibleForm: React.FC = () => {
   );
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<MessageState | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [idAEliminar, setIdAEliminar] = useState<number | null>(null);
@@ -80,33 +83,30 @@ export const CombustibleForm: React.FC = () => {
 
   const confirmarEliminacion = async () => {
     if (idAEliminar !== null) {
+      setIsSaving(true);
       try {
         await cargaDeCombustibleService.eliminarCargaDeCombustible(idAEliminar);
-
-        // --- INICIO DE LA CORRECCIÓN ---
         setMessage({
           text: "Carga de combustible eliminada con éxito",
           severity: "success",
         });
-        // --- FIN DE LA CORRECCIÓN ---
-
         await cargarDatos();
       } catch (err) {
-        // --- INICIO DE LA CORRECCIÓN (Error) ---
         setMessage({
           text: "Error al eliminar la carga de combustible",
           severity: "error",
         });
-        // --- FIN DE LA CORRECCIÓN (Error) ---
       } finally {
         setConfirmDialogOpen(false);
         setIdAEliminar(null);
+        setIsSaving(false);
         setTimeout(() => setMessage(null), 3000);
       }
     }
   };
 
   const handleSubmit = async (values: Record<string, any>) => {
+    setIsSaving(true);
     const fechaISO = values.fecha
       ? new Date(values.fecha).toISOString()
       : new Date().toISOString();
@@ -148,6 +148,7 @@ export const CombustibleForm: React.FC = () => {
         severity: "error",
       });
     } finally {
+      setIsSaving(false);
       setTimeout(() => setMessage(null), 5000);
     }
   };
@@ -205,61 +206,103 @@ export const CombustibleForm: React.FC = () => {
 
   return (
     <div>
-      {/* --- INICIO DE LA MODIFICACIÓN --- */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between", // CAMBIADO
-          alignItems: "center", // AÑADIDO
-          mb: 3,
-        }}
-      >
-        <Typography
-          variant="h5"
-          component="h1"
-          gutterBottom
-          sx={{ mb: 0, fontWeight: "bold" }} // <-- AÑADIDO fontWeight
+      {!showForm && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
         >
-          Gestionar Cargas de Combustible
-        </Typography>
+          <Typography
+            variant="h5"
+            component="h1"
+            gutterBottom
+            sx={{ mb: 0, fontWeight: "bold" }}
+          >
+            Gestionar Cargas de Combustible
+          </Typography>
 
-        <BotonPrimario
-          onClick={handleCreateNew}
-          disabled={isLoading}
-          startIcon={<AddIcon />}
-        >
-          Nueva Carga
-        </BotonPrimario>
-      </Box>
+          <BotonPrimario
+            onClick={handleCreateNew}
+            disabled={isLoading || isSaving}
+            startIcon={<AddIcon />}
+          >
+            Nueva Carga
+          </BotonPrimario>
+        </Box>
+      )}
+
+      {/* --- INICIO DE LA MODIFICACIÓN --- */}
+      {showForm && (
+        <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 2, md: 4 },
+              mb: 3,
+              borderRadius: "8px",
+              backgroundColor: "white",
+              width: "100%",
+              maxWidth: "900px", // <-- Ancho máximo
+            }}
+          >
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{ mb: 3, fontWeight: "bold" }}
+            >
+              {editingItem ? "Editar Carga" : "Registrar Nueva Carga"}
+            </Typography>
+
+            <FormularioDinamico
+              campos={campos}
+              initialValues={editingItem}
+              onSubmit={handleSubmit}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  justifyContent: "center",
+                  mt: 3,
+                }}
+              >
+                <Button
+                  onClick={handleCancel}
+                  variant="outlined"
+                  disabled={isSaving}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" variant="contained" disabled={isSaving}>
+                  {isSaving ? <CircularProgress size={24} /> : "Guardar"}
+                </Button>
+              </Box>
+            </FormularioDinamico>
+          </Paper>
+        </Box>
+      )}
       {/* --- FIN DE LA MODIFICACIÓN --- */}
 
-      {showForm && (
-        <FormularioDinamico
-          titulo={editingItem ? "Editar Carga" : "Registrar Nueva Carga"}
-          campos={campos}
-          initialValues={editingItem}
-          onSubmit={handleSubmit}
-          modal
-          open={showForm}
-          onClose={handleCancel}
-        />
-      )}
-
-      {isLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <DataTable
-          entidad="combustible"
-          rows={enrichedRows}
-          handleEdit={handleEdit}
-          handleDelete={handleDelete}
-          showHistoricoSwitch={true}
-          historicoChecked={mostrarHistorico}
-          onHistoricoChange={(e) => setMostrarHistorico(e.target.checked)}
-        />
-      )}
+      {!showForm &&
+        (isLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <DataTable
+            entidad="combustible"
+            rows={enrichedRows}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            showHistoricoSwitch={true}
+            historicoChecked={mostrarHistorico}
+            onHistoricoChange={(e) => setMostrarHistorico(e.target.checked)}
+            actionsDisabled={isSaving}
+          />
+        ))}
 
       <DialogoConfirmacion
         open={confirmDialogOpen}
@@ -274,7 +317,7 @@ export const CombustibleForm: React.FC = () => {
           <Alert
             severity={message.severity}
             sx={{ width: "100%", maxWidth: "600px" }}
-            onClose={() => setMessage(null)} // Permitir cierre manual
+            onClose={() => setMessage(null)}
           >
             {message.text}
           </Alert>
