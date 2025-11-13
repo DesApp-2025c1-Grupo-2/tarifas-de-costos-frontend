@@ -15,6 +15,7 @@ import {
   Switch,
   Button,
   DialogActions,
+  Divider, // <-- 1. IMPORTAR DIVIDER
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { AdicionalSelector } from "./adicionales/AdicionalSelector";
@@ -37,7 +38,8 @@ export type Campo = {
     | "resultado"
     | "costoBase"
     | "switch"
-    | "datetime-local";
+    | "datetime-local"
+    | "divider"; // <-- 2. AÑADIR "divider" AL TIPO
   nombre: string;
   clave: string;
   opciones?: any[];
@@ -67,9 +69,11 @@ const FormularioDinamico: React.FC<Props> = ({
   children,
   onValuesChange,
 }) => {
-  // CORRECCIÓN: Inicializa el estado con los valores iniciales. 
+  // CORRECCIÓN: Inicializa el estado con los valores iniciales.
   // Esto garantiza que el formulario se pre-llene en la primera renderización (al editar).
-  const [valores, setValores] = useState<Record<string, any>>(initialValues || {});
+  const [valores, setValores] = useState<Record<string, any>>(
+    initialValues || {}
+  );
   const [modalNuevoAdicional, setModalNuevoAdicional] = useState(false);
   const [errores, setErrores] = useState<Record<string, string>>({});
 
@@ -237,6 +241,10 @@ const FormularioDinamico: React.FC<Props> = ({
                 value={valores[campo.clave] || "0.00"}
               />
             );
+          // --- 3. AÑADIR EL CASO PARA RENDERIZAR EL DIVIDER ---
+          case "divider":
+            return <Divider key={campo.clave} sx={{ my: 2 }} />;
+          // --- FIN DE LA MODIFICACIÓN ---
           default:
             return null;
         }

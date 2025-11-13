@@ -539,6 +539,7 @@ export default function DataTable({
         INICIO DE LA CORRECCIÓN: Bloque de Filtros Activos (Chips)
         Se cambió mb: 2 por mb: 1.5
         Se cambió p: 1.5 por p: 1
+        Se añadió fontWeight: 'bold' y fontStyle: 'italic' al Chip
         =====================================================================
       */}
       {activeFilters.length > 0 && (
@@ -548,10 +549,10 @@ export default function DataTable({
             flexWrap: "wrap",
             alignItems: "center",
             gap: 1,
-            mb: 1.5, // <-- CAMBIADO
-            backgroundColor: "#F6F7FB",
+            mb: 1.5, // <-- CAMBIADO (espacio)
+            backgroundColor: "#f5f5f5",
             borderRadius: "8px",
-            p: 1, // <-- CAMBIADO
+            p: 1, // <-- CAMBIADO (espacio)
           }}
         >
           {activeFilters.map((filter) => (
@@ -562,14 +563,14 @@ export default function DataTable({
               size="medium"
               variant="outlined"
               sx={{
-                fontSize: "0.800rem",
-                fontWeight: 500,
-                backgroundColor: "#f7f7f7ff",
-                borderColor: "#b4b4b4ff",
+                fontWeight: "bold", // <-- CAMBIADO (negrita)
+                fontStyle: "italic", // <-- AÑADIDO (cursiva)
+                backgroundColor: "#eeeeee",
+                borderColor: "#d0d0d0",
                 "& .MuiChip-deleteIcon": {
                   color: "#474747ff",
                   "&:hover": {
-                    color: "#ffffffff",
+                    color: "#a5a5a5ff",
                   },
                 },
               }}
