@@ -1,6 +1,20 @@
+// desapp-2025c1-grupo-2/tarifas-de-costos-frontend/tarifas-de-costos-frontend-feature-final/src/components/tablas/tablaDinamica.tsx
 import React, { useState, useMemo } from "react";
-import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { Paper, Collapse, Alert, Divider, Grid } from "@mui/material";
+// --- (Importaciones de componentes de Tabla se mantienen) ---
+import {
+  Paper,
+  Collapse,
+  Alert,
+  Divider,
+  Grid,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TablePagination,
+} from "@mui/material";
 import { columnas, Entidad } from "./columnas";
 import {
   Box,
@@ -19,13 +33,18 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
-  ListSubheader
+  ListSubheader,
 } from "@mui/material";
-import { BotonDetalles, BotonEditar, BotonEliminar} from "../Botones";
+// --- INICIO DE LA MODIFICACIÓN 1: Se eliminan los iconos de paginación ---
+// import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
+// import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
+// import FirstPageIcon from "@mui/icons-material/FirstPage";
+// import LastPageIcon from "@mui/icons-material/LastPage";
+// --- FIN DE LA MODIFICACIÓN 1 ---
+import { BotonDetalles, BotonEditar, BotonEliminar } from "../Botones";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import HistoryIcon from "@mui/icons-material/History";
 import EntityCard, { CardConfig } from "./EntityCard";
-import { esES as esESGrid } from "@mui/x-data-grid/locales";
 import { keyframes } from "@emotion/react";
 import { Funnel, X } from "lucide-react";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -48,6 +67,7 @@ interface DataTableProps {
   onHistoricoChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+// ... (cardConfigs y highlightAnimation se mantienen igual) ...
 const cardConfigs: Record<Entidad, CardConfig> = {
   tarifa: {
     titleField: "transportistaNombre",
@@ -130,6 +150,9 @@ const highlightAnimation = keyframes`
   0% { background-color: rgba(124, 179, 66, 0.4); }
   100% { background-color: transparent; }
 `;
+// --- INICIO DE LA MODIFICACIÓN 2: Se elimina el componente TablePaginationActions ---
+// function TablePaginationActions(...) { ... }
+// --- FIN DE LA MODIFICACIÓN 2 ---
 
 export default function DataTable({
   rows,
@@ -150,6 +173,8 @@ export default function DataTable({
   const columnasBase = columnas[entidad];
   const [filtros, setFiltros] = useState<{ [key: string]: string }>({});
   const [filtrosVisibles, setFiltrosVisibles] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const rowsFiltrados = useMemo(() => {
     if (!rows) return [];
@@ -188,7 +213,40 @@ export default function DataTable({
 
   const limpiarFiltros = () => setFiltros({});
 
-  const columnasConAcciones: GridColDef[] = useMemo(() => {
+  // ... (pluralEntityMap y funciones de paginación se mantienen igual) ...
+  const pluralEntityMap: Partial<Record<Entidad, string>> = {
+    tarifa: "tarifas",
+    transportista: "transportistas",
+    vehiculo: "vehículos",
+    tipoDeVehiculo: "tipos de vehículo",
+    tipoDeCarga: "cargas",
+    zona: "zonas",
+    adicional: "adicionales",
+    combustible: "cargas",
+  };
+  const entidadPlural = pluralEntityMap[entidad] || entidad;
+
+  const handleChangePage = (
+    event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const paginatedRows = useMemo(
+    () =>
+      rowsFiltrados.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [rowsFiltrados, page, rowsPerPage]
+  );
+  // ... (columnasConAcciones se mantiene igual) ...
+  const columnasConAcciones = useMemo(() => {
     if (!columnasBase) return [];
     let cols = [...columnasBase];
 
@@ -198,7 +256,9 @@ export default function DataTable({
         headerName: "Adicionales",
         width: 150,
         sortable: false,
-        renderCell: (params: GridRenderCellParams) => {
+        // @ts-ignore
+        renderCell: (params: { row: any; value: any }) => {
+          // Ajustado para que funcione con la nueva tabla
           const tieneAdicionales =
             params.value &&
             Array.isArray(params.value) &&
@@ -208,7 +268,10 @@ export default function DataTable({
               <Button
                 variant="text"
                 size="small"
-                onClick={() => handleMostrarAdicionales(params.value)}
+                onClick={() =>
+                  handleMostrarAdicionales &&
+                  handleMostrarAdicionales(params.value)
+                }
               >
                 VER ({params.value.length})
               </Button>
@@ -233,11 +296,14 @@ export default function DataTable({
         sortable: false,
         align: "center",
         headerAlign: "center",
-        
-        renderCell: (params) => {
-          const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+        // @ts-ignore
+        renderCell: (params: { row: any }) => {
+          // Ajustado para que funcione con la nueva tabla
+          const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(
+            null
+          );
           const open = Boolean(anchorEl);
-          
+
           const theme = useTheme();
           const editColors = (theme.palette as any).actionButtons.edit;
           const deleteColors = (theme.palette as any).actionButtons.delete;
@@ -269,9 +335,14 @@ export default function DataTable({
           const handleHistoryClick = () => {
             if (handleMostrarHistorial) handleMostrarHistorial(params.row.id);
             handleClose();
-          }
+          };
 
-          const actionCount = [handleView, handleEdit, handleDelete, (entidad === "tarifa" && handleMostrarHistorial)].filter(Boolean).length;
+          const actionCount = [
+            handleView,
+            handleEdit,
+            handleDelete,
+            entidad === "tarifa" && handleMostrarHistorial,
+          ].filter(Boolean).length;
 
           if (actionCount === 0) {
             return null;
@@ -283,9 +354,9 @@ export default function DataTable({
                 <IconButton
                   aria-label="acciones"
                   id="acciones-button"
-                  aria-controls={open ? 'acciones-menu' : undefined}
+                  aria-controls={open ? "acciones-menu" : undefined}
                   aria-haspopup="true"
-                  aria-expanded={open ? 'true' : undefined}
+                  aria-expanded={open ? "true" : undefined}
                   onClick={handleClick}
                   disabled={actionsDisabled}
                 >
@@ -298,39 +369,79 @@ export default function DataTable({
                 open={open}
                 onClose={handleClose}
                 MenuListProps={{
-                  'aria-labelledby': 'acciones-button',
-                  subheader: <ListSubheader component="div">Acciones</ListSubheader>,
+                  "aria-labelledby": "acciones-button",
+                  subheader: (
+                    <ListSubheader component="div" sx={{ textAlign: "center" }}>
+                      Acciones
+                    </ListSubheader>
+                  ),
                 }}
               >
                 {handleEdit && (
-                  <MenuItem onClick={handleEditClick} sx={{ color: editColors.text }}>
+                  <MenuItem
+                    onClick={handleEditClick}
+                    sx={{
+                      color: editColors.text,
+                      paddingY: "6px",
+                      paddingX: "12px",
+                    }}
+                  >
                     <ListItemIcon>
-                      <EditIcon fontSize="small" sx={{ color: editColors.text }} />
+                      <EditIcon
+                        fontSize="small"
+                        sx={{ color: editColors.text }}
+                      />
                     </ListItemIcon>
                     <ListItemText>Editar</ListItemText>
                   </MenuItem>
                 )}
 
                 {handleDelete && (
-                  <MenuItem onClick={handleDeleteClick} sx={{ color: deleteColors.text }}>
+                  <MenuItem
+                    onClick={handleDeleteClick}
+                    sx={{
+                      color: deleteColors.text,
+                      paddingY: "6px",
+                      paddingX: "12px",
+                    }}
+                  >
                     <ListItemIcon>
-                      <DeleteOutlineIcon fontSize="small" sx={{ color: deleteColors.text }} />
+                      <DeleteOutlineIcon
+                        fontSize="small"
+                        sx={{ color: deleteColors.text }}
+                      />
                     </ListItemIcon>
                     <ListItemText>Eliminar</ListItemText>
                   </MenuItem>
                 )}
-                
+
                 {handleView && (
-                  <MenuItem onClick={handleViewClick} sx={{ color: detailsColors.text }}>
+                  <MenuItem
+                    onClick={handleViewClick}
+                    sx={{
+                      color: detailsColors.text,
+                      paddingY: "6px",
+                      paddingX: "12px",
+                    }}
+                  >
                     <ListItemIcon>
-                      <VisibilityOutlinedIcon fontSize="small" sx={{ color: detailsColors.text }} />
+                      <VisibilityOutlinedIcon
+                        fontSize="small"
+                        sx={{ color: detailsColors.text }}
+                      />
                     </ListItemIcon>
                     <ListItemText>Detalles</ListItemText>
                   </MenuItem>
                 )}
-                
+
                 {entidad === "tarifa" && handleMostrarHistorial && (
-                  <MenuItem onClick={handleHistoryClick}>
+                  <MenuItem
+                    onClick={handleHistoryClick}
+                    sx={{
+                      paddingY: "6px",
+                      paddingX: "12px",
+                    }}
+                  >
                     <ListItemIcon>
                       <HistoryIcon fontSize="small" />
                     </ListItemIcon>
@@ -343,6 +454,7 @@ export default function DataTable({
         },
       });
     }
+    // @ts-ignore
     return cols;
   }, [
     columnasBase,
@@ -354,15 +466,7 @@ export default function DataTable({
     handleMostrarHistorial,
     actionsDisabled,
   ]);
-
-  if (!columnasBase) {
-    return (
-      <Alert severity="warning">
-        No hay una configuración de columnas para la entidad: '{entidad}'.
-      </Alert>
-    );
-  }
-
+  // ... (filterTitles se mantiene igual) ...
   const filterTitles: { [key: string]: string } = {
     // Tarifas
     id: "ID",
@@ -397,9 +501,9 @@ export default function DataTable({
     litrosCargados: "Litros Cargados",
     precioTotal: "Precio Total",
   };
-
   return (
     <Box sx={{ width: "100%" }}>
+      {/* ... (Filtros se mantiene igual) ... */}
       <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-start" }}>
         <Button
           variant="outlined"
@@ -422,7 +526,6 @@ export default function DataTable({
           Filtros
         </Button>
       </Box>
-
       <Collapse in={filtrosVisibles}>
         <Paper
           elevation={3}
@@ -454,11 +557,7 @@ export default function DataTable({
                       handleFiltroChange(col.field, newValue || "")
                     }
                     renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label=""
-                        variant="outlined"
-                      />
+                      <TextField {...params} label="" variant="outlined" />
                     )}
                     fullWidth
                   />
@@ -553,10 +652,11 @@ export default function DataTable({
           </Box>
         </Paper>
       </Collapse>
+      {/* ... (Fin Filtros) ... */}
 
       {esMovil ? (
         <Box>
-          {rowsFiltrados.map((row) => (
+          {paginatedRows.map((row) => (
             <EntityCard
               key={row.id}
               item={row}
@@ -571,48 +671,227 @@ export default function DataTable({
               }
             />
           ))}
+          {/* Paginación para móvil (simple) */}
+          <TablePagination
+            component="div"
+            rowsPerPageOptions={[5, 10]}
+            colSpan={3}
+            count={rowsFiltrados.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            // --- INICIO DE LA MODIFICACIÓN 3: Se quitan las flechas en móvil ---
+            ActionsComponent={() => null}
+            // --- FIN DE LA MODIFICACIÓN 3 ---
+            labelRowsPerPage="Filas por página:"
+            labelDisplayedRows={({ from, to, count }) =>
+              `Mostrando ${from}–${to} de ${count} ${entidadPlural}`
+            }
+            // --- INICIO DE LA MODIFICACIÓN 4: Se reordena el pie de página móvil ---
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              "& .MuiTablePagination-displayedRows": {
+                order: 1,
+                margin: 0,
+              },
+              "& .MuiTablePagination-selectLabel": {
+                order: 2,
+                margin: 0,
+              },
+              "& .MuiInputBase-root": {
+                order: 3,
+              },
+              "& .MuiTablePagination-actions": {
+                display: "none",
+              },
+            }}
+            // --- FIN DE LA MODIFICACIÓN 4 ---
+          />
         </Box>
       ) : (
-        <Paper
-          variant="outlined"
-          sx={{
-            width: "100%",
-            overflow: "hidden",
-            border: "1px solid #e0e0e0",
-            backgroundColor: "white",
-          }}
-        >
-          <DataGrid
-            rows={rowsFiltrados}
-            columns={columnasConAcciones}
-            autoHeight
-            disableColumnMenu
-            checkboxSelection={false}
-            disableRowSelectionOnClick
-            getRowId={(row) => row.id}
-            getRowClassName={(params) =>
-              params.id === highlightedId ? "highlight" : ""
-            }
-            initialState={{
-              sorting: { sortModel: [{ field: "id", sort: "desc" }] },
-              pagination: { paginationModel: { page: 0, pageSize: 5 } },
-            }}
-            pageSizeOptions={[5, 10]}
+        <Box>
+          <Paper
+            variant="outlined"
             sx={{
-              border: 0,
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: theme.palette.grey[100],
+              width: "100%",
+              overflow: "hidden",
+              border: "1px solid #e0e0e0",
+              backgroundColor: "white",
+            }}
+          >
+            <TableContainer>
+              <Table
+                stickyHeader
+                sx={{
+                  // Se aplican los estilos de la tabla de MUI
+                  "& .MuiTableCell-head": {
+                    backgroundColor: "#f5f6f7",
+                    color: "#5A5A65",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                    letterSpacing: 0.3,
+                    borderBottom: "1px solid #e5e7eb",
+                  },
+                  "& .MuiTableCell-body": {
+                    borderBottom: "1px solid #f0f0f0",
+                    fontSize: "0.9rem",
+                    color: "#5A5A65",
+                  },
+                  "& .MuiTableRow-root:hover": {
+                    backgroundColor: "#FFFBEB", // Ámbar pálido
+                  },
+                  "& .highlight": {
+                    animation: `${highlightAnimation} 4s ease-out`,
+                  },
+                }}
+              >
+                <TableHead>
+                  <TableRow>
+                    {columnasConAcciones.map((col) => (
+                      <TableCell
+                        key={col.field}
+                        align={col.align || "left"}
+                        style={{
+                          width: col.width,
+                          minWidth: col.width,
+                          padding: "14px 18px",
+                        }} // <-- Estilos de celda
+                      >
+                        {col.headerName}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {/* INICIO MODIFICACIÓN 5: Iterar sobre paginatedRows */}
+                  {paginatedRows.map((row) => (
+                    // --- FIN MODIFICACIÓN 5 ---
+                    <TableRow
+                      key={row.id}
+                      className={row.id === highlightedId ? "highlight" : ""}
+                      sx={{
+                        "&:last-child td, &:last-child th": { border: 0 },
+                        borderTop: "0.5px solid #C7C7C7",
+                      }} // <-- Estilos de fila
+                    >
+                      {columnasConAcciones.map((col) => {
+                        let cellValue: any;
+                        if (col.valueGetter) {
+                          // @ts-ignore
+                          cellValue = col.valueGetter(
+                            row[col.field],
+                            row,
+                            col,
+                            React.createRef()
+                          );
+                        } else {
+                          cellValue = row[col.field];
+                        }
+
+                        let cellContent: React.ReactNode;
+                        if (col.renderCell) {
+                          // @ts-ignore
+                          cellContent = col.renderCell({
+                            row: row,
+                            value: cellValue,
+                          });
+                        } else if (col.valueFormatter) {
+                          // @ts-ignore
+                          cellContent = col.valueFormatter(cellValue);
+                        } else {
+                          cellContent = cellValue;
+                        }
+
+                        return (
+                          <TableCell
+                            key={col.field}
+                            align={col.align || "left"}
+                            sx={{ padding: "20px 18px" }} // <-- Estilos de celda
+                          >
+                            {cellContent}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            {/* El TablePagination se movió FUERA del Paper */}
+          </Paper>
+          {/* --- INICIO DE LA MODIFICACIÓN 6 --- */}
+          {/* Pie de página nuevo: Sin flechas, texto a la izquierda, selector a la derecha */}
+          <TablePagination
+            component="div"
+            rowsPerPageOptions={[5, 10]}
+            count={rowsFiltrados.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            // 1. Eliminar las flechas de navegación
+            ActionsComponent={() => null}
+            // 2. Definir el texto de "Filas por página"
+            labelRowsPerPage="Filas por página:"
+            // 3. Definir el texto de "Mostrando..."
+            labelDisplayedRows={({ from, to, count }) =>
+              `Mostrando ${from}–${to} de ${count} ${entidadPlural}`
+            }
+            // 4. Estilos para reordenar
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderTop: `1px solid ${theme.palette.divider}`,
+              backgroundColor: "white",
+              borderBottomLeftRadius: "8px",
+              borderBottomRightRadius: "8px",
+              border: "1px solid #e0e0e0",
+              borderTop: "none",
+              boxSizing: "border-box",
+
+              "& .MuiToolbar-root": {
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between", // Clave
+                alignItems: "center",
+                padding: "0 16px",
               },
-              "& .MuiDataGrid-row:hover": {
-                backgroundColor: theme.palette.action.hover,
+              "& .MuiTablePagination-spacer": {
+                display: "none",
               },
-              "& .highlight": {
-                animation: `${highlightAnimation} 4s ease-out`,
+
+              // LADO IZQUIERDO: "Mostrando..."
+              "& .MuiTablePagination-displayedRows": {
+                order: 1, // <-- 1. Lado Izquierdo
+                margin: 0,
+                fontSize: "0.875rem",
+                color: "text.secondary",
+              },
+
+              // LADO DERECHO: (Contenedor invisible para agrupar)
+              "& .MuiTablePagination-selectLabel": {
+                order: 2, // <-- 2. Lado Derecho
+                fontSize: "0.875rem",
+                color: "text.secondary",
+                m: 0,
+              },
+              "& .MuiInputBase-root": {
+                order: 3, // <-- 3. Lado Derecho
+                marginRight: "0px", // Sin margen
+              },
+              "& .MuiTablePagination-actions": {
+                display: "none", // <-- Ocultar las acciones (flechas)
               },
             }}
-            localeText={esESGrid.components.MuiDataGrid.defaultProps.localeText}
           />
-        </Paper>
+          {/* --- FIN DE LA MODIFICACIÓN 6 --- */}
+        </Box>
       )}
     </Box>
   );
