@@ -5,6 +5,7 @@ import {
   Alert,
   FormControlLabel, // <-- Importar
   Switch, // <-- Importar
+  Typography, // <-- AÑADIR TYPOGRAPHY
 } from "@mui/material";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
@@ -205,7 +206,23 @@ export const CombustibleForm: React.FC = () => {
   return (
     <div>
       {/* --- INICIO DE LA MODIFICACIÓN --- */}
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between", // CAMBIADO
+          alignItems: "center", // AÑADIDO
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h5"
+          component="h1"
+          gutterBottom
+          sx={{ mb: 0, fontWeight: "bold" }} // <-- AÑADIDO fontWeight
+        >
+          Gestionar Cargas de Combustible
+        </Typography>
+
         <BotonPrimario
           onClick={handleCreateNew}
           disabled={isLoading}

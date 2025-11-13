@@ -6,7 +6,7 @@ import DataTable from "../tablas/tablaDinamica";
 import { Carga } from "../../services/cargaService";
 import { useCrud } from "../hook/useCrud";
 import { CrudService } from "../../services/crudService";
-import { Box, Alert } from "@mui/material";
+import { Box, Alert, Typography } from "@mui/material"; // <-- AÑADIR TYPOGRAPHY
 import AddIcon from "@mui/icons-material/Add"; // <-- Importar AddIcon
 import DialogoConfirmacion from "../DialogoConfirmacion";
 import { getHumanReadableError } from "../../utils/errorUtils";
@@ -127,7 +127,23 @@ export const FormCrearCarga: React.FC = () => {
     <div>
       {/* --- INICIO DE LA MODIFICACIÓN --- */}
       {!showForm && (
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
+          <Typography
+            variant="h5"
+            component="h1"
+            gutterBottom
+            sx={{ mb: 0, fontWeight: "bold" }} // <-- AÑADIDO fontWeight
+          >
+            Gestionar Tipos de Carga
+          </Typography>
+
           <BotonPrimario
             onClick={actions.handleCreateNew}
             startIcon={<AddIcon />}

@@ -37,6 +37,7 @@ import {
   ListItemIcon,
   ListItemText,
   ListSubheader,
+  Chip, // <-- 1. IMPORTAR CHIP
 } from "@mui/material";
 // --- (Resto de importaciones se mantienen) ---
 import { BotonDetalles, BotonEditar, BotonEliminar } from "../Botones";
@@ -110,6 +111,175 @@ const highlightAnimation = keyframes`
   0% { background-color: rgba(124, 179, 66, 0.4); }
   100% { background-color: transparent; }
 `;
+
+// --- INICIO DE LA CORRECCIÓN 1: Componente para el Menú de Acciones ---
+// Creamos un componente interno que maneje su propio estado para el menú
+// Esto saca el hook `useState` de dentro del `useMemo` y soluciona el crash.
+const ActionMenuCell: React.FC<{
+  row: any;
+  entidad: Entidad;
+  actionsDisabled: boolean;
+  handleEdit?: (row: any) => void;
+  handleDelete?: (row: any) => void;
+  handleView?: (row: any) => void;
+  handleMostrarHistorial?: (tarifaId: number) => void;
+}> = ({
+  row,
+  entidad,
+  actionsDisabled,
+  handleEdit,
+  handleDelete,
+  handleView,
+  handleMostrarHistorial,
+}) => {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const theme = useTheme();
+  const editColors = (theme.palette as any).actionButtons.edit;
+  const deleteColors = (theme.palette as any).actionButtons.delete;
+  const detailsColors = (theme.palette as any).actionButtons.details;
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleViewClick = () => {
+    if (handleView) handleView(row);
+    handleClose();
+  };
+
+  const handleEditClick = () => {
+    if (handleEdit) handleEdit(row);
+    handleClose();
+  };
+
+  const handleDeleteClick = () => {
+    if (handleDelete) handleDelete(row);
+    handleClose();
+  };
+
+  const handleHistoryClick = () => {
+    if (handleMostrarHistorial) handleMostrarHistorial(row.id);
+    handleClose();
+  };
+
+  const actionCount = [
+    handleView,
+    handleEdit,
+    handleDelete,
+    entidad === "tarifa" && handleMostrarHistorial,
+  ].filter(Boolean).length;
+
+  if (actionCount === 0) {
+    return null;
+  }
+
+  return (
+    <Box>
+      <Tooltip title="Acciones">
+        <IconButton
+          aria-label="acciones"
+          id="acciones-button"
+          aria-controls={open ? "acciones-menu" : undefined}
+          aria-haspopup="true"
+          aria-expanded={open ? "true" : undefined}
+          onClick={handleClick}
+          disabled={actionsDisabled}
+        >
+          <MoreHorizIcon />
+        </IconButton>
+      </Tooltip>
+      <Menu
+        id="acciones-menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        MenuListProps={{
+          "aria-labelledby": "acciones-button",
+          subheader: (
+            <ListSubheader component="div" sx={{ textAlign: "center" }}>
+              Acciones
+            </ListSubheader>
+          ),
+        }}
+      >
+        {handleEdit && (
+          <MenuItem
+            onClick={handleEditClick}
+            sx={{
+              color: editColors.text,
+              paddingY: "6px",
+              paddingX: "12px",
+            }}
+          >
+            <ListItemIcon>
+              <EditIcon fontSize="small" sx={{ color: editColors.text }} />
+            </ListItemIcon>
+            <ListItemText>Editar</ListItemText>
+          </MenuItem>
+        )}
+
+        {handleDelete && (
+          <MenuItem
+            onClick={handleDeleteClick}
+            sx={{
+              color: deleteColors.text,
+              paddingY: "6px",
+              paddingX: "12px",
+            }}
+          >
+            <ListItemIcon>
+              <DeleteOutlineIcon
+                fontSize="small"
+                sx={{ color: deleteColors.text }}
+              />
+            </ListItemIcon>
+            <ListItemText>Eliminar</ListItemText>
+          </MenuItem>
+        )}
+
+        {handleView && (
+          <MenuItem
+            onClick={handleViewClick}
+            sx={{
+              color: detailsColors.text,
+              paddingY: "6px",
+              paddingX: "12px",
+            }}
+          >
+            <ListItemIcon>
+              <VisibilityOutlinedIcon
+                fontSize="small"
+                sx={{ color: detailsColors.text }}
+              />
+            </ListItemIcon>
+            <ListItemText>Detalles</ListItemText>
+          </MenuItem>
+        )}
+
+        {entidad === "tarifa" && handleMostrarHistorial && (
+          <MenuItem
+            onClick={handleHistoryClick}
+            sx={{
+              paddingY: "6px",
+              paddingX: "12px",
+            }}
+          >
+            <ListItemIcon>
+              <HistoryIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Ver Historial</ListItemText>
+          </MenuItem>
+        )}
+      </Menu>
+    </Box>
+  );
+};
+// --- FIN DE LA CORRECCIÓN 1 ---
 
 export default function DataTable({
   rows,
@@ -257,162 +427,22 @@ export default function DataTable({
         sortable: false,
         align: "center",
         headerAlign: "center",
+        // --- INICIO DE LA CORRECCIÓN 2: Usar el componente ActionMenuCell ---
         // @ts-ignore
         renderCell: (params: { row: any }) => {
-          // ... (código de renderCell se mantiene igual) ...
-          const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(
-            null
-          );
-          const open = Boolean(anchorEl);
-
-          const theme = useTheme();
-          const editColors = (theme.palette as any).actionButtons.edit;
-          const deleteColors = (theme.palette as any).actionButtons.delete;
-          const detailsColors = (theme.palette as any).actionButtons.details;
-
-          const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-            setAnchorEl(event.currentTarget);
-          };
-
-          const handleClose = () => {
-            setAnchorEl(null);
-          };
-
-          const handleViewClick = () => {
-            if (handleView) handleView(params.row);
-            handleClose();
-          };
-
-          const handleEditClick = () => {
-            if (handleEdit) handleEdit(params.row);
-            handleClose();
-          };
-
-          const handleDeleteClick = () => {
-            if (handleDelete) handleDelete(params.row);
-            handleClose();
-          };
-
-          const handleHistoryClick = () => {
-            if (handleMostrarHistorial) handleMostrarHistorial(params.row.id);
-            handleClose();
-          };
-
-          const actionCount = [
-            handleView,
-            handleEdit,
-            handleDelete,
-            entidad === "tarifa" && handleMostrarHistorial,
-          ].filter(Boolean).length;
-
-          if (actionCount === 0) {
-            return null;
-          }
-
           return (
-            <Box>
-              <Tooltip title="Acciones">
-                <IconButton
-                  aria-label="acciones"
-                  id="acciones-button"
-                  aria-controls={open ? "acciones-menu" : undefined}
-                  aria-haspopup="true"
-                  aria-expanded={open ? "true" : undefined}
-                  onClick={handleClick}
-                  disabled={actionsDisabled}
-                >
-                  <MoreHorizIcon />
-                </IconButton>
-              </Tooltip>
-              <Menu
-                id="acciones-menu"
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-                MenuListProps={{
-                  "aria-labelledby": "acciones-button",
-                  subheader: (
-                    <ListSubheader component="div" sx={{ textAlign: "center" }}>
-                      Acciones
-                    </ListSubheader>
-                  ),
-                }}
-              >
-                {handleEdit && (
-                  <MenuItem
-                    onClick={handleEditClick}
-                    sx={{
-                      color: editColors.text,
-                      paddingY: "6px",
-                      paddingX: "12px",
-                    }}
-                  >
-                    <ListItemIcon>
-                      <EditIcon
-                        fontSize="small"
-                        sx={{ color: editColors.text }}
-                      />
-                    </ListItemIcon>
-                    <ListItemText>Editar</ListItemText>
-                  </MenuItem>
-                )}
-
-                {handleDelete && (
-                  <MenuItem
-                    onClick={handleDeleteClick}
-                    sx={{
-                      color: deleteColors.text,
-                      paddingY: "6px",
-                      paddingX: "12px",
-                    }}
-                  >
-                    <ListItemIcon>
-                      <DeleteOutlineIcon
-                        fontSize="small"
-                        sx={{ color: deleteColors.text }}
-                      />
-                    </ListItemIcon>
-                    <ListItemText>Eliminar</ListItemText>
-                  </MenuItem>
-                )}
-
-                {handleView && (
-                  <MenuItem
-                    onClick={handleViewClick}
-                    sx={{
-                      color: detailsColors.text,
-                      paddingY: "6px",
-                      paddingX: "12px",
-                    }}
-                  >
-                    <ListItemIcon>
-                      <VisibilityOutlinedIcon
-                        fontSize="small"
-                        sx={{ color: detailsColors.text }}
-                      />
-                    </ListItemIcon>
-                    <ListItemText>Detalles</ListItemText>
-                  </MenuItem>
-                )}
-
-                {entidad === "tarifa" && handleMostrarHistorial && (
-                  <MenuItem
-                    onClick={handleHistoryClick}
-                    sx={{
-                      paddingY: "6px",
-                      paddingX: "12px",
-                    }}
-                  >
-                    <ListItemIcon>
-                      <HistoryIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>Ver Historial</ListItemText>
-                  </MenuItem>
-                )}
-              </Menu>
-            </Box>
+            <ActionMenuCell
+              row={params.row}
+              entidad={entidad}
+              actionsDisabled={actionsDisabled}
+              handleEdit={handleEdit}
+              handleDelete={handleDelete}
+              handleView={handleView}
+              handleMostrarHistorial={handleMostrarHistorial}
+            />
           );
         },
+        // --- FIN DE LA CORRECCIÓN 2 ---
       });
     }
     return cols;
@@ -438,6 +468,36 @@ export default function DataTable({
     litrosCargados: "Litros Cargados",
     precioTotal: "Precio Total",
   };
+
+  // --- INICIO DE LA MODIFICACIÓN (Crear array de filtros activos) ---
+  const activeFilters = useMemo(() => {
+    return Object.entries(filtros)
+      .filter(([key, value]) => !!value) // Filtrar los que tienen valor
+      .map(([key, value]) => {
+        // Buscar la etiqueta legible
+        const label =
+          filterTitles[key] ||
+          columnasBase.find((c) => c.field === key)?.headerName ||
+          key; // Fallback
+        return {
+          key,
+          label,
+          value,
+        };
+      });
+  }, [filtros, columnasBase, filterTitles]);
+
+  const handleRemoveFilter = (key: string) => {
+    setFiltros((prev) => ({
+      ...prev,
+      [key]: "", // Poner el valor en "" para desactivarlo
+    }));
+    // Nota: Esto no limpiará visualmente el campo Autocomplete porque
+    // no está "controlado", pero sí limpiará el filtro de la tabla.
+    // Para limpiar el Autocomplete se necesitaría una refactorización mayor.
+  };
+  // --- FIN DE LA MODIFICACIÓN ---
+
   return (
     <Box sx={{ width: "100%" }}>
       {/* ... (Filtros se mantiene igual) ... */}
@@ -475,9 +535,21 @@ export default function DataTable({
             border: "1px solid #c7c7c7",
           }}
         >
-          <Grid container spacing={2} sx={{ mb: 2 }}>
+          {/* --- INICIO DE LA MODIFICACIÓN (Layout Filtros) --- */}
+          <Box
+            sx={{
+              display: "grid",
+              gap: 2,
+              mb: 2,
+              gridTemplateColumns: {
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(4, 1fr)",
+              },
+            }}
+          >
             {columnasBase.map((col: ColumnDef) => (
-              <Grid item xs={12} sm={6} md={3} key={col.field}>
+              <Box key={col.field}>
                 <Typography
                   variant="caption"
                   color="textSecondary"
@@ -487,32 +559,35 @@ export default function DataTable({
                 </Typography>
                 <FormControl fullWidth variant="outlined">
                   <Autocomplete
-                    size="medium"
+                    size="small" // <-- CAMBIADO A "small"
                     options={valoresUnicosPorColumna[col.field] || []}
                     getOptionLabel={(option) => String(option)}
                     onInputChange={(_, newValue) =>
                       handleFiltroChange(col.field, newValue || "")
                     }
                     renderInput={(params) => (
-                      <TextField {...params} label="" variant="outlined" />
+                      <TextField
+                        {...params}
+                        placeholder={`Seleccionar ${
+                          filterTitles[col.field] || col.headerName
+                        }`}
+                        variant="outlined"
+                      />
                     )}
                     fullWidth
                   />
                 </FormControl>
-              </Grid>
+              </Box>
             ))}
 
             {showHistoricoSwitch && onHistoricoChange && (
-              <Grid
-                item
-                xs={12}
-                sm={6}
-                md={3}
+              <Box
                 sx={{
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: "center", // <-- CAMBIADO A "center"
                   justifyContent: "flex-start",
-                  pt: { xs: 0, md: 3 },
+                  pt: { xs: 0, md: 3.5 }, // <-- CAMBIADO A 3.5
+                  pb: 0,
                 }}
               >
                 <FormControlLabel
@@ -524,11 +599,12 @@ export default function DataTable({
                     />
                   }
                   label="Mostrar histórico completo"
-                  sx={{ mb: 1 }}
+                  sx={{ mb: 0 }}
                 />
-              </Grid>
+              </Box>
             )}
-          </Grid>
+          </Box>
+          {/* --- FIN DE LA MODIFICACIÓN (Layout Filtros) --- */}
 
           <Box
             display="flex"
@@ -591,6 +667,45 @@ export default function DataTable({
       </Collapse>
       {/* ... (Fin Filtros) ... */}
 
+      {/* --- INICIO DE LA MODIFICACIÓN: FILTROS ACTIVOS --- */}
+      {activeFilters.length > 0 && !filtrosVisibles && (
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 1,
+            mb: 2,
+            backgroundColor: "#f5f5f5", // <-- 1. FONDO GRIS CLARO
+            borderRadius: "8px", // <-- Bordes redondeados
+          }}
+        >
+          {activeFilters.map((filter) => (
+            <Chip
+              key={filter.key}
+              label={`${filter.label}: ${filter.value}`}
+              onDelete={() => handleRemoveFilter(filter.key)}
+              size="medium"
+              variant="outlined"
+              sx={{
+                fontWeight: 500,
+                backgroundColor: "#eeeeee",
+                borderColor: "#d0d0d0",
+                // <-- 2. ESTILOS PARA LA X (deleteIcon)
+                "& .MuiChip-deleteIcon": {
+                  // Gris oscuro
+                  color: "#474747ff",
+                  "&:hover": {
+                    color: "#a5a5a5ff", // Gris más oscuro en hover
+                  },
+                },
+              }}
+            />
+          ))}
+        </Box>
+      )}
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
+
       {/* --- (Contenido de Tabla/Cards) --- */}
       {esMovil ? (
         <Box>
@@ -619,8 +734,6 @@ export default function DataTable({
               overflow: "hidden",
               border: "1px solid #e0e0e0",
               backgroundColor: "white",
-              borderBottomLeftRadius: 0,
-              borderBottomRightRadius: 0,
             }}
           >
             <TableContainer>
@@ -642,7 +755,7 @@ export default function DataTable({
                     color: "#5A5A65",
                   },
                   "& .MuiTableRow-root:hover": {
-                    backgroundColor: "#FFFBEB", // Ámbar pálido
+                    backgroundColor: "#f5f5f5", // Gris claro para hover
                   },
                   "& .highlight": {
                     animation: `${highlightAnimation} 4s ease-out`,
@@ -725,9 +838,8 @@ export default function DataTable({
       {/* --- (Fin Contenido de Tabla/Cards) --- */}
 
       {/* --- INICIO: PIE DE PÁGINA PERSONALIZADO (Corregido) --- */}
-      <Paper
-        elevation={0}
-        variant="outlined"
+      <Box
+        /* Cambiamos Paper por Box y eliminamos estilos de fondo/borde */
         sx={{
           width: "100%",
           display: "flex",
@@ -735,15 +847,14 @@ export default function DataTable({
           justifyContent: "space-between",
           alignItems: "center",
           padding: theme.spacing(1, 2),
-          borderTop: "none",
-          borderTopLeftRadius: 0,
-          borderTopRightRadius: 0,
-          backgroundColor: "white",
+          /* Eliminamos: borderTop, borderTopLeftRadius, borderTopRightRadius, backgroundColor */
           gap: 2,
           [theme.breakpoints.down("md")]: {
             flexDirection: "column",
             alignItems: "center",
           },
+          /* Añadimos margen superior para separarlo de la tabla */
+          marginTop: theme.spacing(2),
         }}
       >
         {/* 1. Lado Izquierdo: Mostrando... */}
@@ -812,7 +923,7 @@ export default function DataTable({
           <Pagination
             count={Math.ceil(rowsFiltrados.length / rowsPerPage)}
             page={page + 1}
-            onChange={(event, newPage) => handleChangePage(null, newPage - 1)}
+            onChange={(event, newPage) => setPage(newPage - 1)}
             color="primary"
             size={esMovil ? "small" : "large"}
             showFirstButton={false}
@@ -822,7 +933,7 @@ export default function DataTable({
                 order: 2,
               },
 
-              // --- INICIO: MODIFICACIÓN "HÍBRIDA" ---
+              // ...
 
               "& .MuiPaginationItem-root": {
                 fontWeight: 600,
@@ -844,9 +955,8 @@ export default function DataTable({
                 color: theme.palette.primary.main,
                 border: `1px solid ${theme.palette.primary.main}`,
                 "&:hover": {
-                  // Usamos el color ÁMBAR (secondary.main) para el hover
-                  backgroundColor: theme.palette.secondary.main,
-                  color: theme.palette.primary.main, // Mantenemos el texto naranja
+                  backgroundColor: "#C9471580", // <-- Naranja oscuro + 50% alpha
+                  color: theme.palette.primary.main, // <-- Texto naranja
                 },
               },
 
@@ -855,8 +965,8 @@ export default function DataTable({
                 color: theme.palette.primary.main,
                 border: `1px solid ${theme.palette.primary.main}`,
                 "&:hover": {
-                  // Usamos el color ÁMBAR (secondary.main) para el hover
-                  backgroundColor: theme.palette.secondary.main,
+                  backgroundColor: "#C9471580", // <-- Naranja oscuro + 50% alpha
+                  color: theme.palette.primary.main, // <-- Texto naranja
                 },
               },
               // --- FIN DE LA MODIFICACIÓN (HOVER) ---
@@ -866,12 +976,11 @@ export default function DataTable({
                 backgroundColor: "transparent",
                 color: theme.palette.text.primary,
               },
-              // --- FIN: MODIFICACIÓN "HÍBRIDA" ---
             }}
           />
         </Box>
         {/* --- FIN: Contenedor Derecho --- */}
-      </Paper>
+      </Box>
       {/* --- FIN: PIE DE PÁGINA PERSONALIZADO --- */}
     </Box>
   );

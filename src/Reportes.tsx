@@ -19,9 +19,16 @@ const Reportes: React.FC = () => {
   return (
     // Solo se devuelve el contenido que va dentro del <Paper>
     <>
-      <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 3 }}>
+      {/* --- INICIO DE LA MODIFICACIÓN --- */}
+      <Typography
+        variant="h5"
+        component="h1"
+        gutterBottom
+        sx={{ mb: 3, fontWeight: "bold" }} // <-- AÑADIDO fontWeight
+      >
         Reportes Generales
       </Typography>
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Tabs
           value={tabIndex}

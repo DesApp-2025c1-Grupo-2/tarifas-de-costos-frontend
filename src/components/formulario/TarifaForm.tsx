@@ -11,6 +11,7 @@ import {
   CircularProgress,
   Box,
   Alert,
+  Typography, // <-- 1. ASEGÚRATE DE IMPORTAR TYPOGRAPHY
   // Quitar FormControlLabel y Switch de aquí si no se usan en otro lado
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add"; // <-- Importar AddIcon
@@ -360,16 +361,26 @@ export const FormCrearTarifa: React.FC = () => {
         <Box
           sx={{
             display: "flex",
-            justifyContent: "flex-end", // <-- Alineado a la derecha
-            mb: 2,
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
           }}
         >
+          <Typography
+            variant="h5"
+            component="h1"
+            gutterBottom
+            sx={{ mb: 0, fontWeight: "bold" }} // <-- AÑADIDO fontWeight
+          >
+            Gestionar Tarifas
+          </Typography>
+
           <BotonPrimario
             onClick={handleCrearClick}
             disabled={!dependenciasCargadas}
-            startIcon={<AddIcon />} // <-- Ícono añadido
+            startIcon={<AddIcon />}
           >
-            Nueva Tarifa {/* <-- Texto cambiado */}
+            Nueva Tarifa
           </BotonPrimario>
         </Box>
       )}

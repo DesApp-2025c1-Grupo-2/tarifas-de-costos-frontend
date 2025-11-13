@@ -251,7 +251,23 @@ export const FormCrearZona: React.FC = () => {
     <div>
       {/* --- INICIO DE LA MODIFICACIÓN --- */}
       {!showForm && (
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+          }}
+        >
+          <Typography
+            variant="h5"
+            component="h1"
+            gutterBottom
+            sx={{ mb: 0, fontWeight: "bold" }} // <-- AÑADIDO fontWeight
+          >
+            Gestionar Zonas
+          </Typography>
+
           <BotonPrimario
             onClick={handleCreateNew}
             disabled={isLoading || !dependenciesLoaded}

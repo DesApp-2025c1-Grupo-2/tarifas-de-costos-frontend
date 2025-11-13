@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, Alert } from "@mui/material";
+import { Box, Alert, Typography } from "@mui/material"; // <-- AÑADIR TYPOGRAPHY
 import FormularioDinamico, { Campo } from "../FormularioDinamico";
 import { BotonPrimario, BotonSecundario } from "../../Botones";
 import * as adicionalService from "../../../services/adicionalService"; // Asegúrate que esta ruta es correcta
@@ -219,24 +219,35 @@ export const AdicionalForm: React.FC = () => {
       <Box
         sx={{
           display: "flex",
-          gap: 2,
-          mb: 2,
-          justifyContent: "flex-end", // <-- Alineado a la derecha
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3, // <-- MODIFICADO (era 2)
         }}
       >
-        <BotonSecundario
-          onClick={() => setModalPromoverAbierto(true)}
-          disabled={isSaving}
+        <Typography
+          variant="h5"
+          component="h1"
+          gutterBottom
+          sx={{ mb: 0, fontWeight: "bold" }} // <-- AÑADIDO fontWeight
         >
-          Promover Flotante
-        </BotonSecundario>
-        <BotonPrimario
-          onClick={actions.handleCreateNew}
-          disabled={isSaving}
-          startIcon={<AddIcon />} // <-- Ícono añadido
-        >
-          Crear Adicional
-        </BotonPrimario>
+          Gestionar Adicionales
+        </Typography>
+
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <BotonSecundario
+            onClick={() => setModalPromoverAbierto(true)}
+            disabled={isSaving}
+          >
+            Promover Flotante
+          </BotonSecundario>
+          <BotonPrimario
+            onClick={actions.handleCreateNew}
+            disabled={isSaving}
+            startIcon={<AddIcon />}
+          >
+            Crear Adicional
+          </BotonPrimario>
+        </Box>
       </Box>
       {/* --- FIN DE LA MODIFICACIÓN --- */}
 

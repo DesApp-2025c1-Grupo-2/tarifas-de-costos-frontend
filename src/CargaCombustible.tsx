@@ -8,9 +8,9 @@ const CargaCombustible: React.FC = () => {
   return (
     // Solo se devuelve el contenido que va dentro del <Paper>
     <>
-      <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 3 }}>
+      {/* <Typography variant="h5" component="h1" gutterBottom sx={{ mb: 3 }}>
         Gestionar Cargas de Combustible
-      </Typography>
+      </Typography> */}
       <CombustibleForm />
     </>
   );
