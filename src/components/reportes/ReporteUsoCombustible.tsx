@@ -328,20 +328,20 @@ const ReporteUsoCombustible: React.FC = () => {
                 <Typography variant="body2">Km Totales Recorridos</Typography>
               </Box>
               <Box sx={{ textAlign: "center", p: 1 }}>
-                <Typography variant="h4" color="secondary">
+                <Typography variant="h4" color="primary">
                   {reporte.cantidadCargasCombustible.toLocaleString()}
                 </Typography>
                 <Typography variant="body2">Cargas de Combustible</Typography>
               </Box>
               <Box sx={{ textAlign: "center", p: 1 }}>
-                <Typography variant="h4" color="secondary">
+                <Typography variant="h4" color="primary">
                   {formatLitros(reporte.litrosTotales)}
                 </Typography>
                 <Typography variant="body2">Litros Totales Cargados</Typography>
               </Box>
               <Box sx={{ textAlign: "center", p: 1 }}>
-                <Typography variant="h4">{kmPorLitro.toFixed(1)}</Typography>
-                <Typography variant="body2">Km / Litro (Promedio)</Typography>
+                <Typography variant="h4" color="primary">{kmPorLitro.toFixed(1)}</Typography>
+                <Typography variant="body2" >Km / Litro (Promedio)</Typography>
               </Box>
             </Box>
           </Paper>
