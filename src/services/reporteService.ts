@@ -1,11 +1,8 @@
-// Archivo: src/services/reporteService.ts
 import { apiClient } from './apiClient';
 
 export interface FrecuenciaAdicional { nombreAdicional: string; cantidad: number; }
-export interface TransportistaMasUtilizado { nombreTransportista: string; cantidadTarifas: number; }
 export interface Comparativa { transportista: string; costo: number; tarifaId: number; nombreTarifa: string; }
 export interface ComparativaTransportistaDTO { servicio: string; comparativas: Comparativa[]; }
-export interface ComparativaZonaStats { average: number; count: number; max: number; min: number; sum: number; }
 export interface ComparativaAumento {
   tarifaId: number; nombreTarifa: string;
   valorInicial: number; fechaInicial: string;
@@ -22,44 +19,33 @@ export interface ReporteVehiculoCombustible {
   fechaFin: string;
   viajesPorCarga: number;
   totalKilometros: number;
-  litrosTotales: number; // <-- NUEVO CAMPO
+  litrosTotales: number;
+  viajes: {
+    fecha: string;
+    km: number;
+  }[];
+  cargas: {
+    fecha: string;
+    litros: number;
+  }[];
 }
 
-// [TIPO PARA FILTRO DE ADICIONALES]
 export type FrecuenciaAdicionalesParams = {
-  fechaInicio?: string; // Formato YYYY-MM-DD
-  fechaFin?: string; // Formato YYYY-MM-DD
-};
-
-// [TIPO PARA FILTRO DE ZONAS]
-export type ComparativaZonasParams = {
-  fechaInicio?: string; // Formato YYYY-MM-DD
-  fechaFin?: string; // Formato YYYY-MM-DD
+  fechaInicio?: string;
+  fechaFin?: string;
 };
 
 
 const REPORTES_URL = '/api/reportes';
-const ZONAS_URL = '/api/zonas';
 
-// [FUNCIÓN MODIFICADA]
 export const getFrecuenciaAdicionales = (params: FrecuenciaAdicionalesParams = {}) => {
   const qs = new URLSearchParams(params as any).toString();
   return apiClient.get<FrecuenciaAdicional[]>(`${REPORTES_URL}/frecuencia-adicionales?${qs}`);
 };
 
-export const getTransportistasMasUtilizados = () =>
-  apiClient.get<TransportistaMasUtilizado[]>(`${REPORTES_URL}/transportistas-mas-utilizados`);
-
 export const getComparativaCostos = (params: { [k: string]: string | number }) => {
   const qs = new URLSearchParams(params as any).toString();
   return apiClient.get<ComparativaTransportistaDTO>(`${REPORTES_URL}/comparativa-costos?${qs}`);
-};
-
-// [FUNCIÓN MODIFICADA]
-export const getComparativaGeneralPorZona = (params: ComparativaZonasParams = {}) => {
-  const qs = new URLSearchParams(params as any).toString();
-  // Ajusta el tipo esperado para manejar la posible respuesta string del backend
-  return apiClient.get<Record<string, ComparativaZonaStats | string>>(`${ZONAS_URL}/comparativa-costos?${qs}`);
 };
 
 export const getComparativaAumentos = (fechaInicio: string, fechaFin: string) => {
@@ -69,6 +55,5 @@ export const getComparativaAumentos = (fechaInicio: string, fechaFin: string) =>
 
 export const getReporteUsoCombustible = (vehiculoId: string, fechaInicio: string, fechaFin: string) => {
   const qs = new URLSearchParams({ vehiculoId, fechaInicio, fechaFin }).toString();
-  // Asegúrate que el tipo genérico aquí incluya el nuevo campo
   return apiClient.get<ReporteVehiculoCombustible>(`${REPORTES_URL}/uso-combustible?${qs}`);
 };

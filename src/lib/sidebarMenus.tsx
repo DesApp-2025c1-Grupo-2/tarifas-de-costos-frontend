@@ -38,7 +38,11 @@ export const sidebarMenus = {
       title: "Vehículos",
       link: "https://gestion-de-viajes.vercel.app/vehicles",
     },
-    { src: Layers, title: "Tipos de Vehículos", link: "https://gestion-de-viajes.vercel.app/type-vehicle" },
+    {
+      src: Layers,
+      title: "Tipos de Vehículos",
+      link: "https://gestion-de-viajes.vercel.app/type-vehicle",
+    },
     {
       src: Navigation,
       title: "Viajes",
@@ -73,12 +77,13 @@ export const sidebarMenus = {
     },
   ],
   costos: [
-    { src: DollarSign, title: "Tarifas", link: "tarifas" },
-    { src: ChartColumn, title: "Reportes", link: "reportes" },
-    { src: Fuel, title: "Combustible", link: "combustible" },
     { src: Layers, title: "Adicionales", link: "adicionales" },
     { src: Package, title: "Cargas", link: "tipos-de-carga" },
+    { src: Fuel, title: "Combustible", link: "combustible" },
+    { src: ChartColumn, title: "Reportes", link: "reportes" },
+    { src: DollarSign, title: "Tarifas", link: "tarifas" },
     { src: Map, title: "Zonas", link: "zonas" },
   ],
+
   inicio: [],
 };

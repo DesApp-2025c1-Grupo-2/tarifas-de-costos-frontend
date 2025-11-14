@@ -25,19 +25,14 @@ const formatCurrency = (value: number | any) => {
 };
 
 export const columnas: Columnas = {
-  // --- Definiciones para OTRAS entidades (vehiculo, transportista, etc.) ---
-  // (Asegúrate de que estas definiciones estén correctas según tus DTOs)
   vehiculo: [
-    { field: "id", headerName: "ID", flex: 0.5 },
+    //{ field: "id", headerName: "ID", flex: 0.5 },
     { field: "patente", headerName: "Patente", flex: 1 },
     { field: "marca", headerName: "Marca", flex: 1 },
     { field: "modelo", headerName: "Modelo", flex: 1 },
-    // { field: "anio", headerName: "Año", flex: 1 }, // Asumo que anio existe en VehiculoDTO
-    // { field: "tipoVehiculoNombre", headerName: "Tipo Vehículo", flex: 1.5 }, // Asumo anidación o getter
-    // { field: "capacidadCarga", headerName: "Capacidad Carga (kg)", flex: 1.5, type: "number", }, // Asumo
   ],
   transportista: [
-    { field: "id", headerName: "ID", flex: 0.5 },
+    //{ field: "id", headerName: "ID", flex: 0.5 },
     { field: "cuit", headerName: "CUIT", flex: 1 },
     { field: "nombre_comercial", headerName: "Nombre Comercial", flex: 1.5 }, // Campo del DTO
     {
@@ -60,13 +55,13 @@ export const columnas: Columnas = {
     },
   ],
   tipoDeVehiculo: [
-    { field: "id", headerName: "ID", flex: 0.5 },
+    //{ field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombre", headerName: "Nombre", flex: 1.5 },
     { field: "descripcion", headerName: "Descripción", flex: 2 },
     { field: "licencia_permitida", headerName: "Licencia Permitida", flex: 1 },
   ],
   tipoDeCarga: [
-    { field: "id", headerName: "ID", flex: 0.5 },
+    //{ field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombre", headerName: "Nombre", flex: 2 },
     { field: "descripcion", headerName: "Descripción", flex: 3 },
   ],
@@ -96,7 +91,7 @@ export const columnas: Columnas = {
     },
   ],
   tarifa: [
-    { field: "id", headerName: "ID", flex: 0.5 },
+    //{ field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombreTarifa", headerName: "Tarifa", flex: 1.5 },
     { field: "transportistaNombre", headerName: "Transportista", flex: 1.5 },
     { field: "tipoVehiculoNombre", headerName: "Tipo de vehículo", flex: 1.5 },
@@ -118,7 +113,7 @@ export const columnas: Columnas = {
     },
   ],
   adicional: [
-    { field: "id", headerName: "ID", flex: 0.5 },
+    //{ field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombre", headerName: "Nombre", flex: 1.5 },
     { field: "descripcion", headerName: "Descripción", flex: 2 },
     {
@@ -138,7 +133,7 @@ export const columnas: Columnas = {
 
   // --- DEFINICIÓN CORREGIDA PARA 'zona' ---
   zona: [
-    { field: "id", headerName: "ID", flex: 0.5 },
+    //{ field: "id", headerName: "ID", flex: 0.5 },
     { field: "nombre", headerName: "Nombre", flex: 1.5 },
     { field: "descripcion", headerName: "Descripción", flex: 2 },
     {

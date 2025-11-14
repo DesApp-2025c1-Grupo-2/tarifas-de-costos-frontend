@@ -1,5 +1,14 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { CircularProgress, Box, Alert } from "@mui/material";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import {
+  CircularProgress,
+  Box,
+  Alert,
+  FormControlLabel,
+  Switch,
+  Typography,
+  Button,
+  DialogActions, // <-- Importado
+} from "@mui/material";
 import FormularioDinamico, { Campo } from "./FormularioDinamico";
 import { BotonPrimario } from "../Botones";
 import DataTable from "../tablas/tablaDinamica";
@@ -7,7 +16,14 @@ import * as cargaDeCombustibleService from "../../services/cargaDeCombustibleSer
 import { CargaDeCombustible } from "../../services/cargaDeCombustibleService";
 import { obtenerVehiculo, Vehiculo } from "../../services/vehiculoService";
 import { MessageState } from "../hook/useCrud";
+import AddIcon from "@mui/icons-material/Add";
 import DialogoConfirmacion from "../DialogoConfirmacion";
+
+const getISODate30DaysAgo = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 30);
+  return date.toISOString().split("T")[0];
+};
 
 export const CombustibleForm: React.FC = () => {
   const [cargas, setCargas] = useState<CargaDeCombustible[]>([]);
@@ -17,15 +33,18 @@ export const CombustibleForm: React.FC = () => {
   );
   const [showForm, setShowForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<MessageState | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [idAEliminar, setIdAEliminar] = useState<number | null>(null);
+  const [mostrarHistorico, setMostrarHistorico] = useState(false);
 
-  const cargarDatos = async () => {
+  const cargarDatos = useCallback(async () => {
     setIsLoading(true);
     try {
+      const fechaInicio = mostrarHistorico ? undefined : getISODate30DaysAgo();
       const [cargasData, vehiculosData] = await Promise.all([
-        cargaDeCombustibleService.obtenerCargasDeCombustible(),
+        cargaDeCombustibleService.obtenerCargasDeCombustible(fechaInicio),
         obtenerVehiculo(),
       ]);
       setCargas(cargasData.filter((c) => c.esVigente));
@@ -36,11 +55,11 @@ export const CombustibleForm: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [mostrarHistorico]);
 
   useEffect(() => {
     cargarDatos();
-  }, []);
+  }, [cargarDatos]);
 
   const handleCreateNew = () => {
     setEditingItem(null);
@@ -64,28 +83,33 @@ export const CombustibleForm: React.FC = () => {
 
   const confirmarEliminacion = async () => {
     if (idAEliminar !== null) {
+      setIsSaving(true);
       try {
         await cargaDeCombustibleService.eliminarCargaDeCombustible(idAEliminar);
         setMessage({
-          text: "Carga eliminada con éxito",
+          text: "Carga de combustible eliminada con éxito",
           severity: "success",
         });
         await cargarDatos();
       } catch (err) {
         setMessage({
-          text: "Error al eliminar la carga",
+          text: "Error al eliminar la carga de combustible",
           severity: "error",
         });
       } finally {
         setConfirmDialogOpen(false);
         setIdAEliminar(null);
+        setIsSaving(false);
         setTimeout(() => setMessage(null), 3000);
       }
     }
   };
 
   const handleSubmit = async (values: Record<string, any>) => {
-    const fechaISO = values.fecha ? new Date(values.fecha).toISOString() : new Date().toISOString();
+    setIsSaving(true);
+    const fechaISO = values.fecha
+      ? new Date(values.fecha).toISOString()
+      : new Date().toISOString();
 
     const payload = {
       esVigente: true,
@@ -103,21 +127,29 @@ export const CombustibleForm: React.FC = () => {
           payload
         );
         setMessage({
-          text: "Carga actualizada con éxito",
+          text: "Carga de combustible actualizada con éxito",
           severity: "success",
         });
       } else {
         await cargaDeCombustibleService.crearCargaDeCombustible(payload as any);
-        setMessage({ text: "Carga registrada con éxito", severity: "success" });
+        setMessage({
+          text: "Carga de combustible registrada con éxito",
+          severity: "success",
+        });
       }
       handleCancel();
       await cargarDatos();
     } catch (error: any) {
-        console.error("Error al guardar:", error);
-        const errorMessage = error?.message || "Error desconocido al guardar la carga.";
-        setMessage({ text: `Error al guardar la carga: ${errorMessage}`, severity: "error" });
+      console.error("Error al guardar:", error);
+      const errorMessage =
+        error?.message || "Error desconocido al guardar la carga.";
+      setMessage({
+        text: `Error al guardar la carga: ${errorMessage}`,
+        severity: "error",
+      });
     } finally {
-        setTimeout(() => setMessage(null), 5000);
+      setIsSaving(false);
+      setTimeout(() => setMessage(null), 5000);
     }
   };
 
@@ -174,24 +206,66 @@ export const CombustibleForm: React.FC = () => {
 
   return (
     <div>
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 3 }}>
-        <BotonPrimario onClick={handleCreateNew} disabled={isLoading}>
-          Registrar Carga de Combustible
-        </BotonPrimario>
+      {/* --- INICIO DE LA MODIFICACIÓN: TÍTULO Y BOTONES --- */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography
+          variant="h5"
+          component="h1"
+          gutterBottom
+          sx={{ mb: 0, fontWeight: "bold" }}
+        >
+          Gestionar Cargas de Combustible
+        </Typography>
+
+        {/* Botón desaparece si el modal está abierto */}
+        {!showForm && (
+          <BotonPrimario
+            onClick={handleCreateNew}
+            disabled={isLoading || isSaving}
+            startIcon={<AddIcon />}
+          >
+            Nueva Carga
+          </BotonPrimario>
+        )}
       </Box>
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
-      {showForm && (
-        <FormularioDinamico
-          titulo={editingItem ? "Editar Carga" : "Registrar Nueva Carga"}
-          campos={campos}
-          initialValues={editingItem}
-          onSubmit={handleSubmit}
-          modal
-          open={showForm}
-          onClose={handleCancel}
-        />
-      )}
+      {/* --- INICIO DE LA MODIFICACIÓN: FORMULARIO MODAL --- */}
+      <FormularioDinamico
+        titulo={editingItem ? "Editar Carga" : "Registrar Nueva Carga"}
+        campos={campos}
+        initialValues={editingItem}
+        onSubmit={handleSubmit}
+        // Props de Modal
+        modal={true}
+        open={showForm}
+        onClose={handleCancel}
+      >
+        {/* Botones pasados como children */}
+        <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+          <Button onClick={handleCancel} variant="outlined" disabled={isSaving}>
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            form="formulario-dinamico"
+            variant="contained"
+            disabled={isSaving}
+          >
+            {isSaving ? <CircularProgress size={24} /> : "Guardar"}
+          </Button>
+        </DialogActions>
+      </FormularioDinamico>
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
+      {/* --- INICIO DE LA MODIFICACIÓN: TABLA/LOADING SIEMPRE VISIBLE --- */}
       {isLoading ? (
         <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
           <CircularProgress />
@@ -202,8 +276,13 @@ export const CombustibleForm: React.FC = () => {
           rows={enrichedRows}
           handleEdit={handleEdit}
           handleDelete={handleDelete}
+          showHistoricoSwitch={true}
+          historicoChecked={mostrarHistorico}
+          onHistoricoChange={(e) => setMostrarHistorico(e.target.checked)}
+          actionsDisabled={isSaving}
         />
       )}
+      {/* --- FIN DE LA MODIFICACIÓN --- */}
 
       <DialogoConfirmacion
         open={confirmDialogOpen}
@@ -218,6 +297,7 @@ export const CombustibleForm: React.FC = () => {
           <Alert
             severity={message.severity}
             sx={{ width: "100%", maxWidth: "600px" }}
+            onClose={() => setMessage(null)}
           >
             {message.text}
           </Alert>

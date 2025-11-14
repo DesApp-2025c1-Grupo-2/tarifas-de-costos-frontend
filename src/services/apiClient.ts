@@ -1,8 +1,8 @@
 // Un caché simple en memoria para guardar errores de peticiones GET.
-const errorCache = new Map<string, { error: Error; timestamp: number }>();
-const CACHE_TTL_MS = 300000; // 5 minutos
+// const errorCache = new Map<string, { error: Error; timestamp: number }>(); // <-- ELIMINADO
+// const CACHE_TTL_MS = 300000; // 5 minutos // <-- ELIMINADO
 
-const isCacheValid = (timestamp: number) => (Date.now() - timestamp) < CACHE_TTL_MS;
+// const isCacheValid = (timestamp: number) => (Date.now() - timestamp) < CACHE_TTL_MS; // <-- ELIMINADO
 
 // BASE: en dev usamos proxy (ruta relativa); en prod pegamos a Render
 const ORIGIN = (import.meta as any).env.VITE_API_BASE_URL?.replace(/\/+$/,'') || '';
@@ -30,11 +30,16 @@ export const apiClient = {
   async get<T>(path: string, options?: RequestInit): Promise<T> {
     // path esperado: '/api/...'
     const url = joinUrl(BASE, path);
-    const cacheEntry = errorCache.get(url);
-    if (cacheEntry && isCacheValid(cacheEntry.timestamp)) {
-      console.log(`[Cache] Devolviendo error cacheado para: ${url}`);
-      throw cacheEntry.error;
-    }
+
+    // --- INICIO DE LA MODIFICACIÓN ---
+    // Se elimina toda la lógica de revisión de caché de errores
+    // const cacheEntry = errorCache.get(url);
+    // if (cacheEntry && isCacheValid(cacheEntry.timestamp)) {
+    //   console.log(`[Cache] Devolviendo error cacheado para: ${url}`);
+    //   throw cacheEntry.error;
+    // }
+    // --- FIN DE LA MODIFICACIÓN ---
+
     try {
       const res = await fetch(url, {
         method: 'GET',
@@ -43,16 +48,20 @@ export const apiClient = {
         ...options,
       });
       const data = await handleResponse<T>(res);
-      if (errorCache.has(url)) errorCache.delete(url);
+      // if (errorCache.has(url)) errorCache.delete(url); // <-- ELIMINADO
       return data;
     } catch (err) {
-      console.log(`[Cache] Guardando error para: ${url}`);
-      errorCache.set(url, { error: err as Error, timestamp: Date.now() });
+      // --- INICIO DE LA MODIFICACIÓN ---
+      // Se elimina el guardado en caché del error
+      // console.log(`[Cache] Guardando error para: ${url}`);
+      // errorCache.set(url, { error: err as Error, timestamp: Date.now() });
+      // --- FIN DE LA MODIFICACIÓN ---
       throw err;
     }
   },
 
-  // --- INICIO DE LA CORRECCIÓN ---
+  // (El resto del archivo post, put, baja... sigue igual)
+  // ...
   async post<T>(path: string, data: unknown, options?: RequestInit): Promise<T> {
     const url = joinUrl(BASE, path);
     // Se elimina la verificación del caché de errores para las peticiones POST
@@ -64,12 +73,11 @@ export const apiClient = {
       ...options,
     });
     // Si la petición es exitosa, se limpia cualquier error cacheado para esa URL
-    if (res.ok && errorCache.has(url)) {
-      errorCache.delete(url);
-    }
+    // if (res.ok && errorCache.has(url)) { // <-- ELIMINADO
+    //   errorCache.delete(url); // <-- ELIMINADO
+    // } // <-- ELIMINADO
     return handleResponse<T>(res);
   },
-  // --- FIN DE LA CORRECCIÓN ---
 
   async put<T>(path: string, data: unknown, options?: RequestInit): Promise<T> {
     const url = joinUrl(BASE, path);

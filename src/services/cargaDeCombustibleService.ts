@@ -6,14 +6,19 @@ export type CargaDeCombustible = {
   fecha: string;
   litrosCargados: number;
   numeroTicket: string;
-  precioTotal: number;   
+  precioTotal: number;
   esVigente: boolean;
 };
 
 const CARGA_DE_COMBUSTIBLE_URL = '/api/cargasDeCombustible';
 
-export const obtenerCargasDeCombustible = () =>
-  apiClient.get<CargaDeCombustible[]>(CARGA_DE_COMBUSTIBLE_URL);
+export const obtenerCargasDeCombustible = (fechaInicio?: string) => {
+  const params = new URLSearchParams();
+  if (fechaInicio) {
+    params.append('fechaInicio', fechaInicio);
+  }
+  return apiClient.get<CargaDeCombustible[]>(`${CARGA_DE_COMBUSTIBLE_URL}?${params.toString()}`);
+};
 
 export const crearCargaDeCombustible = (data: Omit<CargaDeCombustible, 'id'>) =>
   apiClient.post<CargaDeCombustible>(CARGA_DE_COMBUSTIBLE_URL, data);
@@ -22,4 +27,4 @@ export const actualizarCargaDeCombustible = (id: number | string, data: Omit<Car
   apiClient.put<CargaDeCombustible>(`${CARGA_DE_COMBUSTIBLE_URL}/${id}`, data);
 
 export const eliminarCargaDeCombustible = (id: number | string) =>
-  apiClient.baja(`${CARGA_DE_COMBUSTIBLE_URL}/${id}/baja`); 
+  apiClient.baja(`${CARGA_DE_COMBUSTIBLE_URL}/${id}/baja`);

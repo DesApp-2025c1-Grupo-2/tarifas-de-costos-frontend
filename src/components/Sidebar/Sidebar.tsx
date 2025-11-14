@@ -7,6 +7,7 @@ import {
   useMediaQuery,
   List,
   Tooltip,
+  Divider, // Importamos el Divider
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Home, Route, ClipboardList, Coins } from "lucide-react";
@@ -60,7 +61,6 @@ export default function Sidebar({
   };
 
   useEffect(() => {
-    // Para asegurar que la sección de costos esté abierta por defecto en esta app
     const isCostosApp =
       window.location.host.includes("tarifas-de-costo") ||
       window.location.port === "8080";
@@ -81,8 +81,9 @@ export default function Sidebar({
       <Toolbar
         sx={{
           justifyContent: "center",
-          minHeight: "80px",
+          minHeight: "90px",
           cursor: "pointer",
+          mb: 1.5,
         }}
         onClick={handleLogoClick}
       >
@@ -95,14 +96,16 @@ export default function Sidebar({
             src={"/img/acmelogo.png"}
             alt="Logística ACME"
             sx={{
-              width: isCollapsed ? 60 : 200,
+              width: isCollapsed ? 60 : 230,
               transition: "width 0.2s ease-in-out",
             }}
           />
         </Tooltip>
       </Toolbar>
 
-      <List sx={{ flexGrow: 1, p: 1, pt: 0, overflowY: "auto" }}>
+      <Divider />
+
+      <List sx={{ flexGrow: 1, p: 1, pt: 2, overflowY: "auto" }}>
         {menuItems.map((item) => {
           if (item.key === "inicio") {
             return (
@@ -158,7 +161,8 @@ export default function Sidebar({
             : drawerWidth,
           boxSizing: "border-box",
           backgroundColor: "white",
-          borderRight: { xs: "none" },
+          borderRight: { xs: "none", md: "1px solid #e0e0e0" },
+          boxShadow: "1px 0 5px rgba(131, 131, 131, 0.1)",
           transition: theme.transitions.create("width", {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,

@@ -22,8 +22,12 @@ export type Tarifa = {
 
 const TARIFAS_URL = '/api/tarifas';
 
-export async function obtenerTarifas(): Promise<Tarifa[]> {
-  const data = await apiClient.get<Tarifa[]>(TARIFAS_URL);
+export async function obtenerTarifas(fechaInicio?: string): Promise<Tarifa[]> {
+  const params = new URLSearchParams();
+  if (fechaInicio) {
+    params.append('fechaInicio', fechaInicio);
+  }
+  const data = await apiClient.get<Tarifa[]>(`${TARIFAS_URL}?${params.toString()}`);
   return data;
 }
 
