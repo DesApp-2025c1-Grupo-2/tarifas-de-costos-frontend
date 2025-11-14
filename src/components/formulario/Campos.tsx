@@ -4,7 +4,7 @@ import TextField from "@mui/material/TextField";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
 import Autocomplete from "@mui/material/Autocomplete";
-import { Input, InputAdornment } from "@mui/material";
+import { Input, InputAdornment, Typography } from "@mui/material"; // Import Typography o InputLabel si se prefiere
 
 type TextProps = {
   label: string;
@@ -15,6 +15,7 @@ type TextProps = {
   helperText?: string;
 };
 
+// --- MODIFICACIÓN 1: BasicTextFields ---
 export const BasicTextFields: React.FC<TextProps> = ({
   label,
   value,
@@ -23,17 +24,33 @@ export const BasicTextFields: React.FC<TextProps> = ({
   error = false,
   helperText = "",
 }) => (
-  <Box sx={{ mb: 1 }}>
+  <Box sx={{ mb: 2 }}>
+    {" "}
+    {/* Añadido un poco más de margen inferior */}
+    {/* 1. Etiqueta externa */}
+    <InputLabel
+      htmlFor={label} // Asocia la etiqueta al campo
+      sx={{
+        mb: 0.5,
+        fontWeight: 500,
+        color: "text.primary",
+        fontSize: "0.875rem",
+      }}
+    >
+      {label}
+    </InputLabel>
     <TextField
+      id={label} // ID para la asociación
       fullWidth
-      label={label}
+      // label={label} // <-- Se quita la etiqueta de aquí
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      margin="normal"
+      margin="dense"
       type={type}
       error={error}
       helperText={helperText}
-      InputLabelProps={type === "datetime-local" ? { shrink: true } : undefined}
+      placeholder={label} // Usamos el label como placeholder
+      // InputLabelProps={{ shrink: true }} // <-- Ya no es necesario
     />
   </Box>
 );
@@ -52,6 +69,7 @@ type AutocompleteFieldProps = {
   helperText?: string;
 };
 
+// --- MODIFICACIÓN 2: BasicAutocomplete ---
 export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({
   label,
   opciones,
@@ -63,8 +81,23 @@ export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({
   const selectedOption = opciones.find((op) => String(op.id) === value) || null;
 
   return (
-    <Box sx={{ mb: 1 }}>
+    <Box sx={{ mb: 2 }}>
+      {" "}
+      {/* Añadido un poco más de margen inferior */}
+      {/* 1. Etiqueta externa */}
+      <InputLabel
+        htmlFor={label} // Asocia la etiqueta al campo
+        sx={{
+          mb: 0.5,
+          fontWeight: 500,
+          color: "text.primary",
+          fontSize: "0.875rem",
+        }}
+      >
+        {label}
+      </InputLabel>
       <Autocomplete
+        id={label} // ID para la asociación
         options={opciones}
         getOptionLabel={(option: Opcion) => option.nombre}
         value={selectedOption}
@@ -77,10 +110,13 @@ export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({
         renderInput={(params) => (
           <TextField
             {...params}
-            label={label}
+            // label={label} // <-- Se quita la etiqueta de aquí
+            size="small"
+            placeholder={`Seleccione ${label}`}
             fullWidth
             error={error}
             helperText={helperText}
+            // InputLabelProps={{ shrink: true }} // <-- Ya no es necesario
           />
         )}
         renderOption={(props, option) => {
@@ -95,6 +131,8 @@ export const BasicAutocomplete: React.FC<AutocompleteFieldProps> = ({
     </Box>
   );
 };
+
+// --- (El resto del archivo no cambia) ---
 
 interface NumberFieldProps {
   label: string;

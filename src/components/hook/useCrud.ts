@@ -1,3 +1,5 @@
+// desapp-2025c1-grupo-2/tarifas-de-costos-frontend/tarifas-de-costos-frontend-feature-final/src/components/hook/useCrud.ts
+
 import { useState, useEffect, useCallback } from 'react';
 import { CrudService } from '../../services/crudService';
 import { getHumanReadableError } from '../../utils/errorUtils';
@@ -104,6 +106,7 @@ export const useCrud = <T extends { id: number | string; activo?: boolean }>(ser
     confirmDelete,
     fetchItems: loadItems,
     setMessage,
+    setHighlightedId, // <-- INICIO DE LA CORRECCIÓN
     actions: {
       handleEdit,
       handleDelete,
@@ -113,3 +116,4 @@ export const useCrud = <T extends { id: number | string; activo?: boolean }>(ser
     },
   };
 };
+// --- FIN DE LA CORRECCIÓN ---

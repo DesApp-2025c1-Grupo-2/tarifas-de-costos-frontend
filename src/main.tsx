@@ -3,6 +3,10 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 
+// 1. Importar el Layout General
+import AppLayout from "./AppLayout";
+
+// 2. Importar las páginas
 import CrearTarifa from "./CrearTarifa";
 import CargaCombustible from "./CargaCombustible";
 import CrearZona from "./CrearZona";
@@ -18,13 +22,58 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <CssBaseline />
       <BrowserRouter>
         <Routes>
+          {/* Redirección principal */}
           <Route path="/" element={<Navigate to="/tarifas" />} />
-          <Route path="/tarifas" element={<CrearTarifa />} />
-          <Route path="/reportes" element={<Reportes />} />
-          <Route path="/combustible" element={<CargaCombustible />} />{" "}
-          <Route path="/tipos-de-carga" element={<CrearCarga />} />
-          <Route path="/zonas" element={<CrearZona />} />
-          <Route path="/adicionales" element={<CrearAdicional />} />
+
+          {/* 3. Envolver cada página con el AppLayout */}
+          <Route
+            path="/tarifas"
+            element={
+              <AppLayout>
+                <CrearTarifa />
+              </AppLayout>
+            }
+          />
+          <Route
+            path="/reportes"
+            element={
+              <AppLayout>
+                <Reportes />
+              </AppLayout>
+            }
+          />
+          <Route
+            path="/combustible"
+            element={
+              <AppLayout>
+                <CargaCombustible />
+              </AppLayout>
+            }
+          />
+          <Route
+            path="/tipos-de-carga"
+            element={
+              <AppLayout>
+                <CrearCarga />
+              </AppLayout>
+            }
+          />
+          <Route
+            path="/zonas"
+            element={
+              <AppLayout>
+                <CrearZona />
+              </AppLayout>
+            }
+          />
+          <Route
+            path="/adicionales"
+            element={
+              <AppLayout>
+                <CrearAdicional />
+              </AppLayout>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
