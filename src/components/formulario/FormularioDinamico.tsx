@@ -1,3 +1,4 @@
+// desapp-2025c1-grupo-2/tarifas-de-costos-frontend/tarifas-de-costos-frontend-feature-final/src/components/formulario/FormularioDinamico.tsx
 import React, { useState, useEffect } from "react";
 import {
   BasicTextFields,
@@ -295,6 +296,15 @@ const FormularioDinamico: React.FC<Props> = ({
     <>
       {titulo && <h2>{titulo}</h2>}
       {contenidoFormulario}
+
+      {/* --- INICIO DE LA CORRECCIÓN --- */}
+      {/* Añadir el modal aquí también para el modo "inline" */}
+      <ModalCrearAdicional
+        open={modalNuevoAdicional}
+        onClose={() => setModalNuevoAdicional(false)}
+        onCrear={handleCrearAdicional}
+      />
+      {/* --- FIN DE LA CORRECCIÓN --- */}
     </>
   );
 };
