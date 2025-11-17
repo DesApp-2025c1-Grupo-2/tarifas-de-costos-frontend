@@ -91,15 +91,20 @@ export default function Sidebar({
           title={isCollapsed ? "Ir a la página de inicio" : ""}
           placement="right"
         >
+          {/* --- INICIO DE LA MODIFICACIÓN --- */}
           <Box
             component="img"
-            src={"/img/acmelogo.png"}
-            alt="Logística ACME"
+            src={isCollapsed ? "/img/logo_chico.jpg" : "/img/logo.jpeg"}
+            alt="Gestión de viajes logo con camión naranja sobre fondo blanco, transmite profesionalismo y confianza"
             sx={{
-              width: isCollapsed ? 60 : 230,
-              transition: "width 0.2s ease-in-out",
+              minHeight: "48px",
+              margin: "12px auto",
+              width: isCollapsed ? "48px" : "90%",
+              transition: "all 0.3s ease-in-out",
+              maxHeight: "140px",
             }}
           />
+          {/* --- FIN DE LA MODIFICACIÓN --- */}
         </Tooltip>
       </Toolbar>
 
